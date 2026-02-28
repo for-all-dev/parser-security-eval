@@ -199,7 +199,7 @@ def curate(
 @app.command()
 def evaluate(
     task: str = typer.Argument(help="Task: 'patching', 'triage', or 'harness'"),
-    model: str = typer.Option("openai/gpt-4o", help="Model to evaluate"),
+    model: str = typer.Option("anthropic/claude-sonnet-4-6", help="Model to evaluate"),
     target: str | None = typer.Option(
         None, help="Parser target filter (e.g. 'libpng')"
     ),
