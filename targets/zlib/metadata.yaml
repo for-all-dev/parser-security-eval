@@ -1,0 +1,10 @@
+name: zlib
+format_type: archive
+language: c
+ossfuzz_project: zlib
+repository: https://github.com/madler/zlib
+ossfuzz_url: https://github.com/google/oss-fuzz/tree/master/projects/zlib
+fuzz_targets:
+  - zlib_uncompress_fuzzer
+has_corpus: true
+has_dictionary: false
