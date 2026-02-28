@@ -1,0 +1,10 @@
+name: libpng
+format_type: binary-image
+language: c
+ossfuzz_project: libpng
+repository: https://github.com/glennrp/libpng
+ossfuzz_url: https://github.com/google/oss-fuzz/tree/master/projects/libpng
+fuzz_targets:
+  - libpng_read_fuzzer
+has_corpus: true
+has_dictionary: false
