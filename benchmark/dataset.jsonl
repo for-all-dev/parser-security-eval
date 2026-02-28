@@ -1,0 +1,209 @@
+{"input": "Vulnerability ID: ARVO-42498959\nTarget: libpng\nCrash Type: Heap-buffer-overflow WRITE {*}\nSanitizer: address\nAffected File: libpng_read_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42482472\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: libxml2_xml_read_memory_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42480826\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: libxml2_xml_read_memory_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42480782\nTarget: libxml2\nCrash Type: Stack-buffer-overflow WRITE {*}\nSanitizer: address\nAffected File: libxml2_xml_read_memory_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42475106\nTarget: libxml2\nCrash Type: Index-out-of-bounds\nSanitizer: undefined\nAffected File: libxml2_xml_read_memory_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42470838\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: libxml2_xml_read_memory_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42470816\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: libxml2_xml_read_memory_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42470727\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: libxml2_xml_read_memory_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42470541\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: libxml2_xml_read_memory_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42470291\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: libxml2_xml_read_memory_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42470158\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: libxml2_xml_read_memory_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42470125\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: libxml2_xml_read_memory_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42470114\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: libxml2_xml_read_memory_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42471662\nTarget: libxml2\nCrash Type: Bad-free\nSanitizer: address\nAffected File: libxml2_xml_reader_for_file_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42471502\nTarget: zlib\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: example_dict_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42470339\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 1\nSanitizer: address\nAffected File: libxml2_xml_read_memory_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42470157\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: libxml2_xml_read_memory_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42470143\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: libxml2_xml_read_memory_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42514763\nTarget: libxml2\nCrash Type: Global-buffer-overflow READ 1\nSanitizer: address\nAffected File: libxml2_xml_read_memory_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42478580\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 8\nSanitizer: address\nAffected File: libxml2_xml_reader_for_file_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42472675\nTarget: libxml2\nCrash Type: Heap-double-free\nSanitizer: address\nAffected File: libxml2_xml_reader_for_file_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42489817\nTarget: libjpeg-turbo\nCrash Type: Heap-buffer-overflow READ 2\nSanitizer: address\nAffected File: libjpeg_turbo_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42487785\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 4\nSanitizer: address\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42487244\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 4\nSanitizer: address\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42486883\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 4\nSanitizer: address\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42486772\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42486665\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 8\nSanitizer: address\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42486565\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 4\nSanitizer: address\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42485599\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 1\nSanitizer: address\nAffected File: html", "target": ""}
+{"input": "Vulnerability ID: ARVO-42485276\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 1\nSanitizer: address\nAffected File: html", "target": ""}
+{"input": "Vulnerability ID: ARVO-42484588\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42484562\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 2\nSanitizer: address\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42502940\nTarget: libxml2\nCrash Type: UNKNOWN READ\nSanitizer: undefined\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42502710\nTarget: libxml2\nCrash Type: UNKNOWN READ\nSanitizer: undefined\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42499472\nTarget: zlib\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: example_dict_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42499041\nTarget: libpng\nCrash Type: Dynamic-stack-buffer-overflow WRITE {*}\nSanitizer: address\nAffected File: libpng_read_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42499019\nTarget: libpng\nCrash Type: Dynamic-stack-buffer-overflow WRITE {*}\nSanitizer: address\nAffected File: libpng_read_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42497161\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 4\nSanitizer: address\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42496802\nTarget: libxml2\nCrash Type: Bad-cast\nSanitizer: undefined\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42495916\nTarget: libjpeg-turbo\nCrash Type: Heap-buffer-overflow READ 1\nSanitizer: address\nAffected File: libjpeg_turbo_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42495497\nTarget: libjpeg-turbo\nCrash Type: Heap-buffer-overflow WRITE 1\nSanitizer: address\nAffected File: compress_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42518431\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42518303\nTarget: libjpeg-turbo\nCrash Type: Heap-buffer-overflow WRITE 1\nSanitizer: address\nAffected File: libjpeg_turbo_fuzzer_dev", "target": ""}
+{"input": "Vulnerability ID: ARVO-42517603\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 4\nSanitizer: address\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42517254\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 4\nSanitizer: address\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42517246\nTarget: libxml2\nCrash Type: UNKNOWN READ\nSanitizer: undefined\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42514324\nTarget: libjpeg-turbo\nCrash Type: UNKNOWN WRITE\nSanitizer: address\nAffected File: decompress_yuv_fuzzer_dev", "target": ""}
+{"input": "Vulnerability ID: ARVO-42514310\nTarget: zlib\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: example_dict_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42510936\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42510687\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42510333\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 8\nSanitizer: address\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42509483\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42509480\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: schema", "target": ""}
+{"input": "Vulnerability ID: ARVO-42509457\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: schema", "target": ""}
+{"input": "Vulnerability ID: ARVO-42509389\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: schema", "target": ""}
+{"input": "Vulnerability ID: ARVO-42509369\nTarget: libxml2\nCrash Type: Invalid-free\nSanitizer: address\nAffected File: schema", "target": ""}
+{"input": "Vulnerability ID: ARVO-42509011\nTarget: libxml2\nCrash Type: Invalid-free\nSanitizer: address\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42531532\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 8\nSanitizer: address\nAffected File: xinclude", "target": ""}
+{"input": "Vulnerability ID: ARVO-42531481\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 8\nSanitizer: address\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42531212\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: html", "target": ""}
+{"input": "Vulnerability ID: ARVO-42531203\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 1\nSanitizer: address\nAffected File: html", "target": ""}
+{"input": "Vulnerability ID: ARVO-42531126\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 1\nSanitizer: address\nAffected File: html", "target": ""}
+{"input": "Vulnerability ID: ARVO-42531115\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: valid", "target": ""}
+{"input": "Vulnerability ID: ARVO-42531092\nTarget: libxml2\nCrash Type: Global-buffer-overflow READ 1\nSanitizer: address\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42529030\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 1\nSanitizer: address\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42528997\nTarget: libxml2\nCrash Type: Heap-buffer-overflow WRITE 1\nSanitizer: address\nAffected File: schema", "target": ""}
+{"input": "Vulnerability ID: ARVO-42528958\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 8\nSanitizer: address\nAffected File: valid", "target": ""}
+{"input": "Vulnerability ID: ARVO-42528951\nTarget: libxml2\nCrash Type: Heap-buffer-overflow WRITE 1\nSanitizer: address\nAffected File: xpath", "target": ""}
+{"input": "Vulnerability ID: ARVO-42528949\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: schema", "target": ""}
+{"input": "Vulnerability ID: ARVO-42528850\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 4\nSanitizer: address\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42528757\nTarget: libxml2\nCrash Type: Heap-buffer-overflow READ {*}\nSanitizer: address\nAffected File: html", "target": ""}
+{"input": "Vulnerability ID: ARVO-42528698\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: valid", "target": ""}
+{"input": "Vulnerability ID: ARVO-42528694\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: valid", "target": ""}
+{"input": "Vulnerability ID: ARVO-42527008\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 2\nSanitizer: address\nAffected File: html", "target": ""}
+{"input": "Vulnerability ID: ARVO-42526375\nTarget: libjpeg-turbo\nCrash Type: Heap-buffer-overflow WRITE 1\nSanitizer: address\nAffected File: transform_fuzzer_2_0_x", "target": ""}
+{"input": "Vulnerability ID: ARVO-42525945\nTarget: libjpeg-turbo\nCrash Type: Invalid-free\nSanitizer: address\nAffected File: transform_fuzzer_2_0_x", "target": ""}
+{"input": "Vulnerability ID: ARVO-42525938\nTarget: libjpeg-turbo\nCrash Type: Heap-buffer-overflow WRITE 1\nSanitizer: address\nAffected File: transform_fuzzer_2_1_x", "target": ""}
+{"input": "Vulnerability ID: ARVO-42525806\nTarget: libjpeg-turbo\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: transform_fuzzer_2_0_x", "target": ""}
+{"input": "Vulnerability ID: ARVO-42525210\nTarget: libxml2\nCrash Type: Global-buffer-overflow READ 1\nSanitizer: address\nAffected File: html", "target": ""}
+{"input": "Vulnerability ID: ARVO-42525192\nTarget: libxml2\nCrash Type: Global-buffer-overflow READ 1\nSanitizer: address\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42522771\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: html", "target": ""}
+{"input": "Vulnerability ID: ARVO-42522712\nTarget: libxml2\nCrash Type: Global-buffer-overflow READ 1\nSanitizer: address\nAffected File: html", "target": ""}
+{"input": "Vulnerability ID: ARVO-42522648\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: valid", "target": ""}
+{"input": "Vulnerability ID: ARVO-42522530\nTarget: libxml2\nCrash Type: Global-buffer-overflow READ 1\nSanitizer: address\nAffected File: html", "target": ""}
+{"input": "Vulnerability ID: ARVO-42522518\nTarget: libxml2\nCrash Type: Global-buffer-overflow READ 1\nSanitizer: address\nAffected File: schema", "target": ""}
+{"input": "Vulnerability ID: ARVO-42522511\nTarget: libxml2\nCrash Type: Global-buffer-overflow READ 1\nSanitizer: address\nAffected File: html", "target": ""}
+{"input": "Vulnerability ID: ARVO-42522507\nTarget: libxml2\nCrash Type: Global-buffer-overflow READ 1\nSanitizer: address\nAffected File: html", "target": ""}
+{"input": "Vulnerability ID: ARVO-42522442\nTarget: libxml2\nCrash Type: Global-buffer-overflow READ 1\nSanitizer: address\nAffected File: schema", "target": ""}
+{"input": "Vulnerability ID: ARVO-42522441\nTarget: libxml2\nCrash Type: Global-buffer-overflow READ 1\nSanitizer: address\nAffected File: html", "target": ""}
+{"input": "Vulnerability ID: ARVO-42522440\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: html", "target": ""}
+{"input": "Vulnerability ID: ARVO-42522360\nTarget: libxml2\nCrash Type: Global-buffer-overflow READ 1\nSanitizer: address\nAffected File: xinclude", "target": ""}
+{"input": "Vulnerability ID: ARVO-42522315\nTarget: libxml2\nCrash Type: Global-buffer-overflow READ 1\nSanitizer: address\nAffected File: schema", "target": ""}
+{"input": "Vulnerability ID: ARVO-42522290\nTarget: libxml2\nCrash Type: Global-buffer-overflow READ 1\nSanitizer: address\nAffected File: html", "target": ""}
+{"input": "Vulnerability ID: ARVO-42522285\nTarget: libxml2\nCrash Type: Global-buffer-overflow READ 1\nSanitizer: address\nAffected File: schema", "target": ""}
+{"input": "Vulnerability ID: ARVO-42522281\nTarget: libxml2\nCrash Type: Global-buffer-overflow READ 1\nSanitizer: address\nAffected File: xinclude", "target": ""}
+{"input": "Vulnerability ID: ARVO-42522277\nTarget: libxml2\nCrash Type: Global-buffer-overflow READ 1\nSanitizer: address\nAffected File: xinclude", "target": ""}
+{"input": "Vulnerability ID: ARVO-42522273\nTarget: libxml2\nCrash Type: Global-buffer-overflow READ 1\nSanitizer: address\nAffected File: html", "target": ""}
+{"input": "Vulnerability ID: ARVO-42522151\nTarget: libxml2\nCrash Type: Global-buffer-overflow READ 1\nSanitizer: address\nAffected File: html", "target": ""}
+{"input": "Vulnerability ID: ARVO-42522132\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: xpath", "target": ""}
+{"input": "Vulnerability ID: ARVO-42522015\nTarget: libxml2\nCrash Type: Global-buffer-overflow READ 1\nSanitizer: address\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42521059\nTarget: libxml2\nCrash Type: Heap-buffer-overflow READ 1\nSanitizer: address\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42520608\nTarget: libjpeg-turbo\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: libjpeg_turbo_fuzzer_dev", "target": ""}
+{"input": "Vulnerability ID: ARVO-378750938\nTarget: libjpeg-turbo\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: decompress_yuv_fuzzer_3_0_x", "target": ""}
+{"input": "Vulnerability ID: ARVO-372547409\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 4\nSanitizer: address\nAffected File: api", "target": ""}
+{"input": "Vulnerability ID: ARVO-369974248\nTarget: libjpeg-turbo\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: decompress_yuv_fuzzer_2_1_x", "target": ""}
+{"input": "Vulnerability ID: ARVO-42538408\nTarget: libjpeg-turbo\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: decompress_yuv_fuzzer_dev", "target": ""}
+{"input": "Vulnerability ID: ARVO-42538231\nTarget: libjpeg-turbo\nCrash Type: Heap-buffer-overflow WRITE 1\nSanitizer: address\nAffected File: transform_fuzzer_2_1_x", "target": ""}
+{"input": "Vulnerability ID: ARVO-42538067\nTarget: libjpeg-turbo\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: libjpeg_turbo_fuzzer_dev", "target": ""}
+{"input": "Vulnerability ID: ARVO-42538039\nTarget: libjpeg-turbo\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: transform_fuzzer_dev", "target": ""}
+{"input": "Vulnerability ID: ARVO-42538037\nTarget: libjpeg-turbo\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: compress_yuv_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42538002\nTarget: libjpeg-turbo\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: compress_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42537958\nTarget: libjpeg-turbo\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: compress12_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42537948\nTarget: libjpeg-turbo\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: compress12_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42537493\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 4\nSanitizer: address\nAffected File: lint", "target": ""}
+{"input": "Vulnerability ID: ARVO-42536963\nTarget: libxml2\nCrash Type: Heap-buffer-overflow READ 1\nSanitizer: address\nAffected File: html", "target": ""}
+{"input": "Vulnerability ID: ARVO-42535569\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: lint", "target": ""}
+{"input": "Vulnerability ID: ARVO-42534845\nTarget: libxml2\nCrash Type: UNKNOWN WRITE\nSanitizer: address\nAffected File: api", "target": ""}
+{"input": "Vulnerability ID: ARVO-42534512\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 8\nSanitizer: address\nAffected File: api", "target": ""}
+{"input": "Vulnerability ID: ARVO-42534044\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 8\nSanitizer: address\nAffected File: api", "target": ""}
+{"input": "Vulnerability ID: ARVO-42533950\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 8\nSanitizer: address\nAffected File: api", "target": ""}
+{"input": "Vulnerability ID: ARVO-42533922\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 8\nSanitizer: address\nAffected File: api", "target": ""}
+{"input": "Vulnerability ID: ARVO-42533913\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: api", "target": ""}
+{"input": "Vulnerability ID: ARVO-42532942\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 4\nSanitizer: address\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42532747\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 4\nSanitizer: address\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42532684\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 8\nSanitizer: address\nAffected File: xml", "target": ""}
+{"input": "Vulnerability ID: ARVO-42532360\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 8\nSanitizer: address\nAffected File: valid", "target": ""}
+{"input": "Vulnerability ID: ARVO-398060138\nTarget: libxml2\nCrash Type: Heap-buffer-overflow WRITE 1\nSanitizer: address\nAffected File: html", "target": ""}
+{"input": "Vulnerability ID: ARVO-392687022\nTarget: libxml2\nCrash Type: Stack-buffer-overflow WRITE {*}\nSanitizer: address\nAffected File: api", "target": ""}
+{"input": "Vulnerability ID: ARVO-42520431\nTarget: libjpeg-turbo\nCrash Type: Heap-buffer-overflow READ 1\nSanitizer: address\nAffected File: transform_fuzzer_dev", "target": ""}
+{"input": "Vulnerability ID: ARVO-42517881\nTarget: libjpeg-turbo\nCrash Type: Index-out-of-bounds\nSanitizer: undefined\nAffected File: transform_fuzzer_dev", "target": ""}
+{"input": "Vulnerability ID: ARVO-42518233\nTarget: libjpeg-turbo\nCrash Type: Segv on unknown address\nSanitizer: address\nAffected File: libjpeg_turbo_fuzzer_dev", "target": ""}
+{"input": "Vulnerability ID: ARVO-42495506\nTarget: libjpeg-turbo\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: compress_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42495540\nTarget: libjpeg-turbo\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: compress_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42541306\nTarget: libxml2\nCrash Type: Heap-buffer-overflow READ 1\nSanitizer: address\nAffected File: libFuzzer_libxml2_xml_read_memory_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42505531\nTarget: libxml2\nCrash Type: Heap-buffer-overflow READ 1\nSanitizer: address\nAffected File: libFuzzer_libxml2_xml_read_memory_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42525300\nTarget: libxml2\nCrash Type: Heap-buffer-overflow WRITE 4\nSanitizer: address\nAffected File: libxml2_xml_read_memory_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42498800\nTarget: libpng\nCrash Type: Dynamic-stack-buffer-overflow WRITE {*}\nSanitizer: address\nAffected File: libpng_read_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-42498788\nTarget: libpng\nCrash Type: Dynamic-stack-buffer-overflow WRITE {*}\nSanitizer: address\nAffected File: libpng_read_fuzzer", "target": ""}
+{"input": "Vulnerability ID: ARVO-435781342\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 8\nSanitizer: address\nAffected File: reader", "target": ""}
+{"input": "Vulnerability ID: ARVO-424242614\nTarget: libxml2\nCrash Type: Heap-buffer-overflow WRITE 1\nSanitizer: address\nAffected File: schema", "target": ""}
+{"input": "Vulnerability ID: ARVO-420638555\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 4\nSanitizer: address\nAffected File: api", "target": ""}
+{"input": "Vulnerability ID: ARVO-420248736\nTarget: libxml2\nCrash Type: Heap-use-after-free READ 8\nSanitizer: address\nAffected File: api", "target": ""}
+{"input": "Vulnerability ID: ARVO-417247563\nTarget: libxml2\nCrash Type: Stack-use-after-scope READ 8\nSanitizer: address\nAffected File: valid", "target": ""}
+{"input": "Vulnerability ID: ARVO-417062198\nTarget: libxml2\nCrash Type: Stack-use-after-scope READ 8\nSanitizer: address\nAffected File: api", "target": ""}
+{"input": "Vulnerability ID: ARVO-411003875\nTarget: libxml2\nCrash Type: Use-of-uninitialized-value\nSanitizer: memory\nAffected File: schema", "target": ""}
+{"input": "Vulnerability ID: OSV-2017-41\nTarget: libpng\nCrash Type: heap-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2017-67\nTarget: libpng\nCrash Type: heap-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2020-2192\nTarget: libjpeg-turbo\nCrash Type: heap-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2021-609\nTarget: libjpeg-turbo\nCrash Type: heap-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2021-654\nTarget: libjpeg-turbo\nCrash Type: heap-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-546\nTarget: libjpeg-turbo\nCrash Type: invalid-free in jpeg_free_large\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2024-1159\nTarget: libjpeg-turbo\nCrash Type: use-of-uninitialized-value in decompress_yuv.cc\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2024-1310\nTarget: libjpeg-turbo\nCrash Type: use-of-uninitialized-value in decompress_yuv.cc\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2026-91\nTarget: libjpeg-turbo\nCrash Type: use-after-poison\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2020-1623\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2020-1667\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2020-1726\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2020-1885\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2020-215\nTarget: libxml2\nCrash Type: use-of-uninitialized-value in xmlstrdup\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2020-755\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2020-89\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2020-908\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2021-777\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2022-1071\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2022-1120\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-1000\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-1301\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-1303\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-1315\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-1365\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-1373\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-162\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-174\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-185\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-188\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-191\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-193\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-195\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-196\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-199\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-204\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-206\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-211\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-212\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-213\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-215\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-249\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-474\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-477\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-61\nTarget: libxml2\nCrash Type: heap-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-684\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-953\nTarget: libxml2\nCrash Type: heap-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-969\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-988\nTarget: libxml2\nCrash Type: heap-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-990\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-999\nTarget: libxml2\nCrash Type: heap-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2024-103\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2024-1209\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2024-193\nTarget: libxml2\nCrash Type: use-of-uninitialized-value in api.c\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2024-194\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2024-198\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2024-217\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2024-634\nTarget: libxml2\nCrash Type: heap-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2024-698\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2024-77\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2024-81\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2024-82\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2025-457\nTarget: libxml2\nCrash Type: heap-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2025-74\nTarget: libxml2\nCrash Type: stack-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}

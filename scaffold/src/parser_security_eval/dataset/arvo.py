@@ -328,6 +328,7 @@ def fetch_arvo_index(cache_dir: Path) -> Path:
                 str(repo_dir),
                 "sparse-checkout",
                 "set",
+                "--skip-checks",
                 str(METADATA_REL_PATH),
             ],
             check=True,

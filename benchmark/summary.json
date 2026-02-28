@@ -1,0 +1,52 @@
+{
+  "total": 209,
+  "by_target": {
+    "libpng": 7,
+    "libxml2": 167,
+    "zlib": 3,
+    "libjpeg-turbo": 32
+  },
+  "by_severity": {
+    "high": 93,
+    "medium": 116
+  },
+  "by_difficulty": {
+    "medium": 167,
+    "easy": 6,
+    "hard": 36
+  },
+  "by_crash_type": {
+    "Heap-buffer-overflow WRITE {*}": 1,
+    "Use-of-uninitialized-value": 49,
+    "Stack-buffer-overflow WRITE {*}": 2,
+    "Index-out-of-bounds": 2,
+    "Bad-free": 1,
+    "Heap-use-after-free READ 1": 6,
+    "Global-buffer-overflow READ 1": 20,
+    "Heap-use-after-free READ 8": 14,
+    "Heap-double-free": 1,
+    "Heap-buffer-overflow READ 2": 1,
+    "Heap-use-after-free READ 4": 13,
+    "Heap-use-after-free READ 2": 2,
+    "UNKNOWN READ": 3,
+    "Dynamic-stack-buffer-overflow WRITE {*}": 4,
+    "Bad-cast": 1,
+    "Heap-buffer-overflow READ 1": 6,
+    "Heap-buffer-overflow WRITE 1": 9,
+    "UNKNOWN WRITE": 2,
+    "Invalid-free": 3,
+    "Heap-buffer-overflow READ {*}": 1,
+    "Segv on unknown address": 1,
+    "Heap-buffer-overflow WRITE 4": 1,
+    "Stack-use-after-scope READ 8": 2,
+    "heap-buffer-overflow": 11,
+    "invalid-free in jpeg_free_large": 1,
+    "use-of-uninitialized-value in decompress_yuv.cc": 2,
+    "use-after-poison": 1,
+    "heap-use-after-free": 27,
+    "use-of-uninitialized-value in xmlstrdup": 1,
+    "global-buffer-overflow": 19,
+    "use-of-uninitialized-value in api.c": 1,
+    "stack-buffer-overflow": 1
+  }
+}
