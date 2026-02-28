@@ -28,15 +28,20 @@ def _count_diff_lines(patch_diff: str) -> int:
 async def apply_patch(sandbox: DockerSandbox, patch_diff: str) -> bool:
     """Apply a unified diff to the source tree in the sandbox.
 
+    Runs ``patch -p1`` from ``/src/<target>`` so that diffs with paths like
+    ``--- a/SAX2.c`` resolve correctly against the oss-fuzz source layout.
     Returns True if the patch applied cleanly.
     """
     with tempfile.NamedTemporaryFile(mode="w", suffix=".diff", delete=False) as f:
         f.write(patch_diff)
         tmp_path = Path(f.name)
 
+    src_dir = f"/src/{sandbox.config.target_name}"
     try:
         await sandbox.copy_in(tmp_path, "/tmp/patch.diff")
-        exit_code, _, _ = await sandbox.exec("patch -p1 < /tmp/patch.diff")
+        exit_code, _, _ = await sandbox.exec(
+            f"cd {src_dir} && patch -p1 --fuzz=3 < /tmp/patch.diff"
+        )
         return exit_code == 0
     finally:
         tmp_path.unlink(missing_ok=True)

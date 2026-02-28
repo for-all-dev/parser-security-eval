@@ -235,7 +235,9 @@ def extract_crash_inputs(
             extracted += 1
 
             if extracted % 20 == 0:
-                logger.info("Progress: %d / %d crash inputs extracted", extracted, total)
+                logger.info(
+                    "Progress: %d / %d crash inputs extracted", extracted, total
+                )
         except subprocess.TimeoutExpired:
             logger.warning("Timeout extracting from %s", image)
             continue

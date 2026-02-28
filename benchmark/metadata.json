@@ -530,7 +530,7 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42487785/crash_input",
       "crash_report_path": "arvo/ARVO-42487785/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42487785/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -919,7 +919,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42495916/crash_input",
       "crash_report_path": "arvo/ARVO-42495916/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42495916/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -943,7 +943,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42495497/crash_input",
       "crash_report_path": "arvo/ARVO-42495497/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42495497/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -966,7 +966,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42518431/crash_input",
       "crash_report_path": "arvo/ARVO-42518431/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42518431/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -990,7 +990,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42518303/crash_input",
       "crash_report_path": "arvo/ARVO-42518303/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42518303/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1018,7 +1018,7 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42517603/crash_input",
       "crash_report_path": "arvo/ARVO-42517603/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42517603/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1042,7 +1042,7 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42517254/crash_input",
       "crash_report_path": "arvo/ARVO-42517254/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42517254/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1065,7 +1065,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42517246/crash_input",
       "crash_report_path": "arvo/ARVO-42517246/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42517246/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1108,7 +1108,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42514310/crash_input",
       "crash_report_path": "arvo/ARVO-42514310/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42514310/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1131,7 +1131,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42510936/crash_input",
       "crash_report_path": "arvo/ARVO-42510936/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42510936/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1158,7 +1158,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42510687/crash_input",
       "crash_report_path": "arvo/ARVO-42510687/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42510687/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1186,7 +1186,7 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42510333/crash_input",
       "crash_report_path": "arvo/ARVO-42510333/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42510333/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1230,7 +1230,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42509480/crash_input",
       "crash_report_path": "arvo/ARVO-42509480/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42509480/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1253,7 +1253,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42509457/crash_input",
       "crash_report_path": "arvo/ARVO-42509457/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42509457/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1276,7 +1276,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42509389/crash_input",
       "crash_report_path": "arvo/ARVO-42509389/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42509389/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1299,7 +1299,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42509369/crash_input",
       "crash_report_path": "arvo/ARVO-42509369/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42509369/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1322,7 +1322,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42509011/crash_input",
       "crash_report_path": "arvo/ARVO-42509011/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42509011/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1350,7 +1350,7 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42531532/crash_input",
       "crash_report_path": "arvo/ARVO-42531532/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42531532/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1377,7 +1377,7 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42531481/crash_input",
       "crash_report_path": "arvo/ARVO-42531481/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42531481/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1400,7 +1400,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42531212/crash_input",
       "crash_report_path": "arvo/ARVO-42531212/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42531212/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1424,7 +1424,7 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42531203/crash_input",
       "crash_report_path": "arvo/ARVO-42531203/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42531203/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1448,7 +1448,7 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42531126/crash_input",
       "crash_report_path": "arvo/ARVO-42531126/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42531126/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1471,7 +1471,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42531115/crash_input",
       "crash_report_path": "arvo/ARVO-42531115/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42531115/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1495,7 +1495,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42531092/crash_input",
       "crash_report_path": "arvo/ARVO-42531092/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42531092/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1519,7 +1519,7 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42529030/crash_input",
       "crash_report_path": "arvo/ARVO-42529030/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42529030/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1543,7 +1543,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42528997/crash_input",
       "crash_report_path": "arvo/ARVO-42528997/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42528997/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1588,7 +1588,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42528951/crash_input",
       "crash_report_path": "arvo/ARVO-42528951/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42528951/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1611,7 +1611,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42528949/crash_input",
       "crash_report_path": "arvo/ARVO-42528949/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42528949/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1635,7 +1635,7 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42528850/crash_input",
       "crash_report_path": "arvo/ARVO-42528850/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42528850/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1660,7 +1660,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42528757/crash_input",
       "crash_report_path": "arvo/ARVO-42528757/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42528757/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1683,7 +1683,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42528698/crash_input",
       "crash_report_path": "arvo/ARVO-42528698/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42528698/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1706,7 +1706,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42528694/crash_input",
       "crash_report_path": "arvo/ARVO-42528694/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42528694/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1730,7 +1730,7 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42527008/crash_input",
       "crash_report_path": "arvo/ARVO-42527008/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42527008/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1754,7 +1754,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42526375/crash_input",
       "crash_report_path": "arvo/ARVO-42526375/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42526375/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1777,7 +1777,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42525945/crash_input",
       "crash_report_path": "arvo/ARVO-42525945/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42525945/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1802,7 +1802,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42525938/crash_input",
       "crash_report_path": "arvo/ARVO-42525938/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42525938/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1825,7 +1825,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42525806/crash_input",
       "crash_report_path": "arvo/ARVO-42525806/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42525806/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1849,7 +1849,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42525210/crash_input",
       "crash_report_path": "arvo/ARVO-42525210/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42525210/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1875,7 +1875,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42525192/crash_input",
       "crash_report_path": "arvo/ARVO-42525192/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42525192/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1900,7 +1900,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42522771/crash_input",
       "crash_report_path": "arvo/ARVO-42522771/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522771/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1924,7 +1924,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42522712/crash_input",
       "crash_report_path": "arvo/ARVO-42522712/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522712/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1947,7 +1947,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42522648/crash_input",
       "crash_report_path": "arvo/ARVO-42522648/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522648/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1971,7 +1971,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42522530/crash_input",
       "crash_report_path": "arvo/ARVO-42522530/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522530/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -1998,7 +1998,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42522518/crash_input",
       "crash_report_path": "arvo/ARVO-42522518/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522518/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2025,7 +2025,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42522511/crash_input",
       "crash_report_path": "arvo/ARVO-42522511/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522511/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2049,7 +2049,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42522507/crash_input",
       "crash_report_path": "arvo/ARVO-42522507/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522507/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2074,7 +2074,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42522442/crash_input",
       "crash_report_path": "arvo/ARVO-42522442/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522442/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2098,7 +2098,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42522441/crash_input",
       "crash_report_path": "arvo/ARVO-42522441/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522441/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2122,7 +2122,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42522440/crash_input",
       "crash_report_path": "arvo/ARVO-42522440/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522440/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2146,7 +2146,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42522360/crash_input",
       "crash_report_path": "arvo/ARVO-42522360/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522360/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2170,7 +2170,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42522315/crash_input",
       "crash_report_path": "arvo/ARVO-42522315/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522315/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2195,7 +2195,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42522290/crash_input",
       "crash_report_path": "arvo/ARVO-42522290/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522290/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2219,7 +2219,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42522285/crash_input",
       "crash_report_path": "arvo/ARVO-42522285/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522285/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2244,7 +2244,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42522281/crash_input",
       "crash_report_path": "arvo/ARVO-42522281/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522281/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2269,7 +2269,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42522277/crash_input",
       "crash_report_path": "arvo/ARVO-42522277/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522277/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2294,7 +2294,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42522273/crash_input",
       "crash_report_path": "arvo/ARVO-42522273/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522273/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2319,7 +2319,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42522151/crash_input",
       "crash_report_path": "arvo/ARVO-42522151/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522151/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2345,7 +2345,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42522132/crash_input",
       "crash_report_path": "arvo/ARVO-42522132/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522132/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2391,7 +2391,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42521059/crash_input",
       "crash_report_path": "arvo/ARVO-42521059/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42521059/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2414,7 +2414,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42520608/crash_input",
       "crash_report_path": "arvo/ARVO-42520608/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42520608/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2437,7 +2437,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-378750938/crash_input",
       "crash_report_path": "arvo/ARVO-378750938/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-378750938/reference_patch.diff",
       "vulnerable_source_ref": null
@@ -2458,7 +2458,7 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-372547409/crash_input",
       "crash_report_path": "arvo/ARVO-372547409/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-372547409/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2481,7 +2481,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-369974248/crash_input",
       "crash_report_path": "arvo/ARVO-369974248/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-369974248/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2525,7 +2525,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42538231/crash_input",
       "crash_report_path": "arvo/ARVO-42538231/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42538231/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2548,7 +2548,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42538067/crash_input",
       "crash_report_path": "arvo/ARVO-42538067/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42538067/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2575,7 +2575,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42538039/crash_input",
       "crash_report_path": "arvo/ARVO-42538039/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42538039/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2602,7 +2602,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42538037/crash_input",
       "crash_report_path": "arvo/ARVO-42538037/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42538037/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2629,7 +2629,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42538002/crash_input",
       "crash_report_path": "arvo/ARVO-42538002/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42538002/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2654,7 +2654,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42537958/crash_input",
       "crash_report_path": "arvo/ARVO-42537958/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42537958/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2679,7 +2679,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42537948/crash_input",
       "crash_report_path": "arvo/ARVO-42537948/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42537948/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2705,7 +2705,7 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42537493/crash_input",
       "crash_report_path": "arvo/ARVO-42537493/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42537493/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2732,7 +2732,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42536963/crash_input",
       "crash_report_path": "arvo/ARVO-42536963/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42536963/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2755,7 +2755,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42535569/crash_input",
       "crash_report_path": "arvo/ARVO-42535569/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42535569/reference_patch.diff",
       "vulnerable_source_ref": null
@@ -2775,7 +2775,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42534845/crash_input",
       "crash_report_path": "arvo/ARVO-42534845/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42534845/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2799,7 +2799,7 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42534512/crash_input",
       "crash_report_path": "arvo/ARVO-42534512/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42534512/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2823,7 +2823,7 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42534044/crash_input",
       "crash_report_path": "arvo/ARVO-42534044/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42534044/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2847,7 +2847,7 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42533950/crash_input",
       "crash_report_path": "arvo/ARVO-42533950/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42533950/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2871,7 +2871,7 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42533922/crash_input",
       "crash_report_path": "arvo/ARVO-42533922/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42533922/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2894,7 +2894,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42533913/crash_input",
       "crash_report_path": "arvo/ARVO-42533913/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42533913/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2918,7 +2918,7 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42532942/crash_input",
       "crash_report_path": "arvo/ARVO-42532942/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42532942/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2942,7 +2942,7 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42532747/crash_input",
       "crash_report_path": "arvo/ARVO-42532747/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42532747/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2966,7 +2966,7 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42532684/crash_input",
       "crash_report_path": "arvo/ARVO-42532684/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42532684/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -2990,7 +2990,7 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42532360/crash_input",
       "crash_report_path": "arvo/ARVO-42532360/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42532360/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -3014,7 +3014,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-398060138/crash_input",
       "crash_report_path": "arvo/ARVO-398060138/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-398060138/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -3038,7 +3038,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-392687022/crash_input",
       "crash_report_path": "arvo/ARVO-392687022/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-392687022/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -3062,7 +3062,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42520431/crash_input",
       "crash_report_path": "arvo/ARVO-42520431/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42520431/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -3085,7 +3085,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42517881/crash_input",
       "crash_report_path": "arvo/ARVO-42517881/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42517881/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -3108,7 +3108,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42518233/crash_input",
       "crash_report_path": "arvo/ARVO-42518233/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42518233/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -3131,7 +3131,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42495506/crash_input",
       "crash_report_path": "arvo/ARVO-42495506/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42495506/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -3154,7 +3154,7 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42495540/crash_input",
       "crash_report_path": "arvo/ARVO-42495540/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42495540/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -3283,7 +3283,7 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-435781342/crash_input",
       "crash_report_path": "arvo/ARVO-435781342/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-435781342/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -3307,7 +3307,7 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-424242614/crash_input",
       "crash_report_path": "arvo/ARVO-424242614/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-424242614/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -3331,7 +3331,7 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-420638555/crash_input",
       "crash_report_path": "arvo/ARVO-420638555/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-420638555/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -3356,7 +3356,7 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-420248736/crash_input",
       "crash_report_path": "arvo/ARVO-420248736/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-420248736/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -3381,7 +3381,7 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-417247563/crash_input",
       "crash_report_path": "arvo/ARVO-417247563/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-417247563/reference_patch.diff",
       "vulnerable_source_ref": null,
@@ -3405,7 +3405,7 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-417062198/crash_input",
       "crash_report_path": "arvo/ARVO-417062198/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-417062198/reference_patch.diff",
       "vulnerable_source_ref": null,
