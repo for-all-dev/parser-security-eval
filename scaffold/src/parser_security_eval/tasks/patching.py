@@ -77,14 +77,39 @@ When you are satisfied, include your final working diff in a ```diff fenced bloc
 """
 
 
-def _extract_crash_line(crash_report: str, filename: str) -> int | None:
-    """Parse ASAN stack frames to find the line number for *filename*.
+def _extract_crash_line(
+    crash_report: str, filename: str, content: str | None = None
+) -> int | None:
+    """Parse ASAN stack frames to find an anchor line number for *filename*.
 
-    Looks for patterns like ``file.c:123`` in the stack trace.
+    Strategy 1: look for ``file.c:123`` patterns in the stack trace for the
+    exact basename of *filename*.
+
+    Strategy 2 (fallback): parse all function names from ASAN frames
+    (``in <funcname> `` patterns), then scan *content* line by line for the
+    first line that looks like a C function definition for any of those names
+    (``funcname(`` pattern).  This handles the common case where the crash
+    surface is in a different file from the fix site.
     """
     basename = Path(filename).name
+    # Strategy 1: exact file:line match
     for m in re.finditer(rf"{re.escape(basename)}:(\d+)", crash_report):
         return int(m.group(1))
+
+    # Strategy 2: match ASAN frame function names against source content
+    if content is not None:
+        # Extract all function names from ASAN frames: "    #N 0xADDR in funcname "
+        func_names: list[str] = re.findall(r"\bin (\w+)\s", crash_report)
+        if func_names:
+            # Build a set for O(1) lookup; preserve order via the list
+            func_set = set(func_names)
+            for lineno, line in enumerate(content.splitlines(), start=1):
+                # Match a C function definition: funcname( at the start of a token
+                # Use word boundary so "foo" doesn't match "foobar("
+                for name in func_set:
+                    if re.search(rf"\b{re.escape(name)}\s*\(", line):
+                        return lineno
+
     return None
 
 
@@ -92,7 +117,7 @@ def _truncate_source(
     content: str,
     filename: str,
     crash_report: str | None,
-    max_lines: int = 400,
+    max_lines: int = 600,
 ) -> str:
     """Window source around the crash site, or return the first *max_lines*."""
     lines = content.splitlines(keepends=True)
@@ -101,7 +126,7 @@ def _truncate_source(
 
     anchor: int | None = None
     if crash_report:
-        anchor = _extract_crash_line(crash_report, filename)
+        anchor = _extract_crash_line(crash_report, filename, content)
 
     if anchor is not None:
         half = max_lines // 2
@@ -146,15 +171,33 @@ def _extract_diff_from_state(state: TaskState) -> str | None:
 
     Scans assistant messages in reverse so we pick up the most recent working
     diff even if the model kept iterating after producing one.
+
+    Three-pass fallback strategy:
+    1. Text content of assistant messages (in reverse order).
+    2. ``try_patch`` tool call ``diff`` arguments (in reverse order) — handles
+       the case where the message limit was hit with a tool result as the last
+       message, leaving ``state.output.completion`` empty.
+    3. ``state.output.completion`` itself.
     """
+    # Pass 1: text content of assistant messages
     for msg in reversed(state.messages):
         if isinstance(msg, ChatMessageAssistant):
             text = msg.text
             diff = _extract_diff(text)
             if diff:
                 return diff
-    # final fallback: output.completion (covers the case where the last
-    # generate() produced text that didn't make it into messages yet)
+
+    # Pass 2: try_patch tool call arguments
+    for msg in reversed(state.messages):
+        if isinstance(msg, ChatMessageAssistant) and msg.tool_calls:
+            for tc in reversed(msg.tool_calls):
+                if tc.function == "try_patch":
+                    diff_arg: str | None = tc.arguments.get("diff")
+                    if diff_arg and diff_arg.lstrip().startswith(("---", "+++")):
+                        return diff_arg
+
+    # Pass 3: output.completion (covers the case where the last generate()
+    # produced text that didn't make it into messages yet)
     return _extract_diff(state.output.completion)
 
 
