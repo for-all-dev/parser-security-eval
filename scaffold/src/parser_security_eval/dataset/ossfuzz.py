@@ -230,7 +230,7 @@ def _extract_severity(bug: dict[str, Any], crash_type: str) -> Severity:
         score_str = sev_entry.get("score", "")
         try:
             score = float(score_str)
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             continue
         if score >= 9.0:
             return Severity.CRITICAL
@@ -268,7 +268,7 @@ def _estimate_difficulty(bug: dict[str, Any]) -> Difficulty:
     if lines is not None:
         try:
             n = int(lines)
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             n = 0
         if n <= 5:
             return Difficulty.EASY

@@ -1,0 +1,64 @@
+{"input": "Vulnerability ID: OSV-2017-41\nTarget: libpng\nCrash Type: heap-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2017-67\nTarget: libpng\nCrash Type: heap-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2020-2192\nTarget: libjpeg-turbo\nCrash Type: heap-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2021-609\nTarget: libjpeg-turbo\nCrash Type: heap-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2021-654\nTarget: libjpeg-turbo\nCrash Type: heap-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-546\nTarget: libjpeg-turbo\nCrash Type: invalid-free in jpeg_free_large\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2024-1159\nTarget: libjpeg-turbo\nCrash Type: use-of-uninitialized-value in decompress_yuv.cc\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2024-1310\nTarget: libjpeg-turbo\nCrash Type: use-of-uninitialized-value in decompress_yuv.cc\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2026-91\nTarget: libjpeg-turbo\nCrash Type: use-after-poison\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2020-1623\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2020-1667\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2020-1726\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2020-1885\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2020-215\nTarget: libxml2\nCrash Type: use-of-uninitialized-value in xmlstrdup\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2020-755\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2020-89\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2020-908\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2021-777\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2022-1071\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2022-1120\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-1000\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-1301\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-1303\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-1315\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-1365\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-1373\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-162\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-174\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-185\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-188\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-191\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-193\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-195\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-196\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-199\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-204\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-206\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-211\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-212\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-213\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-215\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-249\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-474\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-477\nTarget: libxml2\nCrash Type: global-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-61\nTarget: libxml2\nCrash Type: heap-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-684\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-953\nTarget: libxml2\nCrash Type: heap-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-969\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-988\nTarget: libxml2\nCrash Type: heap-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-990\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2023-999\nTarget: libxml2\nCrash Type: heap-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2024-103\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2024-1209\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2024-193\nTarget: libxml2\nCrash Type: use-of-uninitialized-value in api.c\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2024-194\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2024-198\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2024-217\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2024-634\nTarget: libxml2\nCrash Type: heap-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2024-698\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2024-77\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2024-81\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2024-82\nTarget: libxml2\nCrash Type: heap-use-after-free\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2025-457\nTarget: libxml2\nCrash Type: heap-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
+{"input": "Vulnerability ID: OSV-2025-74\nTarget: libxml2\nCrash Type: stack-buffer-overflow\nSanitizer: address\nAffected File: unknown", "target": ""}
