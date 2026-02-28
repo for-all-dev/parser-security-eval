@@ -228,6 +228,9 @@ def evaluate(
         help="Only include samples with all required artifacts "
         "(crash_input for patching, crash_report for triage)",
     ),
+    sample_id: str | None = typer.Option(
+        None, help="Run only the sample with this ID (passed to inspect_eval)"
+    ),
 ) -> None:
     """Run an Inspect-AI evaluation task."""
     from inspect_ai import eval as inspect_eval
@@ -273,7 +276,10 @@ def evaluate(
         )
         raise typer.Exit(1)
 
-    logs = inspect_eval(inspect_task, model=model, limit=limit)
+    eval_kwargs: dict[str, object] = {"model": model, "limit": limit}
+    if sample_id is not None:
+        eval_kwargs["sample_id"] = sample_id
+    logs = inspect_eval(inspect_task, **eval_kwargs)
 
     for log in logs:
         typer.echo(f"\nTask:   {log.eval.task}")
