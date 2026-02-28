@@ -148,6 +148,21 @@ class TestRebuildTarget:
         cmd = sandbox.exec.call_args[0][0]
         assert "compile" in cmd
 
+    def test_default_engine_is_libfuzzer(self) -> None:
+        sandbox = make_sandbox()
+        sandbox.exec.return_value = (0, "", "")
+        asyncio.run(rebuild_target(sandbox))
+        cmd = sandbox.exec.call_args[0][0]
+        assert "FUZZING_ENGINE=libfuzzer" in cmd
+
+    def test_passes_fuzzing_engine(self) -> None:
+        sandbox = make_sandbox()
+        sandbox.exec.return_value = (0, "", "")
+        asyncio.run(rebuild_target(sandbox, fuzzing_engine="afl"))
+        cmd = sandbox.exec.call_args[0][0]
+        assert "FUZZING_ENGINE=afl" in cmd
+        assert "FUZZING_ENGINE=libfuzzer" not in cmd
+
 
 # ---------------------------------------------------------------------------
 # check_crash_eliminated
@@ -368,3 +383,23 @@ class TestScorePatch:
         )
         compile_cmd = sandbox.exec.call_args_list[1][0][0]
         assert "SANITIZER=memory" in compile_cmd
+
+    def test_custom_engine_passed_through(self) -> None:
+        sandbox = make_sandbox()
+        sandbox.exec.side_effect = [
+            (0, "", ""),  # patch
+            (0, "", ""),  # compile
+            (0, "", ""),  # crash check
+            (0, "", ""),  # tests
+        ]
+        self._run(
+            score_patch(
+                sandbox,
+                MINIMAL_DIFF,
+                "/tmp/crash",
+                "/out/fuzzer",
+                fuzzing_engine="honggfuzz",
+            )
+        )
+        compile_cmd = sandbox.exec.call_args_list[1][0][0]
+        assert "FUZZING_ENGINE=honggfuzz" in compile_cmd
