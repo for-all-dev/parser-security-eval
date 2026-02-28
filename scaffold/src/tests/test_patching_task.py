@@ -10,11 +10,15 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from inspect_ai.tool import ToolCall
+
 from parser_security_eval.tasks.patching import (
+    _extract_crash_line,
     _extract_diff,
     _extract_diff_from_state,
     _patch_result_to_score,
     _resolve_fuzz_binary,
+    _truncate_source,
     load_patching_dataset,
     patching_solver,
     vulnerability_patching,
@@ -163,9 +167,13 @@ class TestExtractDiffFromState:
 
     def test_picks_most_recent_diff(self) -> None:
         msgs = [
-            ChatMessageAssistant(content="```diff\n--- a/old.c\n+++ b/old.c\n@@ -1 +1 @@\n-x\n+y\n```"),
+            ChatMessageAssistant(
+                content="```diff\n--- a/old.c\n+++ b/old.c\n@@ -1 +1 @@\n-x\n+y\n```"
+            ),
             ChatMessageAssistant(content="Improving patch."),
-            ChatMessageAssistant(content="```diff\n--- a/new.c\n+++ b/new.c\n@@ -1 +1 @@\n-x\n+z\n```"),
+            ChatMessageAssistant(
+                content="```diff\n--- a/new.c\n+++ b/new.c\n@@ -1 +1 @@\n-x\n+z\n```"
+            ),
         ]
         state = _make_state_with_messages(msgs)
         result = _extract_diff_from_state(state)
@@ -193,6 +201,113 @@ class TestExtractDiffFromState:
         state = _make_state_with_messages(msgs, completion="")
         result = _extract_diff_from_state(state)
         assert result is None
+
+    def test_recovers_diff_from_try_patch_tool_call(self) -> None:
+        """Bug 3: when output.completion is empty and no text diff in messages,
+        fall back to the diff argument of the last try_patch tool call."""
+        raw_diff = "--- a/f.c\n+++ b/f.c\n@@ -1 +1 @@\n-old\n+new\n"
+        tc = ToolCall(id="tc1", function="try_patch", arguments={"diff": raw_diff})
+        msg = ChatMessageAssistant(content="Applying patch.", tool_calls=[tc])
+        state = _make_state_with_messages([msg], completion="")
+        result = _extract_diff_from_state(state)
+        assert result is not None
+        assert "--- a/f.c" in result
+
+    def test_ignores_non_try_patch_tool_calls(self) -> None:
+        """Tool calls for compile_target or run_crash_input should not be used."""
+        tc = ToolCall(
+            id="tc2",
+            function="compile_target",
+            arguments={"diff": "--- a/x.c\n+++ b/x.c\n"},
+        )
+        msg = ChatMessageAssistant(content="Compiling.", tool_calls=[tc])
+        state = _make_state_with_messages([msg], completion="")
+        result = _extract_diff_from_state(state)
+        assert result is None
+
+    def test_prefers_message_text_over_tool_call_arg(self) -> None:
+        """If a text diff exists in message content, prefer it over tool call arg."""
+        text_diff = "--- a/text.c\n+++ b/text.c\n@@ -1 +1 @@\n-a\n+b\n"
+        arg_diff = "--- a/tool.c\n+++ b/tool.c\n@@ -1 +1 @@\n-x\n+y\n"
+        tc = ToolCall(id="tc3", function="try_patch", arguments={"diff": arg_diff})
+        msg = ChatMessageAssistant(content=f"```diff\n{text_diff}```", tool_calls=[tc])
+        state = _make_state_with_messages([msg], completion="")
+        result = _extract_diff_from_state(state)
+        assert result is not None
+        assert "text.c" in result
+
+
+# ---------------------------------------------------------------------------
+# _extract_crash_line / _truncate_source (Bug 2 regression tests)
+# ---------------------------------------------------------------------------
+
+
+class TestExtractCrashLine:
+    def test_finds_line_by_filename(self) -> None:
+        report = "    #0 0x1234 in some_func /src/libpng/pngrutil.c:42"
+        result = _extract_crash_line(report, "pngrutil.c")
+        assert result == 42
+
+    def test_returns_none_when_filename_absent(self) -> None:
+        report = "    #0 0x1234 in foo /src/libpng/other.c:10"
+        result = _extract_crash_line(report, "pngrutil.c")
+        assert result is None
+
+    def test_strategy2_finds_function_in_content(self) -> None:
+        """When filename not in report, match ASAN function names against source."""
+        report = "    #0 0xABCD in xmlSAX2CDataBlock /src/libxml2/SAX2.c:2805"
+        content = (
+            "\n" * 100 + "int xmlSAX2CDataBlock(void *ctx, const xmlChar *value) {\n"
+        )
+        # filename is a different file, so strategy 1 fails
+        result = _extract_crash_line(report, "other_file.c", content)
+        assert result == 101  # 100 blank lines + 1
+
+    def test_strategy2_returns_none_when_no_match(self) -> None:
+        report = "    #0 0xABCD in unknownFunc /src/foo/bar.c:10"
+        content = "void someOtherFunc(void) {}\n"
+        result = _extract_crash_line(report, "notbar.c", content)
+        assert result is None
+
+
+class TestTruncateSource:
+    def test_short_file_returned_unchanged(self) -> None:
+        content = "line1\nline2\n"
+        result = _truncate_source(content, "f.c", None)
+        assert result == content
+
+    def test_default_max_lines_is_600(self) -> None:
+        """The default max_lines should be 600, not 400."""
+        import inspect as stdlib_inspect
+
+        sig = stdlib_inspect.signature(_truncate_source)
+        assert sig.parameters["max_lines"].default == 600
+
+    def test_falls_back_to_start_when_no_anchor(self) -> None:
+        content = "\n".join(f"line{i}" for i in range(700)) + "\n"
+        result = _truncate_source(content, "nofile.c", None)
+        assert "[lines 1–600 of 700]" in result
+
+    def test_anchors_around_crash_line_in_filename(self) -> None:
+        # Build a 700-line file; crash at line 650
+        lines = [f"line{i}\n" for i in range(1, 701)]
+        content = "".join(lines)
+        report = "    #0 0x1 in foo /src/f.c:650"
+        result = _truncate_source(content, "f.c", report, max_lines=100)
+        # anchor=650, half=50, start=600, end=700
+        assert "[lines 601–700 of 700]" in result
+
+    def test_strategy2_anchors_when_filename_absent(self) -> None:
+        """When filename not in report, function name scan should provide the anchor."""
+        report = "    #0 0xABCD in targetFunc /src/other.c:10"
+        # 700-line file, function definition at line 650
+        lines = [f"// line {i}\n" for i in range(1, 650)]
+        lines.append("int targetFunc(int x) {\n")  # line 650
+        lines.extend([f"// line {i}\n" for i in range(651, 701)])
+        content = "".join(lines)
+        result = _truncate_source(content, "unrelated.c", report, max_lines=100)
+        # anchor=650, half=50, start=600, end=700
+        assert "[lines 601–700 of 700]" in result
 
 
 # ---------------------------------------------------------------------------
