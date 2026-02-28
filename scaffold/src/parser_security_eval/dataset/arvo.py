@@ -396,12 +396,20 @@ def ingest_arvo(
     cache_dir: Path,
     output_dir: Path,
     limit: int | None = None,
+    targets: set[str] | None = None,
 ) -> list[VulnerabilityRecord]:
     """Ingest ARVO dataset, filter for parser vulns, write to output_dir.
 
+    Parameters
+    ----------
+    targets:
+        If provided, only ingest records whose ``target`` (lowercased)
+        is in this set.  This avoids creating thousands of artifact stub
+        directories for projects that will be filtered out downstream.
+
     Steps:
     1. Clone/update the ARVO repo and locate ``metadata.jsonl``.
-    2. Stream entries, filter for parser-related projects.
+    2. Stream entries, filter for parser-related projects (and *targets*).
     3. Convert each to a ``VulnerabilityRecord``.
     4. Write ``records.jsonl``, ``crash_report.txt``, and ``reference_patch.diff``
        stubs per vulnerability into *output_dir*.
@@ -420,6 +428,10 @@ def ingest_arvo(
             entry = json.loads(line)
             record = parse_arvo_entry(entry)
             if record is None:
+                continue
+
+            # Skip records not matching requested targets
+            if targets is not None and record.target.lower() not in targets:
                 continue
 
             # Write per-vulnerability artifact stubs

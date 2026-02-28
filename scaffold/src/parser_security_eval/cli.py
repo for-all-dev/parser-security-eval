@@ -95,15 +95,11 @@ def run_curation_pipeline(
     if source in ("arvo", "all"):
         logger.info("Ingesting from ARVO (targets: %s)", targets)
         arvo_output = output / "arvo"
-        arvo_records = ingest_arvo(cache_dir, arvo_output, limit=limit)
-        # Filter to requested targets
-        filtered = [r for r in arvo_records if r.target.lower() in target_set]
-        logger.info(
-            "ARVO: %d records total, %d matching targets",
-            len(arvo_records),
-            len(filtered),
+        arvo_records = ingest_arvo(
+            cache_dir, arvo_output, limit=limit, targets=target_set
         )
-        all_records.extend(filtered)
+        logger.info("ARVO: %d records matching targets", len(arvo_records))
+        all_records.extend(arvo_records)
 
     # --- oss-fuzz ingestion ---
     if source in ("ossfuzz", "all"):

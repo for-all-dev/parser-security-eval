@@ -168,9 +168,13 @@ class TestRunCurationPipeline:
     def test_arvo_source(self, tmp_path: Path) -> None:
         """Pipeline with source='arvo' should only call ARVO ingestion."""
         mock_records = self._mock_arvo_records(TIER1_TARGETS)
+        # ingest_arvo now filters by targets internally, so the mock
+        # should only return matching records (simulating that behavior).
+        tier1_set = {t.lower() for t in TIER1_TARGETS}
+        filtered_records = [r for r in mock_records if r.target.lower() in tier1_set]
 
         with patch(
-            "parser_security_eval.cli.ingest_arvo", return_value=mock_records
+            "parser_security_eval.cli.ingest_arvo", return_value=filtered_records
         ) as mock_ingest:
             summary = run_curation_pipeline(
                 source="arvo",
@@ -180,7 +184,6 @@ class TestRunCurationPipeline:
             )
 
         mock_ingest.assert_called_once()
-        # Should have filtered out the ffmpeg record
         assert summary["total"] == 20  # 4 targets * 5 records each
         assert "ffmpeg" not in summary["by_target"]
         # Check exports exist
@@ -279,10 +282,14 @@ class TestRunCurationPipeline:
         assert summary["total"] == 2  # SHARED-1 + ARVO-1
 
     def test_target_filtering(self, tmp_path: Path) -> None:
-        """ARVO records for non-requested targets are excluded."""
+        """ARVO records for non-requested targets are excluded.
+
+        ingest_arvo now filters by targets internally, so the mock
+        should only return matching records.
+        """
+        # Only records matching requested targets (ingest_arvo filters)
         arvo_records = [
             _make_record(id="ARVO-1", target="libpng"),
-            _make_record(id="ARVO-2", target="ffmpeg"),  # not in targets
             _make_record(id="ARVO-3", target="zlib"),
         ]
 

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
+import shutil
 import sqlite3
 import subprocess
 import urllib.request
@@ -201,7 +202,26 @@ def fetch_reference_patches(
         if success % 20 == 0:
             logger.info("Progress: %d / %d patches fetched", success, total)
 
+    # Clean up arvo dirs not referenced by metadata
+    _cleanup_unreferenced_arvo_dirs(benchmark_dir, metadata)
+
     # Write back updated metadata
     metadata_path.write_text(json.dumps(metadata, indent=2, default=str) + "\n")
     logger.info("Wrote %d / %d reference patches", success, total)
     return success, total
+
+
+def _cleanup_unreferenced_arvo_dirs(benchmark_dir: Path, metadata: dict) -> None:
+    """Remove arvo/ subdirectories not referenced by any record in metadata."""
+    arvo_dir = benchmark_dir / "arvo"
+    if not arvo_dir.is_dir():
+        return
+
+    referenced = {r["id"] for r in metadata.get("records", [])}
+    removed = 0
+    for d in sorted(arvo_dir.iterdir()):
+        if d.is_dir() and d.name not in referenced:
+            shutil.rmtree(d)
+            removed += 1
+    if removed:
+        logger.info("Cleaned up %d unreferenced arvo directories", removed)
