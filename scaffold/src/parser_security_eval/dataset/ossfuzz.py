@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import shutil
 import urllib.request
 from pathlib import Path
@@ -243,13 +244,52 @@ def _extract_severity(bug: dict[str, Any], crash_type: str) -> Severity:
     return _CRASH_TYPE_SEVERITY.get(crash_type, Severity.MEDIUM)
 
 
+# Regex matching a source-file name in a crash-state line.
+# Matches bare filenames like "parser.c", "compress.cc", "xml.c", "api.c".
+_CRASH_STATE_FILE_RE = re.compile(
+    r"^\s*(\w[\w.\-/]*\.(c|cc|cpp|cxx|h|hpp))\s*$",
+    re.IGNORECASE,
+)
+
+# Regex to extract the crash-state block from OSV details text.
+_CRASH_STATE_BLOCK_RE = re.compile(
+    r"Crash state:\s*\n(.*?)(?:```|\Z)",
+    re.DOTALL,
+)
+
+
 def _extract_affected_file(bug: dict[str, Any]) -> str:
-    """Extract the primarily affected source file from an OSV record."""
+    """Extract the primarily affected source file from an OSV record.
+
+    Strategies attempted in order:
+
+    1. ``database_specific.affected_file`` — explicit field set by ARVO ingest.
+    2. Crash-state block in ``details`` — OSV oss-fuzz records embed the
+       sanitiser crash state as a fenced code block.  The last line of the
+       crash state is sometimes a bare filename (e.g. ``compress.cc``,
+       ``xml.c``).  We scan every line for a source-file pattern.
+    3. GitHub ``/blob/`` or ``/tree/`` reference URLs — some records link
+       directly to the affected file on GitHub.
+    4. ``affected[].package.name`` — always present; better context than the
+       literal string ``"unknown"``.
+    """
+    # Strategy 1: explicit field (ARVO records, or future enriched OSV records).
     db_specific = bug.get("database_specific", {})
     if af := db_specific.get("affected_file"):
         return af
 
-    # Some records stash it in references
+    # Strategy 2: scan crash-state lines in the ``details`` fenced block.
+    details = bug.get("details", "")
+    if details:
+        m = _CRASH_STATE_BLOCK_RE.search(details)
+        if m:
+            for line in m.group(1).splitlines():
+                fm = _CRASH_STATE_FILE_RE.match(line)
+                if fm:
+                    # Return just the basename so callers get a stable short name.
+                    return Path(fm.group(1)).name
+
+    # Strategy 3: GitHub blob/tree reference URL.
     for ref in bug.get("references", []):
         url = ref.get("url", "")
         if "/blob/" in url or "/tree/" in url:
@@ -257,6 +297,13 @@ def _extract_affected_file(bug: dict[str, Any]) -> str:
             parts = url.split("/blob/")
             if len(parts) == 2:
                 return parts[1].split("/", 1)[-1] if "/" in parts[1] else parts[1]
+
+    # Strategy 4: package name from affected block (always more informative than
+    # "unknown" since it tells the reviewer which library is involved).
+    for affected_entry in bug.get("affected", []):
+        pkg_name = affected_entry.get("package", {}).get("name", "")
+        if pkg_name:
+            return pkg_name
 
     return "unknown"
 
