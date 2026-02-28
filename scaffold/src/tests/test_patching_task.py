@@ -261,17 +261,10 @@ class TestLoadPatchingDataset:
 
 
 class TestPatchingSolver:
-    def test_returns_list(self) -> None:
-        solvers = patching_solver()
-        assert isinstance(solvers, list)
-        assert len(solvers) >= 2
-
-    def test_contains_system_message_and_generate(self) -> None:
-        # Solver names follow inspect-ai conventions
-        solvers = patching_solver()
-        names = [type(s).__name__ for s in solvers]
-        # system_message and generate are both Solver instances
-        assert len(names) == 2
+    def test_returns_solver(self) -> None:
+        s = patching_solver()
+        # @solver decorator returns a callable (async function)
+        assert callable(s)
 
 
 # ---------------------------------------------------------------------------
