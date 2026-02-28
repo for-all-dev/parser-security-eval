@@ -13,3 +13,5 @@ scaffold/benchmark/
 
 .env
 benchmark/arvo/records.jsonl
+
+logs/
