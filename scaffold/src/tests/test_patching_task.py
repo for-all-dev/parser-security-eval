@@ -288,7 +288,6 @@ class TestVulnerabilityPatching:
         assert isinstance(t, Task)
 
     def test_task_has_dataset(self, tmp_path: Path) -> None:
-
         bdir = make_benchmark(tmp_path)
         t = vulnerability_patching(benchmark_dir=str(bdir))
         assert t.dataset is not None

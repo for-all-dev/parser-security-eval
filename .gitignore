@@ -8,3 +8,5 @@ build/
 .ruff_cache/
 
 .claude/worktrees/
+.cache/
+benchmark/arvo/

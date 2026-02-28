@@ -1,79 +1,199 @@
 """CLI entry point for parser-security-eval."""
 
+from __future__ import annotations
+
 import asyncio
 import json
+import logging
 from pathlib import Path
 
 import typer
+
+from parser_security_eval.dataset.arvo import ingest_arvo
+from parser_security_eval.dataset.curator import DatasetCurator
+from parser_security_eval.dataset.ossfuzz import fetch_ossfuzz_bugs, parse_ossfuzz_bug
+from parser_security_eval.models.vulnerability import VulnerabilityRecord
 
 app = typer.Typer(
     name="parser-security-eval", help="Parser security evaluation framework."
 )
 
+logger = logging.getLogger(__name__)
+
 _DEFAULT_CACHE = Path.home() / ".cache" / "parser-security-eval"
+
+# Tier 1 parser targets for the initial benchmark.
+TIER1_TARGETS: list[str] = ["libpng", "libjpeg-turbo", "libxml2", "zlib"]
+
+
+def _format_summary(summary: dict) -> str:
+    """Format a curation summary dict as human-readable text."""
+    lines: list[str] = []
+    lines.append(f"Total vulnerabilities: {summary['total']}")
+    lines.append("")
+    lines.append("Vulnerabilities by target:")
+    for target, count in sorted(summary["by_target"].items()):
+        lines.append(f"  {target}: {count}")
+    lines.append("")
+    lines.append("Severity distribution:")
+    for severity, count in sorted(summary["by_severity"].items()):
+        lines.append(f"  {severity}: {count}")
+    lines.append("")
+    lines.append("Difficulty distribution:")
+    for difficulty, count in sorted(summary["by_difficulty"].items()):
+        lines.append(f"  {difficulty}: {count}")
+    lines.append("")
+    lines.append("Crash type distribution:")
+    for crash_type, count in sorted(
+        summary["by_crash_type"].items(), key=lambda x: -x[1]
+    ):
+        lines.append(f"  {crash_type}: {count}")
+    return "\n".join(lines)
+
+
+def run_curation_pipeline(
+    source: str,
+    output: Path,
+    targets: list[str],
+    cache_dir: Path,
+    limit: int | None = None,
+) -> dict:
+    """Run the full curation pipeline and return the summary.
+
+    This is the core orchestration function that:
+    1. Ingests from ARVO and/or oss-fuzz depending on *source*
+    2. Filters to the specified targets
+    3. Merges and deduplicates via DatasetCurator
+    4. Validates artifacts
+    5. Exports metadata.json and dataset.jsonl
+    6. Returns summary statistics
+
+    Parameters
+    ----------
+    source:
+        Data source to use: "arvo", "ossfuzz", or "all" (both).
+    output:
+        Directory where benchmark artifacts are written.
+    targets:
+        List of parser target names to include (e.g. TIER1_TARGETS).
+    cache_dir:
+        Directory for caching downloaded data.
+    limit:
+        Optional cap on total vulnerabilities to ingest per source.
+
+    Returns
+    -------
+    dict
+        Summary statistics from ``DatasetCurator.summary()``.
+    """
+    target_set = {t.lower() for t in targets}
+    curator = DatasetCurator(output)
+    all_records: list[VulnerabilityRecord] = []
+
+    # --- ARVO ingestion ---
+    if source in ("arvo", "all"):
+        logger.info("Ingesting from ARVO (targets: %s)", targets)
+        arvo_output = output / "arvo"
+        arvo_records = ingest_arvo(cache_dir, arvo_output, limit=limit)
+        # Filter to requested targets
+        filtered = [r for r in arvo_records if r.target.lower() in target_set]
+        logger.info(
+            "ARVO: %d records total, %d matching targets",
+            len(arvo_records),
+            len(filtered),
+        )
+        all_records.extend(filtered)
+
+    # --- oss-fuzz ingestion ---
+    if source in ("ossfuzz", "all"):
+        logger.info("Ingesting from oss-fuzz (targets: %s)", targets)
+        ossfuzz_cache = cache_dir / "ossfuzz"
+        for target in targets:
+            logger.info("Fetching oss-fuzz bugs for %s", target)
+            bugs = fetch_ossfuzz_bugs(target, ossfuzz_cache)
+            target_records: list[VulnerabilityRecord] = []
+            for bug in bugs:
+                record = parse_ossfuzz_bug(bug, target)
+                if record is not None:
+                    target_records.append(record)
+            logger.info(
+                "oss-fuzz %s: %d bugs fetched, %d parsed",
+                target,
+                len(bugs),
+                len(target_records),
+            )
+            if limit is not None:
+                target_records = target_records[:limit]
+            all_records.extend(target_records)
+
+    # --- Merge, deduplicate, validate, export ---
+    curator.add_records(all_records)
+
+    errors = curator.validate()
+    if errors:
+        logger.warning("Validation found %d issues:", len(errors))
+        for err in errors[:20]:
+            logger.warning("  %s", err)
+        if len(errors) > 20:
+            logger.warning("  ... and %d more", len(errors) - 20)
+
+    curator.export_metadata()
+    curator.export_inspect_dataset()
+
+    summary = curator.summary()
+
+    # Write summary statistics to a JSON file alongside the exports
+    summary_path = output / "summary.json"
+    summary_path.write_text(json.dumps(summary, indent=2, default=str))
+
+    return summary
 
 
 @app.command()
 def curate(
-    source: str = typer.Argument(help="Data source: 'arvo' or 'ossfuzz'"),
+    source: str = typer.Argument(
+        help="Data source: 'arvo', 'ossfuzz', or 'all' (both)"
+    ),
     output: Path = typer.Option(
         Path("benchmark"), help="Output directory for curated data"
     ),
-    limit: int | None = typer.Option(None, help="Max vulnerabilities to ingest"),
-    project: str | None = typer.Option(
-        None, help="oss-fuzz project name (required for 'ossfuzz' source)"
+    cache_dir: Path = typer.Option(
+        _DEFAULT_CACHE, help="Cache directory for downloaded data"
     ),
-    cache_dir: Path = typer.Option(_DEFAULT_CACHE, help="Local cache directory"),
+    targets: str = typer.Option(
+        ",".join(TIER1_TARGETS),
+        help="Comma-separated list of target parser projects",
+    ),
+    limit: int | None = typer.Option(
+        None, help="Max vulnerabilities to ingest per source"
+    ),
 ) -> None:
-    """Ingest and curate vulnerability data from ARVO or oss-fuzz."""
-    from parser_security_eval.dataset.curator import DatasetCurator
+    """Ingest and curate vulnerability data from ARVO, oss-fuzz, or both.
 
-    curator = DatasetCurator(output)
+    Runs the full curation pipeline: ingest, filter, deduplicate, validate,
+    and export benchmark/metadata.json + benchmark/dataset.jsonl.
+    """
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
-    if source == "arvo":
-        from parser_security_eval.dataset.arvo import ingest_arvo
+    if source not in ("arvo", "ossfuzz", "all"):
+        typer.echo(f"Error: source must be 'arvo', 'ossfuzz', or 'all', got '{source}'")
+        raise typer.Exit(code=1)
 
-        records = ingest_arvo(cache_dir=cache_dir, output_dir=output, limit=limit)
-        curator.add_records(records)
+    target_list = [t.strip() for t in targets.split(",") if t.strip()]
 
-    elif source == "ossfuzz":
-        if project is None:
-            typer.echo(
-                "Error: --project is required for 'ossfuzz' source", err=True
-            )
-            raise typer.Exit(1)
+    typer.echo(f"Curating from source={source} for targets={target_list}")
+    typer.echo(f"Output directory: {output}")
 
-        from parser_security_eval.dataset.ossfuzz import (
-            fetch_ossfuzz_bugs,
-            parse_ossfuzz_bug,
-        )
+    summary = run_curation_pipeline(
+        source=source,
+        output=output,
+        targets=target_list,
+        cache_dir=cache_dir,
+        limit=limit,
+    )
 
-        bugs = fetch_ossfuzz_bugs(project=project, cache_dir=cache_dir)
-        records = [
-            r for b in bugs if (r := parse_ossfuzz_bug(b, project)) is not None
-        ]
-        if limit is not None:
-            records = records[:limit]
-        curator.add_records(records)
-
-    else:
-        typer.echo(
-            f"Error: unknown source '{source}'. Choose 'arvo' or 'ossfuzz'.",
-            err=True,
-        )
-        raise typer.Exit(1)
-
-    errors = curator.validate()
-    if errors:
-        typer.echo(f"Validation warnings ({len(errors)}):", err=True)
-        for e in errors:
-            typer.echo(f"  {e}", err=True)
-
-    curator.export_metadata()
-    summary = curator.summary()
-    typer.echo(f"Curated {summary['total']} records -> {output / 'metadata.json'}")
-    typer.echo(f"  by target:   {summary['by_target']}")
-    typer.echo(f"  by severity: {summary['by_severity']}")
+    typer.echo("\n" + _format_summary(summary))
+    typer.echo(f"\nExported to {output}/metadata.json and {output}/dataset.jsonl")
 
 
 @app.command()
@@ -160,9 +280,7 @@ def build_target(
     engine: str = typer.Option(
         "libfuzzer", help="Fuzz engine: libfuzzer, afl, honggfuzz"
     ),
-    targets_root: Path = typer.Option(
-        Path("targets"), help="Targets root directory"
-    ),
+    targets_root: Path = typer.Option(Path("targets"), help="Targets root directory"),
 ) -> None:
     """Build a parser target in Docker with the specified sanitizer and engine."""
     from parser_security_eval.sandbox.docker import DockerSandbox, SandboxConfig
@@ -197,12 +315,8 @@ def verify(
     target: str = typer.Argument(help="Parser target"),
     vuln_id: str = typer.Argument(help="Vulnerability ID"),
     patch: Path = typer.Argument(help="Path to patch file (.diff)"),
-    benchmark_dir: Path = typer.Option(
-        Path("benchmark"), help="Benchmark directory"
-    ),
-    targets_root: Path = typer.Option(
-        Path("targets"), help="Targets root directory"
-    ),
+    benchmark_dir: Path = typer.Option(Path("benchmark"), help="Benchmark directory"),
+    targets_root: Path = typer.Option(Path("targets"), help="Targets root directory"),
     sanitizer: str = typer.Option(
         "address", help="Sanitizer: address, undefined, memory"
     ),
@@ -222,20 +336,17 @@ def verify(
         raise typer.Exit(1)
 
     raw = json.loads(metadata_path.read_text())
-    record = next(
-        (r for r in raw.get("records", []) if r["id"] == vuln_id), None
-    )
+    record = next((r for r in raw.get("records", []) if r["id"] == vuln_id), None)
     if record is None:
         typer.echo(
-            f"Error: vulnerability '{vuln_id}' not found in {metadata_path}", err=True
+            f"Error: vulnerability '{vuln_id}' not found in {metadata_path}",
+            err=True,
         )
         raise typer.Exit(1)
 
     crash_input_rel = record.get("crash_input_path")
     if not crash_input_rel:
-        typer.echo(
-            f"Error: no crash_input_path in record for '{vuln_id}'", err=True
-        )
+        typer.echo(f"Error: no crash_input_path in record for '{vuln_id}'", err=True)
         raise typer.Exit(1)
 
     triggering_input = str(benchmark_dir / crash_input_rel)

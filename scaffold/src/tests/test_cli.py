@@ -1,11 +1,9 @@
 """Tests for CLI command wiring."""
 
-import asyncio
 import json
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 from typer.testing import CliRunner
 
 from parser_security_eval.cli import app
@@ -78,11 +76,6 @@ class TestCurateCommand:
         assert result.exit_code != 0
         assert "unknown" in result.output
 
-    def test_ossfuzz_requires_project(self) -> None:
-        result = runner.invoke(app, ["curate", "ossfuzz"])
-        assert result.exit_code != 0
-        assert "--project" in result.output
-
     def test_arvo_calls_ingest_arvo(self, tmp_path: Path) -> None:
         from parser_security_eval.models.vulnerability import (
             Difficulty,
@@ -102,7 +95,7 @@ class TestCurateCommand:
         )
 
         with patch(
-            "parser_security_eval.dataset.arvo.ingest_arvo",
+            "parser_security_eval.cli.ingest_arvo",
             return_value=[fake_record],
         ):
             result = runner.invoke(
@@ -114,11 +107,13 @@ class TestCurateCommand:
                     str(tmp_path / "bench"),
                     "--cache-dir",
                     str(tmp_path / "cache"),
+                    "--targets",
+                    "libpng",
                 ],
             )
 
         assert result.exit_code == 0, result.output
-        assert "1 records" in result.output
+        assert "Total vulnerabilities: 1" in result.output
         assert (tmp_path / "bench" / "metadata.json").exists()
 
     def test_ossfuzz_calls_fetch_and_parse(self, tmp_path: Path) -> None:
@@ -141,11 +136,11 @@ class TestCurateCommand:
 
         with (
             patch(
-                "parser_security_eval.dataset.ossfuzz.fetch_ossfuzz_bugs",
+                "parser_security_eval.cli.fetch_ossfuzz_bugs",
                 return_value=[{"bug": "data"}],
             ),
             patch(
-                "parser_security_eval.dataset.ossfuzz.parse_ossfuzz_bug",
+                "parser_security_eval.cli.parse_ossfuzz_bug",
                 return_value=fake_record,
             ),
         ):
@@ -154,7 +149,7 @@ class TestCurateCommand:
                 [
                     "curate",
                     "ossfuzz",
-                    "--project",
+                    "--targets",
                     "libpng",
                     "--output",
                     str(tmp_path / "bench"),
@@ -164,16 +159,16 @@ class TestCurateCommand:
             )
 
         assert result.exit_code == 0, result.output
-        assert "1 records" in result.output
+        assert "Total vulnerabilities: 1" in result.output
 
     def test_limit_is_applied_for_ossfuzz(self, tmp_path: Path) -> None:
         with (
             patch(
-                "parser_security_eval.dataset.ossfuzz.fetch_ossfuzz_bugs",
+                "parser_security_eval.cli.fetch_ossfuzz_bugs",
                 return_value=[{"bug": str(i)} for i in range(5)],
             ),
             patch(
-                "parser_security_eval.dataset.ossfuzz.parse_ossfuzz_bug",
+                "parser_security_eval.cli.parse_ossfuzz_bug",
                 return_value=None,
             ),
         ):
@@ -182,7 +177,7 @@ class TestCurateCommand:
                 [
                     "curate",
                     "ossfuzz",
-                    "--project",
+                    "--targets",
                     "libpng",
                     "--limit",
                     "2",
@@ -325,20 +320,25 @@ class TestBuildTargetCommand:
     def test_successful_build(self, tmp_path: Path) -> None:
         tdir = make_targets(tmp_path)
 
-        with patch(
-            "parser_security_eval.sandbox.docker.DockerSandbox.build_image",
-            new_callable=AsyncMock,
-            return_value="sha256:abc",
-        ), patch(
-            "parser_security_eval.sandbox.docker.DockerSandbox.start",
-            new_callable=AsyncMock,
-        ), patch(
-            "parser_security_eval.sandbox.docker.DockerSandbox.build_target",
-            new_callable=AsyncMock,
-            return_value=True,
-        ), patch(
-            "parser_security_eval.sandbox.docker.DockerSandbox.stop",
-            new_callable=AsyncMock,
+        with (
+            patch(
+                "parser_security_eval.sandbox.docker.DockerSandbox.build_image",
+                new_callable=AsyncMock,
+                return_value="sha256:abc",
+            ),
+            patch(
+                "parser_security_eval.sandbox.docker.DockerSandbox.start",
+                new_callable=AsyncMock,
+            ),
+            patch(
+                "parser_security_eval.sandbox.docker.DockerSandbox.build_target",
+                new_callable=AsyncMock,
+                return_value=True,
+            ),
+            patch(
+                "parser_security_eval.sandbox.docker.DockerSandbox.stop",
+                new_callable=AsyncMock,
+            ),
         ):
             result = runner.invoke(
                 app,
@@ -356,20 +356,25 @@ class TestBuildTargetCommand:
     def test_failed_build_exits_nonzero(self, tmp_path: Path) -> None:
         tdir = make_targets(tmp_path)
 
-        with patch(
-            "parser_security_eval.sandbox.docker.DockerSandbox.build_image",
-            new_callable=AsyncMock,
-            return_value="sha256:abc",
-        ), patch(
-            "parser_security_eval.sandbox.docker.DockerSandbox.start",
-            new_callable=AsyncMock,
-        ), patch(
-            "parser_security_eval.sandbox.docker.DockerSandbox.build_target",
-            new_callable=AsyncMock,
-            return_value=False,
-        ), patch(
-            "parser_security_eval.sandbox.docker.DockerSandbox.stop",
-            new_callable=AsyncMock,
+        with (
+            patch(
+                "parser_security_eval.sandbox.docker.DockerSandbox.build_image",
+                new_callable=AsyncMock,
+                return_value="sha256:abc",
+            ),
+            patch(
+                "parser_security_eval.sandbox.docker.DockerSandbox.start",
+                new_callable=AsyncMock,
+            ),
+            patch(
+                "parser_security_eval.sandbox.docker.DockerSandbox.build_target",
+                new_callable=AsyncMock,
+                return_value=False,
+            ),
+            patch(
+                "parser_security_eval.sandbox.docker.DockerSandbox.stop",
+                new_callable=AsyncMock,
+            ),
         ):
             result = runner.invoke(
                 app,
@@ -443,19 +448,24 @@ class TestVerifyCommand:
             diff_lines=2,
         )
 
-        with patch(
-            "parser_security_eval.sandbox.docker.DockerSandbox.build_image",
-            new_callable=AsyncMock,
-            return_value="sha256:abc",
-        ), patch(
-            "parser_security_eval.sandbox.docker.DockerSandbox.start",
-            new_callable=AsyncMock,
-        ), patch(
-            "parser_security_eval.sandbox.docker.DockerSandbox.stop",
-            new_callable=AsyncMock,
-        ), patch(
-            "parser_security_eval.scorers.patch.score_patch",
-            new=AsyncMock(return_value=full_result),
+        with (
+            patch(
+                "parser_security_eval.sandbox.docker.DockerSandbox.build_image",
+                new_callable=AsyncMock,
+                return_value="sha256:abc",
+            ),
+            patch(
+                "parser_security_eval.sandbox.docker.DockerSandbox.start",
+                new_callable=AsyncMock,
+            ),
+            patch(
+                "parser_security_eval.sandbox.docker.DockerSandbox.stop",
+                new_callable=AsyncMock,
+            ),
+            patch(
+                "parser_security_eval.scorers.patch.score_patch",
+                new=AsyncMock(return_value=full_result),
+            ),
         ):
             result = runner.invoke(
                 app,
@@ -489,19 +499,24 @@ class TestVerifyCommand:
             diff_lines=2,
         )
 
-        with patch(
-            "parser_security_eval.sandbox.docker.DockerSandbox.build_image",
-            new_callable=AsyncMock,
-            return_value="sha256:abc",
-        ), patch(
-            "parser_security_eval.sandbox.docker.DockerSandbox.start",
-            new_callable=AsyncMock,
-        ), patch(
-            "parser_security_eval.sandbox.docker.DockerSandbox.stop",
-            new_callable=AsyncMock,
-        ), patch(
-            "parser_security_eval.scorers.patch.score_patch",
-            new=AsyncMock(return_value=bad_result),
+        with (
+            patch(
+                "parser_security_eval.sandbox.docker.DockerSandbox.build_image",
+                new_callable=AsyncMock,
+                return_value="sha256:abc",
+            ),
+            patch(
+                "parser_security_eval.sandbox.docker.DockerSandbox.start",
+                new_callable=AsyncMock,
+            ),
+            patch(
+                "parser_security_eval.sandbox.docker.DockerSandbox.stop",
+                new_callable=AsyncMock,
+            ),
+            patch(
+                "parser_security_eval.scorers.patch.score_patch",
+                new=AsyncMock(return_value=bad_result),
+            ),
         ):
             result = runner.invoke(
                 app,
