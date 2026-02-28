@@ -42,13 +42,17 @@ async def apply_patch(sandbox: DockerSandbox, patch_diff: str) -> bool:
         tmp_path.unlink(missing_ok=True)
 
 
-async def rebuild_target(sandbox: DockerSandbox, sanitizer: str = "address") -> bool:
-    """Rebuild the parser target with the specified sanitizer.
+async def rebuild_target(
+    sandbox: DockerSandbox,
+    sanitizer: str = "address",
+    fuzzing_engine: str = "libfuzzer",
+) -> bool:
+    """Rebuild the parser target with the specified sanitizer and fuzzing engine.
 
     Returns True if compilation succeeded.
     """
     exit_code, _, _ = await sandbox.exec(
-        f"env SANITIZER={sanitizer} FUZZING_ENGINE=libfuzzer FUZZING_LANGUAGE=c compile"
+        f"env SANITIZER={sanitizer} FUZZING_ENGINE={fuzzing_engine} FUZZING_LANGUAGE=c compile"
     )
     return exit_code == 0
 
@@ -102,6 +106,7 @@ async def score_patch(
     triggering_input_path: str,
     fuzz_target_binary: str,
     sanitizer: str = "address",
+    fuzzing_engine: str = "libfuzzer",
 ) -> PatchResult:
     """Full scoring pipeline for a patch.
 
@@ -119,7 +124,7 @@ async def score_patch(
             diff_lines=diff_lines,
         )
 
-    compiles = await rebuild_target(sandbox, sanitizer)
+    compiles = await rebuild_target(sandbox, sanitizer, fuzzing_engine)
     if not compiles:
         return PatchResult(
             patch_applies=True,

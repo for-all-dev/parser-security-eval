@@ -185,12 +185,18 @@ def patching_solver() -> list[Solver]:
     ]
 
 
-def patching_scorer(targets_root: str = "targets") -> list[Scorer]:
+def patching_scorer(
+    targets_root: str = "targets",
+    fuzzing_engine: str = "libfuzzer",
+) -> list[Scorer]:
     """Scorer pipeline: apply patch, rebuild, verify crash, run tests.
 
     Wraps score_patch() from scorers/patch.py inside a DockerSandbox.
     Returns partial credit (0.0–1.0) based on how far through the
     pipeline the patch succeeds.
+
+    fuzzing_engine selects the OSS-fuzz engine used to compile and run
+    the fuzz target (libfuzzer, afl, honggfuzz, centipede).
     """
 
     @scorer(metrics=[mean()])
@@ -224,6 +230,7 @@ def patching_scorer(targets_root: str = "targets") -> list[Scorer]:
                 target_name=vuln_target,
                 target_dir=target_dir,
                 sanitizer=sanitizer,
+                engine=fuzzing_engine,
             )
 
             async with DockerSandbox(config) as sandbox:
@@ -233,6 +240,7 @@ def patching_scorer(targets_root: str = "targets") -> list[Scorer]:
                     triggering_input_path=triggering_input,
                     fuzz_target_binary=fuzz_binary,
                     sanitizer=sanitizer,
+                    fuzzing_engine=fuzzing_engine,
                 )
 
             numeric = _patch_result_to_score(result)
@@ -255,12 +263,14 @@ def vulnerability_patching(
     benchmark_dir: str = "benchmark",
     target: str | None = None,
     targets_root: str = "targets",
+    fuzzing_engine: str = "libfuzzer",
 ) -> Task:
     """Inspect-AI task: patch parser vulnerabilities given crash reports.
 
     Run with:
         inspect eval tasks/patching.py -T benchmark_dir=benchmark
         inspect eval tasks/patching.py -T benchmark_dir=benchmark -T target=libpng
+        inspect eval tasks/patching.py -T benchmark_dir=benchmark -T fuzzing_engine=afl
     """
     samples = load_patching_dataset(benchmark_dir, target)
     if not samples:
@@ -272,5 +282,5 @@ def vulnerability_patching(
     return Task(
         dataset=samples,
         solver=patching_solver(),
-        scorer=patching_scorer(targets_root=targets_root),
+        scorer=patching_scorer(targets_root=targets_root, fuzzing_engine=fuzzing_engine),
     )
