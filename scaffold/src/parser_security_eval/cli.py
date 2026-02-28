@@ -155,7 +155,7 @@ def curate(
         help="Data source: 'arvo', 'ossfuzz', or 'all' (both)"
     ),
     output: Path = typer.Option(
-        Path("benchmark"), help="Output directory for curated data"
+        Path("../benchmark"), help="Output directory for curated data"
     ),
     cache_dir: Path = typer.Option(
         _DEFAULT_CACHE, help="Cache directory for downloaded data"
@@ -204,10 +204,10 @@ def evaluate(
         None, help="Parser target filter (e.g. 'libpng')"
     ),
     benchmark_dir: Path = typer.Option(
-        Path("benchmark"), help="Benchmark directory (patching / triage)"
+        Path("../benchmark"), help="Benchmark directory (patching / triage)"
     ),
     targets_root: Path = typer.Option(
-        Path("targets"), help="Targets root directory (patching / harness)"
+        Path("../targets"), help="Targets root directory (patching / harness)"
     ),
     engine: str = typer.Option(
         "libfuzzer", help="Fuzz engine: libfuzzer, afl, honggfuzz"
@@ -280,7 +280,9 @@ def build_target(
     engine: str = typer.Option(
         "libfuzzer", help="Fuzz engine: libfuzzer, afl, honggfuzz"
     ),
-    targets_root: Path = typer.Option(Path("targets"), help="Targets root directory"),
+    targets_root: Path = typer.Option(
+        Path("../targets"), help="Targets root directory"
+    ),
 ) -> None:
     """Build a parser target in Docker with the specified sanitizer and engine."""
     from parser_security_eval.sandbox.docker import DockerSandbox, SandboxConfig
@@ -315,8 +317,12 @@ def verify(
     target: str = typer.Argument(help="Parser target"),
     vuln_id: str = typer.Argument(help="Vulnerability ID"),
     patch: Path = typer.Argument(help="Path to patch file (.diff)"),
-    benchmark_dir: Path = typer.Option(Path("benchmark"), help="Benchmark directory"),
-    targets_root: Path = typer.Option(Path("targets"), help="Targets root directory"),
+    benchmark_dir: Path = typer.Option(
+        Path("../benchmark"), help="Benchmark directory"
+    ),
+    targets_root: Path = typer.Option(
+        Path("../targets"), help="Targets root directory"
+    ),
     sanitizer: str = typer.Option(
         "address", help="Sanitizer: address, undefined, memory"
     ),

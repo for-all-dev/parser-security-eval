@@ -10,5 +10,6 @@ build/
 .claude/worktrees/
 .cache/
 benchmark/arvo/
+scaffold/benchmark/
 
 .env
