@@ -237,6 +237,198 @@ class TestExtractors:
         bug: dict[str, Any] = {"database_specific": {}, "references": []}
         assert _extract_affected_file(bug) == "unknown"
 
+    # --- new tests for OSV crash-state and package-name strategies ---
+
+    def test_affected_file_from_crash_state_cc(self) -> None:
+        """A bare .cc filename in the crash state block is returned."""
+        bug: dict[str, Any] = {
+            "database_specific": {},
+            "references": [],
+            "details": (
+                "OSS-Fuzz report: https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=32964\n\n"
+                "```\n"
+                "Crash type: Heap-buffer-overflow WRITE 1\n"
+                "Crash state:\n"
+                "get_word_rgb_row\n"
+                "tjLoadImage\n"
+                "compress.cc\n"
+                "```\n"
+            ),
+        }
+        assert _extract_affected_file(bug) == "compress.cc"
+
+    def test_affected_file_from_crash_state_c(self) -> None:
+        """A bare .c filename in the crash state block is returned."""
+        bug: dict[str, Any] = {
+            "database_specific": {},
+            "references": [],
+            "details": (
+                "OSS-Fuzz report: https://example.com\n\n"
+                "```\n"
+                "Crash type: Heap-use-after-free READ 1\n"
+                "Crash state:\n"
+                "xmlTextReaderRead\n"
+                "xml.c\n"
+                "xmlTextReaderFreeNode\n"
+                "```\n"
+            ),
+        }
+        assert _extract_affected_file(bug) == "xml.c"
+
+    def test_affected_file_crash_state_only_functions_skips(self) -> None:
+        """Crash state with only function names does not trigger file strategy."""
+        bug: dict[str, Any] = {
+            "database_specific": {},
+            "references": [],
+            "details": (
+                "```\n"
+                "Crash type: Heap-buffer-overflow READ 2\n"
+                "Crash state:\n"
+                "decompress_smooth_data\n"
+                "process_data_context_main\n"
+                "jpeg_read_scanlines\n"
+                "```\n"
+            ),
+            "affected": [
+                {"package": {"name": "libjpeg-turbo", "ecosystem": "OSS-Fuzz"}}
+            ],
+        }
+        # No file in crash state -> falls through to package name
+        assert _extract_affected_file(bug) == "libjpeg-turbo"
+
+    def test_affected_file_from_package_name_fallback(self) -> None:
+        """When no file is found anywhere, package name is returned."""
+        bug: dict[str, Any] = {
+            "database_specific": {},
+            "references": [],
+            "details": "",
+            "affected": [{"package": {"name": "libpng", "ecosystem": "OSS-Fuzz"}}],
+        }
+        assert _extract_affected_file(bug) == "libpng"
+
+    def test_affected_file_db_specific_takes_priority_over_crash_state(self) -> None:
+        """Strategy 1 (db_specific) beats Strategy 2 (crash state)."""
+        bug: dict[str, Any] = {
+            "database_specific": {"affected_file": "explicit.c"},
+            "references": [],
+            "details": ("```\nCrash state:\nsome_func\nother.c\n```\n"),
+        }
+        assert _extract_affected_file(bug) == "explicit.c"
+
+    def test_affected_file_crash_state_beats_reference_url(self) -> None:
+        """Strategy 2 (crash state file) beats Strategy 3 (reference URL)."""
+        bug: dict[str, Any] = {
+            "database_specific": {},
+            "references": [
+                {"url": "https://github.com/foo/bar/blob/main/src/other.c"},
+            ],
+            "details": (
+                "```\nCrash type: foo\nCrash state:\nmy_func\ndecompress_yuv.cc\n```\n"
+            ),
+        }
+        assert _extract_affected_file(bug) == "decompress_yuv.cc"
+
+    def test_affected_file_no_affected_block_returns_unknown(self) -> None:
+        """Completely empty bug with no useful fields returns 'unknown'."""
+        bug: dict[str, Any] = {
+            "database_specific": {},
+            "references": [],
+            "details": "",
+            "affected": [],
+        }
+        assert _extract_affected_file(bug) == "unknown"
+
+    def test_affected_file_real_osv_2021_609_shape(self) -> None:
+        """Mirrors the structure of OSV-2021-609 (libjpeg-turbo compress.cc)."""
+        bug: dict[str, Any] = {
+            "id": "OSV-2021-609",
+            "summary": "Heap-buffer-overflow in get_word_rgb_row",
+            "details": (
+                "OSS-Fuzz report: https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=32964\n\n"
+                "```\n"
+                "Crash type: Heap-buffer-overflow WRITE 1\n"
+                "Crash state:\n"
+                "get_word_rgb_row\n"
+                "tjLoadImage\n"
+                "compress.cc\n"
+                "```\n"
+            ),
+            "references": [
+                {
+                    "type": "REPORT",
+                    "url": "https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=32964",
+                }
+            ],
+            "database_specific": {},
+            "affected": [
+                {
+                    "package": {"name": "libjpeg-turbo", "ecosystem": "OSS-Fuzz"},
+                    "ranges": [
+                        {
+                            "type": "GIT",
+                            "repo": "https://github.com/libjpeg-turbo/libjpeg-turbo",
+                            "events": [
+                                {
+                                    "introduced": "d2d4465548902cebba3384480f19578059767d59"
+                                },
+                                {"fixed": "f35fd27ec641c42d6b115bfa595e483ec58188d2"},
+                            ],
+                        }
+                    ],
+                    "database_specific": {
+                        "source": "https://github.com/google/oss-fuzz-vulns/blob/main/vulns/libjpeg-turbo/OSV-2021-609.yaml"
+                    },
+                }
+            ],
+        }
+        assert _extract_affected_file(bug) == "compress.cc"
+
+    def test_affected_file_real_osv_2017_41_shape(self) -> None:
+        """Mirrors OSV-2017-41 (libpng, no file in crash state) -> package name."""
+        bug: dict[str, Any] = {
+            "id": "OSV-2017-41",
+            "summary": "Heap-buffer-overflow in OSS_FUZZ_png_combine_row",
+            "details": (
+                "OSS-Fuzz report: https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=3606\n\n"
+                "```\n"
+                "Crash type: Heap-buffer-overflow WRITE 4\n"
+                "Crash state:\n"
+                "OSS_FUZZ_png_combine_row\n"
+                "OSS_FUZZ_png_read_row\n"
+                "_start\n"
+                "```\n"
+            ),
+            "references": [
+                {
+                    "type": "REPORT",
+                    "url": "https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=3606",
+                }
+            ],
+            "database_specific": {},
+            "affected": [
+                {
+                    "package": {"name": "libpng", "ecosystem": "OSS-Fuzz"},
+                    "ranges": [
+                        {
+                            "type": "GIT",
+                            "repo": "https://github.com/glennrp/libpng.git",
+                            "events": [
+                                {
+                                    "introduced": "ab791fc9d69580c1982af726c9f61b533357234f"
+                                },
+                                {"fixed": "a3d1057a735d923626f1f6bdc0f662a13d0cba6f"},
+                            ],
+                        }
+                    ],
+                    "database_specific": {
+                        "source": "https://github.com/google/oss-fuzz-vulns/blob/main/vulns/libpng/OSV-2017-41.yaml"
+                    },
+                }
+            ],
+        }
+        # No file in crash state (only function names), fallback to package name
+        assert _extract_affected_file(bug) == "libpng"
+
     def test_difficulty_easy(self) -> None:
         bug: dict[str, Any] = {"database_specific": {"lines_changed_in_fix": 2}}
         assert _estimate_difficulty(bug) == Difficulty.EASY
