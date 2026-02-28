@@ -4,13 +4,17 @@ from pathlib import Path
 
 import typer
 
-app = typer.Typer(name="parser-security-eval", help="Parser security evaluation framework.")
+app = typer.Typer(
+    name="parser-security-eval", help="Parser security evaluation framework."
+)
 
 
 @app.command()
 def curate(
     source: str = typer.Argument(help="Data source: 'arvo' or 'ossfuzz'"),
-    output: Path = typer.Option(Path("benchmark"), help="Output directory for curated data"),
+    output: Path = typer.Option(
+        Path("benchmark"), help="Output directory for curated data"
+    ),
     limit: int | None = typer.Option(None, help="Max vulnerabilities to ingest"),
 ) -> None:
     """Ingest and curate vulnerability data from ARVO or oss-fuzz."""
@@ -30,8 +34,12 @@ def evaluate(
 @app.command()
 def build_target(
     target: str = typer.Argument(help="Parser target to build"),
-    sanitizer: str = typer.Option("address", help="Sanitizer: address, undefined, memory"),
-    engine: str = typer.Option("libfuzzer", help="Fuzz engine: libfuzzer, afl++, honggfuzz"),
+    sanitizer: str = typer.Option(
+        "address", help="Sanitizer: address, undefined, memory"
+    ),
+    engine: str = typer.Option(
+        "libfuzzer", help="Fuzz engine: libfuzzer, afl++, honggfuzz"
+    ),
 ) -> None:
     """Build a parser target in Docker with the specified sanitizer and engine."""
     raise NotImplementedError(f"Building {target} not yet implemented")

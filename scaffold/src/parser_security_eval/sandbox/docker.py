@@ -45,7 +45,9 @@ class DockerSandbox:
         """Stop and remove the sandbox container."""
         raise NotImplementedError
 
-    async def exec(self, command: str, timeout: int | None = None) -> tuple[int, str, str]:
+    async def exec(
+        self, command: str, timeout: int | None = None
+    ) -> tuple[int, str, str]:
         """Execute a command in the sandbox.
 
         Returns (exit_code, stdout, stderr).
