@@ -4,7 +4,11 @@ Handles building parser targets with different sanitizers and engines,
 following oss-fuzz conventions for Dockerfile + build.sh.
 """
 
+import os
+import textwrap
 from pathlib import Path
+
+import yaml
 
 
 def generate_dockerfile(
@@ -15,8 +19,34 @@ def generate_dockerfile(
     """Generate a Dockerfile for building a parser target.
 
     Follows oss-fuzz base-builder conventions.
+
+    Args:
+        base_image: Base Docker image (typically gcr.io/oss-fuzz-base/base-builder).
+        project_source: Git URL or local path to copy into the container.
+        extra_packages: Additional apt packages to install.
+
+    Returns:
+        Dockerfile content as a string.
     """
-    raise NotImplementedError
+    lines: list[str] = [f"FROM {base_image}"]
+
+    if extra_packages:
+        pkg_list = " ".join(extra_packages)
+        lines.append(
+            f"RUN apt-get update && apt-get install -y {pkg_list} && rm -rf /var/lib/apt/lists/*"
+        )
+
+    lines.append("WORKDIR /src")
+
+    if project_source:
+        if project_source.startswith(("http://", "https://", "git://")):
+            lines.append(f"RUN git clone --depth 1 {project_source} project")
+        else:
+            lines.append(f"COPY {project_source} project/")
+
+    lines.append("COPY build.sh $SRC/")
+
+    return "\n".join(lines) + "\n"
 
 
 def generate_build_sh(
@@ -27,28 +57,93 @@ def generate_build_sh(
     """Generate a build.sh script for compiling fuzz targets.
 
     Follows oss-fuzz conventions:
-    - Uses $CC, $CXX, $CFLAGS, $CXXFLAGS (set by base-builder)
-    - Uses $LIB_FUZZING_ENGINE
-    - Outputs to $OUT/
+    - Uses $CC, $CXX, $CFLAGS, $CXXFLAGS (set by base-builder per sanitizer)
+    - Links against $LIB_FUZZING_ENGINE
+    - Outputs binaries to $OUT/
+
+    Args:
+        project_name: Name of the project being built.
+        build_commands: Shell commands to build the project (e.g. make, cmake).
+        fuzz_targets: List of fuzz target source files (e.g. fuzz_parser.c).
+
+    Returns:
+        build.sh content as a string.
     """
-    raise NotImplementedError
+    header = textwrap.dedent(f"""\
+        #!/bin/bash -eu
+        # Build script for {project_name}
+        # Uses $CC, $CXX, $CFLAGS, $CXXFLAGS, $LIB_FUZZING_ENGINE, $OUT, $SRC, $WORK
+
+        cd $SRC/project
+    """)
+
+    build_section = ""
+    if build_commands:
+        build_section = "\n".join(build_commands) + "\n"
+
+    compile_lines: list[str] = []
+    for target in fuzz_targets:
+        target_path = Path(target)
+        binary_name = target_path.stem
+        ext = target_path.suffix
+
+        if ext in (".c",):
+            compiler = "$CC"
+            flags = "$CFLAGS"
+        else:
+            compiler = "$CXX"
+            flags = "$CXXFLAGS"
+
+        compile_lines.append(
+            f"{compiler} {flags} -o $OUT/{binary_name} {target} $LIB_FUZZING_ENGINE"
+        )
+
+    compile_section = "\n".join(compile_lines) + "\n" if compile_lines else ""
+
+    return header + "\n" + build_section + "\n" + compile_section
 
 
 def validate_target_layout(target_dir: Path) -> list[str]:
-    """Validate a target directory has the required files.
+    """Validate a target directory has the required files and structure.
 
-    Required:
-    - Dockerfile
-    - build.sh
-    - metadata.yaml
+    Checks:
+    - Dockerfile exists and first line starts with FROM
+    - build.sh exists and has executable permission
+    - metadata.yaml exists and is parseable YAML
 
     Returns list of validation errors (empty = valid).
     """
-    errors = []
-    if not (target_dir / "Dockerfile").exists():
+    errors: list[str] = []
+
+    dockerfile_path = target_dir / "Dockerfile"
+    if not dockerfile_path.exists():
         errors.append(f"Missing Dockerfile in {target_dir}")
-    if not (target_dir / "build.sh").exists():
+    else:
+        first_line = dockerfile_path.read_text().split("\n", maxsplit=1)[0]
+        if not first_line.startswith("FROM "):
+            errors.append(
+                f"Dockerfile in {target_dir} must start with a FROM instruction"
+            )
+
+    build_sh_path = target_dir / "build.sh"
+    if not build_sh_path.exists():
         errors.append(f"Missing build.sh in {target_dir}")
-    if not (target_dir / "metadata.yaml").exists():
+    else:
+        if not os.access(build_sh_path, os.X_OK):
+            errors.append(f"build.sh in {target_dir} is not executable")
+
+    metadata_path = target_dir / "metadata.yaml"
+    if not metadata_path.exists():
         errors.append(f"Missing metadata.yaml in {target_dir}")
+    else:
+        try:
+            content = metadata_path.read_text()
+            parsed = yaml.safe_load(content)
+            if not isinstance(parsed, dict):
+                errors.append(
+                    f"metadata.yaml in {target_dir} must contain a YAML mapping"
+                )
+        except yaml.YAMLError as e:
+            errors.append(f"metadata.yaml in {target_dir} is not valid YAML: {e}")
+
     return errors
