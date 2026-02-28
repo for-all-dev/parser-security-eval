@@ -37,17 +37,23 @@ Detailed references supporting the plan documents. Organized by topic.
 | DARPA AIxCC | 53 challenges, autonomous CRS | 54 vulns found, 43 patched (winner) | [darpa.mil](https://www.darpa.mil/news/2025/aixcc-results), [SoK arXiv:2602.07666](https://arxiv.org/abs/2602.07666) |
 | Team Atlanta (ATLANTIS) | Ensemble fuzzing + LLM patching on K8s | Won $4M, 392.76 pts | [arXiv:2509.14589](https://arxiv.org/abs/2509.14589), [GitHub](https://github.com/Team-Atlanta/aixcc-afc-atlantis) |
 
-## RL / Agent Environments
+## LM Post-Training RL for Code
 
 | System | Domain | Key Insight | Reference |
 |--------|--------|-------------|-----------|
-| RvB | Red vs Blue CVE hardening | Training-free adversarial loop, TDSR metric | [arXiv:2601.19726](https://arxiv.org/abs/2601.19726) |
-| Self-Play SWE-RL (SSR) | Bug injection + repair self-play | +10.4 on SWE-bench with single model | [arXiv:2512.18552](https://arxiv.org/abs/2512.18552) |
-| DeepSWE / R2E-Gym | RL for code repair | Sparse binary reward + PPO, 23%→42% | [Together AI blog](https://www.together.ai/blog/deepswe), [arXiv:2504.07164](https://arxiv.org/abs/2504.07164) |
-| SWE-MiniSandbox | Fast container-free sandboxing | 25% reset time vs Docker | [arXiv:2602.11210](https://arxiv.org/abs/2602.11210) |
-| FuzzerGym | Fuzzing as OpenAI Gym | Coverage-based reward, cross-language bridge | [arXiv:1807.07490](https://arxiv.org/abs/1807.07490) |
-| InterCode | Interactive coding Gym | Standard reset/step API for coding tasks | [arXiv:2306.14898](https://arxiv.org/abs/2306.14898) |
-| PenGym | Penetration testing | Gymnasium-compatible security env | [GitHub](https://github.com/cyb3rlab/PenGym) |
+| DeepSeek-R1 | Math/code reasoning | GRPO over completions, reward from correctness | [arXiv:2501.12948](https://arxiv.org/abs/2501.12948) |
+| SWE-RL | Code repair | RL post-training on SWE-bench, sparse reward from test pass/fail | [arXiv:2502.18449](https://arxiv.org/abs/2502.18449) |
+| Self-Play SWE-RL (SSR) | Bug injection + repair self-play | +10.4 on SWE-bench with single model, PPO self-play | [arXiv:2512.18552](https://arxiv.org/abs/2512.18552) |
+| DeepSWE / R2E-Gym | Code repair | Sparse binary reward + PPO, 23%→42% | [Together AI blog](https://www.together.ai/blog/deepswe), [arXiv:2504.07164](https://arxiv.org/abs/2504.07164) |
+
+## Agent Scaffolding / Environments
+
+| System | Domain | Key Insight | Reference |
+|--------|--------|-------------|-----------|
+| RvB | Red vs Blue CVE hardening | Training-free adversarial scaffolding, TDSR metric | [arXiv:2601.19726](https://arxiv.org/abs/2601.19726) |
+| SWE-MiniSandbox | Fast sandboxing for RL rollouts | Mount namespace + chroot, 25% reset time vs Docker | [arXiv:2602.11210](https://arxiv.org/abs/2602.11210) |
+| SWE-bench | Code repair eval | Agent executes bash in sandbox, binary test reward | [swebench.com](https://www.swebench.com) |
+| Cybench | CTF security eval | LM agents with bash tools in Kali containers | [arXiv:2408.08926](https://arxiv.org/abs/2408.08926) |
 
 ## Fuzzing Infrastructure
 

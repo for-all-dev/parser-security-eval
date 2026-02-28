@@ -112,4 +112,4 @@ AIxCC's scoring weighted patching 3x over discovery. We adopt similar:
 - **Containers**: Docker + compose for target isolation and build
 - **Triage**: CASR (Rust, supports multiple fuzzers) or oss-fuzz's built-in triage
 - **Agent interface**: bash command execution in sandboxed containers (SWE-bench pattern)
-- **RL training (Phase 3)**: PettingZoo API, Ray for distributed rollouts
+- **RL post-training (Phase 3)**: GRPO/PPO over token completions (LM post-training, not game-RL)

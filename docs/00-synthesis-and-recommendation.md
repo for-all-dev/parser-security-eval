@@ -53,11 +53,10 @@ Why next:
 **Direction B.** Close the red-blue loop. Red team finds bugs → blue team patches → red team tries again on patched version.
 
 Deliverables:
-- Multi-round adversarial loop (prompt-only first, RL later)
-- PettingZoo-compatible environment API
+- Multi-round adversarial loop (prompt-only first, RL post-training later)
 - Reward signal: coverage + crash severity + patch correctness
 - Self-play experiments (single model as both red and blue)
-- If RL: PPO training with Ray distributed rollouts
+- If RL: GRPO/PPO over token-level completions (DeepSeek-R1 / SWE-RL style)
 
 Why last:
 - Highest risk, highest reward
@@ -108,8 +107,8 @@ The project answers three questions at increasing ambition:
 | Fuzz engines | libFuzzer, AFL++, Honggfuzz | oss-fuzz standard engines |
 | Crash triage | CASR | Multi-engine support, structured JSON output |
 | Eval framework | Inspect-AI | Purpose-built for AI evals |
-| RL API (Phase 3) | PettingZoo + Gymnasium | Standard multi-agent RL APIs |
-| Distributed training | Ray (Phase 3) | Standard for RL workloads |
+| RL post-training (Phase 3) | GRPO/PPO over completions | LM post-training paradigm (DeepSeek-R1, SWE-RL) |
+| Multi-agent orchestration | Scaffolding (subagent spawning) | Red/blue are different system prompts + tool access |
 
 ## Open Questions
 
