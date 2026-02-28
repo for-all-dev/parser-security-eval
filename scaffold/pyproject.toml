@@ -1,7 +1,7 @@
 [project]
 name = "parser-security-eval"
 version = "0.1.0"
-description = "Add your description here"
+description = "Parser security evaluation framework: AI agents attack and defend parsers"
 readme = "README.md"
 authors = [
     { name = "Quinn Dougherty", email = "quinn@for-all.dev" }
@@ -27,3 +27,6 @@ dev = [
     "ruff>=0.15.4",
     "ty>=0.0.19",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["../tests"]

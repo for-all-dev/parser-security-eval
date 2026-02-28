@@ -1,0 +1,16 @@
+# Parser target metadata.
+# Copy and customize for each target.
+
+name: ""  # e.g. "libpng"
+format_type: ""  # e.g. "binary-image", "text-markup", "protocol", "archive", "serialization"
+language: ""  # "c" or "cpp"
+ossfuzz_project: null  # oss-fuzz project name, if it exists
+
+# Links
+repository: ""  # upstream source repo URL
+ossfuzz_url: null  # oss-fuzz project URL if applicable
+
+# Fuzzing configuration
+fuzz_targets: []  # list of fuzz target names compiled by build.sh
+has_corpus: false
+has_dictionary: false
