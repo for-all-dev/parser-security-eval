@@ -9,3 +9,4 @@ build/
 
 .claude/worktrees/
 .cache/
+benchmark/arvo/
