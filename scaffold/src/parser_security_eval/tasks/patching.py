@@ -176,15 +176,14 @@ def _make_try_patch_tool(sandbox: DockerSandbox) -> Tool:
 
     @tool
     def try_patch() -> Tool:
-        """Apply a unified diff patch to the source tree.
-
-        Resets the source tree before applying so retries are clean.
-
-        Args:
-            diff: The unified diff to apply (e.g. output of git diff).
-        """
-
         async def execute(diff: str) -> str:
+            """Apply a unified diff patch to the source tree.
+
+            Resets the source tree before applying so retries are clean.
+
+            Args:
+                diff: The unified diff to apply (e.g. output of git diff).
+            """
             # Reset source tree for a clean slate
             await sandbox.exec(f"cd {src_dir} && git checkout .")
             # Write the diff to a temp file inside the container
@@ -215,9 +214,8 @@ def _make_compile_tool(sandbox: DockerSandbox, sanitizer: str, engine: str) -> T
 
     @tool
     def compile_target() -> Tool:
-        """Rebuild the fuzz target with sanitizers enabled. Takes no arguments."""
-
         async def execute() -> str:
+            """Rebuild the fuzz target with sanitizers enabled. Takes no arguments."""
             exit_code, stdout, stderr = await sandbox.exec(
                 f"env SANITIZER={sanitizer} FUZZING_ENGINE={engine} "
                 "FUZZING_LANGUAGE=c compile"
@@ -243,12 +241,11 @@ def _make_run_crash_tool(
 
     @tool
     def run_crash_input() -> Tool:
-        """Run the triggering crash input against the patched binary. Takes no arguments.
-
-        Returns whether the crash is eliminated or the ASAN output.
-        """
-
         async def execute() -> str:
+            """Run the triggering crash input against the patched binary. Takes no arguments.
+
+            Returns whether the crash is eliminated or the ASAN output.
+            """
             exit_code, stdout, stderr = await sandbox.exec(
                 f"{fuzz_binary} {crash_input_container_path}"
             )
