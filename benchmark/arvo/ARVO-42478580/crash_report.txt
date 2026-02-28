@@ -1,3 +1,91 @@
-crash_type: Heap-use-after-free READ 8
-sanitizer: address
-target: libxml2
+======================= INFO =========================
+This binary is built for AFL-fuzz.
+To run the target function on individual input(s) execute this:
+  /out/libxml2_xml_reader_for_file_fuzzer < INPUT_FILE
+or
+  /out/libxml2_xml_reader_for_file_fuzzer INPUT_FILE1 [INPUT_FILE2 ... ]
+To fuzz with afl-fuzz execute this:
+  afl-fuzz [afl-flags] /out/libxml2_xml_reader_for_file_fuzzer [-N]
+afl-fuzz will run N iterations before re-spawning the process (default: 1000)
+======================================================
+Reading 489 bytes from /tmp/poc
+=================================================================
+[1m[31m==7==ERROR: AddressSanitizer: heap-use-after-free on address 0x60d000000138 at pc 0x00000056eca6 bp 0x7fffffffdf00 sp 0x7fffffffdef8
+[1m[0m[1m[34mREAD of size 8 at 0x60d000000138 thread T0[1m[0m
+SCARINESS: 51 (8-byte-read-heap-use-after-free)
+    #0 0x56eca5 in xmlTextReaderFreeNodeList /src/libxml2/xmlreader.c:371:32
+    #1 0x561b3c in xmlTextReaderFreeDoc /src/libxml2/xmlreader.c:565:32
+    #2 0x56168a in xmlFreeTextReader /src/libxml2/xmlreader.c:2294:3
+    #3 0x4c8c94 in LLVMFuzzerTestOneInput /src/libxml2_xml_reader_for_file_fuzzer.cc:50:3
+    #4 0x4cca1e in ExecuteFilesOnyByOne /src/libfuzzer/afl/afl_driver.cpp:216:5
+    #5 0x4cca1e in main /src/libfuzzer/afl/afl_driver.cpp:253:12
+    #6 0x7ffff6ee582f in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2082f)
+    #7 0x41e2d8 in _start (/out/libxml2_xml_reader_for_file_fuzzer+0x41e2d8)
+
+DEDUP_TOKEN: xmlTextReaderFreeNodeList--xmlTextReaderFreeDoc--xmlFreeTextReader
+[1m[32m0x60d000000138 is located 40 bytes inside of 136-byte region [0x60d000000110,0x60d000000198)
+[1m[0m[1m[35mfreed by thread T0 here:[1m[0m
+    #0 0x49649d in free /src/llvm/projects/compiler-rt/lib/asan/asan_malloc_linux.cpp:123:3
+    #1 0x4fa558 in xmlHashFree /src/libxml2/hash.c:342:7
+    #2 0x4d78ff in xmlFreeDtd /src/libxml2/tree.c:1146:9
+    #3 0x561abc in xmlTextReaderFreeDoc /src/libxml2/xmlreader.c:562:2
+    #4 0x56168a in xmlFreeTextReader /src/libxml2/xmlreader.c:2294:3
+    #5 0x4c8c94 in LLVMFuzzerTestOneInput /src/libxml2_xml_reader_for_file_fuzzer.cc:50:3
+    #6 0x4cca1e in ExecuteFilesOnyByOne /src/libfuzzer/afl/afl_driver.cpp:216:5
+    #7 0x4cca1e in main /src/libfuzzer/afl/afl_driver.cpp:253:12
+    #8 0x7ffff6ee582f in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2082f)
+
+DEDUP_TOKEN: free--xmlHashFree--xmlFreeDtd
+[1m[35mpreviously allocated by thread T0 here:[1m[0m
+    #0 0x49671d in malloc /src/llvm/projects/compiler-rt/lib/asan/asan_malloc_linux.cpp:145:3
+    #1 0x5c823f in xmlCreateEntity /src/libxml2/entities.c:159:26
+    #2 0x5c7dc2 in xmlAddEntity /src/libxml2/entities.c:241:11
+    #3 0x5c7f0f in xmlAddDocEntity /src/libxml2/entities.c:372:11
+    #4 0x5a4636 in xmlSAX2EntityDecl /src/libxml2/SAX2.c:677:8
+    #5 0x5f9c05 in xmlParseEntityDecl /src/libxml2/parser.c:5457:7
+    #6 0x603fa2 in xmlParseMarkupDecl /src/libxml2/parser.c:6818:4
+    #7 0x6181d4 in xmlParseInternalSubset /src/libxml2/parser.c:8315:6
+    #8 0x61cec2 in xmlParseTryOrFinish /src/libxml2/parser.c:12000:3
+    #9 0x619a8a in xmlParseChunk /src/libxml2/parser.c
+    #10 0x55b83e in xmlTextReaderPushData /src/libxml2/xmlreader.c:903:12
+    #11 0x558637 in xmlTextReaderRead /src/libxml2/xmlreader.c:1332:12
+    #12 0x4c8c57 in LLVMFuzzerTestOneInput /src/libxml2_xml_reader_for_file_fuzzer.cc:45:10
+    #13 0x4cca1e in ExecuteFilesOnyByOne /src/libfuzzer/afl/afl_driver.cpp:216:5
+    #14 0x4cca1e in main /src/libfuzzer/afl/afl_driver.cpp:253:12
+    #15 0x7ffff6ee582f in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2082f)
+
+DEDUP_TOKEN: malloc--xmlCreateEntity--xmlAddEntity
+SUMMARY: AddressSanitizer: heap-use-after-free /src/libxml2/xmlreader.c:371:32 in xmlTextReaderFreeNodeList
+Shadow bytes around the buggy address:
+  0x0c1a7fff7fd0: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x0c1a7fff7fe0: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x0c1a7fff7ff0: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x0c1a7fff8000: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x0c1a7fff8010: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+=>0x0c1a7fff8020: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m[[1m[35mfd[1m[0m][1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x0c1a7fff8030: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x0c1a7fff8040: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x0c1a7fff8050: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x0c1a7fff8060: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x0c1a7fff8070: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+  Shadow gap:              [1m[0mcc[1m[0m
+==7==ABORTING

@@ -1,3 +1,32 @@
-crash_type: Use-of-uninitialized-value
-sanitizer: memory
-target: libjpeg-turbo
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 716881482
+INFO: Loaded 1 modules   (14671 inline 8-bit counters): 14671 [0x55d0773a4f40, 0x55d0773a888f), 
+INFO: Loaded 1 PC tables (14671 PCs): 14671 [0x55d0773a8890,0x55d0773e1d80), 
+/out/compress_yuv_fuzzer: Running 1 inputs 1 time(s) each.
+Running: /tmp/poc
+[1m[31m==7==WARNING: MemorySanitizer: use-of-uninitialized-value
+[1m[0m    #0 0x55d07704c17d in LLVMFuzzerTestOneInput /src/libjpeg-turbo.main/fuzz/compress_yuv.cc:117:9
+    #1 0x55d076f48340 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #2 0x55d076f32ad4 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #3 0x55d076f3856a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #4 0x55d076f64962 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #5 0x7fe756a0d082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #6 0x55d076f295ad in _start (/out/compress_yuv_fuzzer+0x9b5ad)
+
+DEDUP_TOKEN: LLVMFuzzerTestOneInput--fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long)--fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long)
+  [1m[35mUninitialized value was created by a heap allocation[1m[0m
+    #0 0x55d076ff3de2 in malloc /src/llvm-project/compiler-rt/lib/msan/msan_interceptors.cpp:1007:3
+    #1 0x55d07704bac5 in LLVMFuzzerTestOneInput /src/libjpeg-turbo.main/fuzz/compress_yuv.cc:90:36
+    #2 0x55d076f48340 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #3 0x55d076f32ad4 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #4 0x55d076f3856a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #5 0x55d076f64962 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #6 0x7fe756a0d082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--LLVMFuzzerTestOneInput--fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long)
+SUMMARY: MemorySanitizer: use-of-uninitialized-value /src/libjpeg-turbo.main/fuzz/compress_yuv.cc:117:9 in LLVMFuzzerTestOneInput
+Unique heap origins: 81
+Stack depot allocated bytes: 9764880
+Unique origin histories: 20
+History depot allocated bytes: 196608
+Exiting

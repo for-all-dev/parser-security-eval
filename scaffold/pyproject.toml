@@ -8,6 +8,7 @@ authors = [
 ]
 requires-python = ">=3.14"
 dependencies = [
+    "anthropic>=0.84.0",
     "inspect-ai>=0.3.184",
     "pydantic>=2.12.5",
     "pyyaml>=6.0",

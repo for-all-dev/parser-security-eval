@@ -1,3 +1,26 @@
-crash_type: Use-of-uninitialized-value
-sanitizer: memory
-target: libxml2
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 559533174
+INFO: Loaded 1 modules   (52178 inline 8-bit counters): 52178 [0xcde781, 0xceb353), 
+INFO: Loaded 1 PC tables (52178 PCs): 52178 [0xba3550,0xc6f270), 
+/out/api: Running 1 inputs 1 time(s) each.
+Running: /tmp/poc
+[1m[31m==7==WARNING: MemorySanitizer: use-of-uninitialized-value
+[1m[0m    #0 0x560b1d in LLVMFuzzerTestOneInput /src/libxml2/fuzz/api.c:2099:21
+    #1 0x43dcf3 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:611:15
+    #2 0x429452 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:324:6
+    #3 0x42ecfc in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:860:9
+    #4 0x458232 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #5 0x7f6cea130082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #6 0x41f61d in _start (/out/api+0x41f61d)
+
+DEDUP_TOKEN: LLVMFuzzerTestOneInput--fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long)--fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long)
+[1m[35m  [1m[35mUninitialized value was created by an allocation of '[1m[32mcur[1m[35m' in the stack frame of function '[1m[32mxmlSearchNsByHref[1m[35m'[1m[0m
+    #0 0x6bf5d0 in xmlSearchNsByHref /src/libxml2/tree.c:6182
+
+DEDUP_TOKEN: xmlSearchNsByHref
+SUMMARY: MemorySanitizer: use-of-uninitialized-value /src/libxml2/fuzz/api.c:2099:21 in LLVMFuzzerTestOneInput
+Unique heap origins: 31
+Stack depot allocated bytes: 9764880
+Unique origin histories: 5
+History depot allocated bytes: 196608
+Exiting

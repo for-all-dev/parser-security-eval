@@ -1,3 +1,51 @@
-crash_type: Use-of-uninitialized-value
-sanitizer: memory
-target: libxml2
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3902888525
+INFO: Loaded 1 modules   (50925 inline 8-bit counters): 50925 [0xcd4042, 0xce072f), 
+INFO: Loaded 1 PC tables (50925 PCs): 50925 [0xb9e870,0xc65740), 
+/out/html: Running 1 inputs 1 time(s) each.
+Running: /tmp/poc
+[1m[31m==7==WARNING: MemorySanitizer: use-of-uninitialized-value
+[1m[0m    #0 0x78c588 in htmlCurrentChar /src/libxml2/HTMLparser.c:428:9
+    #1 0x79763b in htmlParseCharDataInternal /src/libxml2/HTMLparser.c:3185:8
+    #2 0x79763b in htmlParseCharData /src/libxml2/HTMLparser.c:3224:5
+    #3 0x767448 in htmlParseContentInternal /src/libxml2/HTMLparser.c:4768:13
+    #4 0x76c48a in htmlParseDocument /src/libxml2/HTMLparser.c:4881:5
+    #5 0x7867d1 in htmlDoRead /src/libxml2/HTMLparser.c:6435:5
+    #6 0x788220 in htmlCtxtReadMemory /src/libxml2/HTMLparser.c:6735:13
+    #7 0x5347fb in LLVMFuzzerTestOneInput /src/libxml2/fuzz/html.c:48:15
+    #8 0x43dce3 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:611:15
+    #9 0x429442 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:324:6
+    #10 0x42ecec in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:860:9
+    #11 0x458222 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7f183ccb6082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #13 0x41f60d in _start (/out/html+0x41f60d)
+
+DEDUP_TOKEN: htmlCurrentChar--htmlParseCharDataInternal--htmlParseCharData
+  [1m[35mUninitialized value was created by a heap deallocation[1m[0m
+    #0 0x4e204c in __interceptor_realloc /src/llvm-project/compiler-rt/lib/msan/msan_interceptors.cpp:883:3
+    #1 0x5354a5 in xmlFuzzRealloc /src/libxml2/fuzz/fuzz.c:96:12
+    #2 0x53c5f0 in xmlBufGrowInternal /src/libxml2/buf.c:412:23
+    #3 0x53c5f0 in xmlBufGrow /src/libxml2/buf.c:441:11
+    #4 0x71ca2e in xmlParserInputBufferGrow /src/libxml2/xmlIO.c:3218:13
+    #5 0x61b4e4 in xmlParserGrow /src/libxml2/parserInternals.c:602:11
+    #6 0x78a4b0 in htmlCurrentChar /src/libxml2/HTMLparser.c:376:9
+    #7 0x79763b in htmlParseCharDataInternal /src/libxml2/HTMLparser.c:3185:8
+    #8 0x79763b in htmlParseCharData /src/libxml2/HTMLparser.c:3224:5
+    #9 0x767448 in htmlParseContentInternal /src/libxml2/HTMLparser.c:4768:13
+    #10 0x76c48a in htmlParseDocument /src/libxml2/HTMLparser.c:4881:5
+    #11 0x7867d1 in htmlDoRead /src/libxml2/HTMLparser.c:6435:5
+    #12 0x788220 in htmlCtxtReadMemory /src/libxml2/HTMLparser.c:6735:13
+    #13 0x5347fb in LLVMFuzzerTestOneInput /src/libxml2/fuzz/html.c:48:15
+    #14 0x43dce3 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:611:15
+    #15 0x429442 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:324:6
+    #16 0x42ecec in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:860:9
+    #17 0x458222 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #18 0x7f183ccb6082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_realloc--xmlFuzzRealloc--xmlBufGrowInternal
+SUMMARY: MemorySanitizer: use-of-uninitialized-value /src/libxml2/HTMLparser.c:428:9 in htmlCurrentChar
+Unique heap origins: 64
+Stack depot allocated bytes: 9764880
+Unique origin histories: 9
+History depot allocated bytes: 196608
+Exiting

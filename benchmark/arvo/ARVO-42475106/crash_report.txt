@@ -1,3 +1,22 @@
-crash_type: Index-out-of-bounds
-sanitizer: undefined
-target: libxml2
+INFO: Seed: 145191291
+INFO: Loaded 0 modules (0 guards): 
+/out/libxml2_xml_read_memory_fuzzer: Running 1 inputs 1 time(s) each.
+Running: /tmp/poc
+[1mparser.c:1282:5:[1m[31m runtime error: [1m[0m[1mindex 5 out of bounds for type 'const xmlChar *[5]'[1m[0m
+    #0 0x4671f3 in xmlAddDefAttrs /src/libxml2/parser.c:1282:45
+    #1 0x466c11 in xmlParseAttributeListDecl /src/libxml2/parser.c:6181:3
+    #2 0x468de2 in xmlParseMarkupDecl /src/libxml2/parser.c:7002:7
+    #3 0x473424 in xmlParseInternalSubset /src/libxml2/parser.c:8482:6
+    #4 0x472f79 in xmlParseDocument /src/libxml2/parser.c:10930:6
+    #5 0x479a4b in xmlDoRead /src/libxml2/parser.c:15445:5
+    #6 0x42d996 in LLVMFuzzerTestOneInput /src/libxml2_xml_read_memory_fuzzer.cc:31:20
+    #7 0x43cd1d in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/libfuzzer/FuzzerLoop.cpp:458:13
+    #8 0x43d0f7 in fuzzer::Fuzzer::RunOne(unsigned char const*, unsigned long) /src/libfuzzer/FuzzerLoop.cpp:397:3
+    #9 0x42e7b8 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/libfuzzer/FuzzerDriver.cpp:268:6
+    #10 0x432c58 in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/libfuzzer/FuzzerDriver.cpp:683:9
+    #11 0x42e41c in main /src/libfuzzer/FuzzerMain.cpp:20:10
+    #12 0x7ffff6ee682f in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2082f)
+    #13 0x406758 in _start (/out/libxml2_xml_read_memory_fuzzer+0x406758)
+
+DEDUP_TOKEN: xmlAddDefAttrs--xmlParseAttributeListDecl--xmlParseMarkupDecl
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior parser.c:1282:5 in 

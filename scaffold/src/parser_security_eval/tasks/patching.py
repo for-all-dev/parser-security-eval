@@ -99,7 +99,7 @@ def _resolve_fuzz_binary(target_dir: Path, target_name: str) -> str:
 
 
 def load_patching_dataset(
-    benchmark_dir: str, target: str | None = None
+    benchmark_dir: str, target: str | None = None, ready_only: bool = False
 ) -> list[Sample]:
     """Load vulnerability records as Inspect-AI samples.
 
@@ -117,6 +117,13 @@ def load_patching_dataset(
 
     if target is not None:
         records = [r for r in records if r.target == target]
+
+    if ready_only:
+        records = [
+            r
+            for r in records
+            if r.crash_input_path and r.crash_report_path and r.reference_patch_path
+        ]
 
     samples: list[Sample] = []
     for record in records:
@@ -264,6 +271,7 @@ def vulnerability_patching(
     target: str | None = None,
     targets_root: str = "targets",
     fuzzing_engine: str = "libfuzzer",
+    ready_only: bool = False,
 ) -> Task:
     """Inspect-AI task: patch parser vulnerabilities given crash reports.
 
@@ -272,7 +280,7 @@ def vulnerability_patching(
         inspect eval tasks/patching.py -T benchmark_dir=benchmark -T target=libpng
         inspect eval tasks/patching.py -T benchmark_dir=benchmark -T fuzzing_engine=afl
     """
-    samples = load_patching_dataset(benchmark_dir, target)
+    samples = load_patching_dataset(benchmark_dir, target, ready_only=ready_only)
     if not samples:
         filter_msg = f" for target '{target}'" if target else ""
         raise ValueError(

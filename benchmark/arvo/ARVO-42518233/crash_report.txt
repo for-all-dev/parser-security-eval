@@ -1,3 +1,22 @@
-crash_type: Segv on unknown address
-sanitizer: address
-target: libjpeg-turbo
+[1mAccepting input from '/tmp/poc'[0m
+[1mUsage for fuzzing: honggfuzz -P [flags] -- /out/libjpeg_turbo_fuzzer_dev[0m
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==7==ERROR: AddressSanitizer: SEGV on unknown address (pc 0x00000068e11a bp 0x7fffffffd9b0 sp 0x7fffffffd860 T0)
+[1m[0m==7==The signal is caused by a READ memory access.
+==7==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x68e11a in decode_mcus /src/libjpeg-turbo.dev/jdlhuff.c:238:5
+    #1 0x683e97 in decompress_data /src/libjpeg-turbo.dev/jddiffct.c:189:7
+    #2 0x68322f in consume_data /src/libjpeg-turbo.dev/jddiffct.c:282:10
+    #3 0x56215e in jpeg_start_decompress /src/libjpeg-turbo.dev/jdapistd.c:69:19
+    #4 0x4f076b in tjDecompress2 /src/libjpeg-turbo.dev/turbojpeg.c:1353:3
+    #5 0x4dc15a in LLVMFuzzerTestOneInput /src/libjpeg-turbo.dev/fuzz/decompress.cc:86:9
+    #6 0x4dc9fb in main (/out/libjpeg_turbo_fuzzer_dev+0x4dc9fb)
+    #7 0x7ffff7c56082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 1878e6b475720c7c51969e69ab2d276fae6d1dee)
+    #8 0x41d5cd in _start (/out/libjpeg_turbo_fuzzer_dev+0x41d5cd)
+
+DEDUP_TOKEN: decode_mcus--decompress_data--consume_data
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/libjpeg-turbo.dev/jdlhuff.c:238:5 in decode_mcus
+==7==ABORTING

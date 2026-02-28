@@ -1,3 +1,46 @@
-crash_type: Invalid-free
-sanitizer: address
-target: libxml2
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2857940379
+INFO: Loaded 1 modules   (54233 inline 8-bit counters): 54233 [0x8764dc0, 0x8772199), 
+INFO: Loaded 1 PC tables (54233 PCs): 54233 [0x8654dbc,0x86bec84), 
+/out/schema: Running 1 inputs 1 time(s) each.
+Running: /tmp/poc
+=================================================================
+[1m[31m==7==ERROR: AddressSanitizer: attempting free on address which was not malloc()-ed: 0xf36037c8 in thread T0
+[1m[0mSCARINESS: 40 (bad-free)
+    #0 0x8185326 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:111:3
+    #1 0x8271d4b in xmlFreeNodeList /src/libxml2/tree.c:3750:3
+    #2 0x826fb6d in xmlFreeNode /src/libxml2/tree.c:3805:2
+    #3 0x82259a7 in xmlParseBalancedChunkMemoryInternal /src/libxml2/parser.c:13435:2
+    #4 0x8220e04 in xmlParseReference /src/libxml2/parser.c:7180:12
+    #5 0x8230315 in xmlParseContentInternal /src/libxml2/parser.c:9913:6
+    #6 0x8231100 in xmlParseElement /src/libxml2/parser.c:9978:5
+    #7 0x823a526 in xmlParseDocument /src/libxml2/parser.c:10815:2
+    #8 0x8258154 in xmlDoRead /src/libxml2/parser.c:15162:5
+    #9 0x8258154 in xmlCtxtReadFile /src/libxml2/parser.c:15407:13
+    #10 0x83ff5cf in xmlSchemaAddSchemaDoc /src/libxml2/xmlschemas.c:10639:12
+    #11 0x83fe322 in xmlSchemaParse /src/libxml2/xmlschemas.c:21463:11
+    #12 0x81c38e0 in LLVMFuzzerTestOneInput /src/libxml2/fuzz/schema.c:36:19
+    #13 0x80af51d in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned int) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:611:15
+    #14 0x809abbe in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned int) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:324:6
+    #15 0x80a06af in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned int)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:860:9
+    #16 0x80c9317 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #17 0xf7c94ed4 in __libc_start_main (/lib/i386-linux-gnu/libc.so.6+0x1aed4)
+    #18 0x80789e5 in _start (/out/schema+0x80789e5)
+
+DEDUP_TOKEN: free--xmlFreeNodeList--xmlFreeNode
+[1m[32m0xf36037c8 is located 72 bytes inside of 1024-byte region [0xf3603780,0xf3603b80)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x81855a5 in __interceptor_malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:129:3
+    #1 0x85492a3 in xmlDictAddString /src/libxml2/dict.c:273:29
+    #2 0x85492a3 in xmlDictLookup /src/libxml2/dict.c:964:11
+    #3 0x83f8053 in xmlSchemaNewParserCtxt /src/libxml2/xmlschemas.c:12549:16
+    #4 0x81c38b6 in LLVMFuzzerTestOneInput /src/libxml2/fuzz/schema.c:34:13
+    #5 0x80af51d in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned int) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:611:15
+    #6 0x809abbe in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned int) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:324:6
+    #7 0x80a06af in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned int)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:860:9
+    #8 0x80c9317 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0xf7c94ed4 in __libc_start_main (/lib/i386-linux-gnu/libc.so.6+0x1aed4)
+
+DEDUP_TOKEN: __interceptor_malloc--xmlDictAddString--xmlDictLookup
+SUMMARY: AddressSanitizer: bad-free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:111:3 in free
+==7==ABORTING

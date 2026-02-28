@@ -1,3 +1,79 @@
-crash_type: Heap-buffer-overflow WRITE 1
-sanitizer: address
-target: libxml2
+Running LLVMFuzzerInitialize ...
+continue...
+Reading 52 bytes from /tmp/poc
+=================================================================
+[1m[31m==7==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x602000000134 at pc 0x0000005607dc bp 0x7ffe14c9c160 sp 0x7ffe14c9c158
+[1m[0m[1m[34mWRITE of size 1 at 0x602000000134 thread T0[1m[0m
+SCARINESS: 31 (1-byte-write-heap-buffer-overflow)
+    #0 0x5607db in xmlCopyCharMultiByte /src/libxml2/parserInternals.c:1095:12
+    #1 0x510986 in xmlParseCommentComplex /src/libxml2/parser.c:4964:2
+    #2 0x50faca in xmlParseComment /src/libxml2/parser.c:5189:5
+    #3 0x52eb05 in xmlParseContentInternal /src/libxml2/parser.c:10261:6
+    #4 0x526e65 in xmlParseContent /src/libxml2/parser.c:10312:5
+    #5 0x526e65 in xmlParseBalancedChunkMemoryInternal /src/libxml2/parser.c:13074:5
+    #6 0x523ade in xmlParseReference /src/libxml2/parser.c:7357:12
+    #7 0x52e712 in xmlParseContentInternal /src/libxml2/parser.c:10284:6
+    #8 0x52f1a2 in xmlParseElement /src/libxml2/parser.c:10346:5
+    #9 0x5358d9 in xmlParseDocument /src/libxml2/parser.c:11127:2
+    #10 0x54c1a4 in xmlDoRead /src/libxml2/parser.c:14773:5
+    #11 0x54c4b9 in xmlReadMemory /src/libxml2/parser.c:14859:13
+    #12 0x4dcf89 in LLVMFuzzerTestOneInput /src/libxml2/fuzz/xpath.c:37:11
+    #13 0x4df40d in ExecuteFilesOnyByOne /src/aflplusplus/utils/aflpp_driver/aflpp_driver.c:255:7
+    #14 0x4df218 in LLVMFuzzerRunDriver /src/aflplusplus/utils/aflpp_driver/aflpp_driver.c
+    #15 0x4dedd8 in main /src/aflplusplus/utils/aflpp_driver/aflpp_driver.c:300:10
+    #16 0x7fa32526b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #17 0x41e5ad in _start (/out/xpath+0x41e5ad)
+
+DEDUP_TOKEN: xmlCopyCharMultiByte--xmlParseCommentComplex--xmlParseComment
+[1m[32m0x602000000134 is located 0 bytes to the right of 4-byte region [0x602000000130,0x602000000134)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x49fdec in __interceptor_realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:85:3
+    #1 0x4dd2e8 in xmlFuzzRealloc /src/libxml2/fuzz/fuzz.c:99:12
+    #2 0x510821 in xmlParseCommentComplex /src/libxml2/parser.c:4955:28
+    #3 0x50faca in xmlParseComment /src/libxml2/parser.c:5189:5
+    #4 0x52eb05 in xmlParseContentInternal /src/libxml2/parser.c:10261:6
+    #5 0x526e65 in xmlParseContent /src/libxml2/parser.c:10312:5
+    #6 0x526e65 in xmlParseBalancedChunkMemoryInternal /src/libxml2/parser.c:13074:5
+    #7 0x523ade in xmlParseReference /src/libxml2/parser.c:7357:12
+    #8 0x52e712 in xmlParseContentInternal /src/libxml2/parser.c:10284:6
+    #9 0x52f1a2 in xmlParseElement /src/libxml2/parser.c:10346:5
+    #10 0x5358d9 in xmlParseDocument /src/libxml2/parser.c:11127:2
+    #11 0x54c1a4 in xmlDoRead /src/libxml2/parser.c:14773:5
+    #12 0x54c4b9 in xmlReadMemory /src/libxml2/parser.c:14859:13
+    #13 0x4dcf89 in LLVMFuzzerTestOneInput /src/libxml2/fuzz/xpath.c:37:11
+    #14 0x4df40d in ExecuteFilesOnyByOne /src/aflplusplus/utils/aflpp_driver/aflpp_driver.c:255:7
+
+DEDUP_TOKEN: __interceptor_realloc--xmlFuzzRealloc--xmlParseCommentComplex
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/libxml2/parserInternals.c:1095:12 in xmlCopyCharMultiByte
+Shadow bytes around the buggy address:
+  0x0c047fff7fd0: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x0c047fff7fe0: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x0c047fff7ff0: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x0c047fff8000: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m04[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m04[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m02[1m[0m [1m[31mfa[1m[0m
+  0x0c047fff8010: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m06[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m02[1m[0m [1m[31mfa[1m[0m
+=>0x0c047fff8020: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m02[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m[[1m[0m04[1m[0m][1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x0c047fff8030: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x0c047fff8040: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x0c047fff8050: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x0c047fff8060: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x0c047fff8070: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==7==ABORTING

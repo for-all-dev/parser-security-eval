@@ -1,3 +1,82 @@
-crash_type: Heap-use-after-free READ 8
-sanitizer: address
-target: libxml2
+Running LLVMFuzzerInitialize ...
+continue...
+Reading 233 bytes from /tmp/poc
+=================================================================
+[1m[31m==7==ERROR: AddressSanitizer: heap-use-after-free on address 0x60c000000dd8 at pc 0x00000056bdcd bp 0x7fffffffddf0 sp 0x7fffffffdde8
+[1m[0m[1m[34mREAD of size 8 at 0x60c000000dd8 thread T0[1m[0m
+SCARINESS: 51 (8-byte-read-heap-use-after-free)
+    #0 0x56bdcc in xmlFreeNodeList /src/libxml2/tree.c:3704:22
+    #1 0x670ce0 in xmlXIncludeIncludeNode /src/libxml2/xinclude.c
+    #2 0x66e142 in xmlXIncludeDoProcess /src/libxml2/xinclude.c:2464:6
+    #3 0x66d886 in xmlXIncludeProcessTreeFlagsData /src/libxml2/xinclude.c:2517:11
+    #4 0x66e38b in xmlXIncludeProcessFlagsData /src/libxml2/xinclude.c:2546:12
+    #5 0x66e408 in xmlXIncludeProcessFlags /src/libxml2/xinclude.c:2561:12
+    #6 0x4d7ee7 in LLVMFuzzerTestOneInput /src/libxml2/fuzz/xml.c:57:9
+    #7 0x4d9f95 in ExecuteFilesOnyByOne /src/aflplusplus/utils/aflpp_driver/aflpp_driver.c:191:7
+    #8 0x4d9e05 in main /src/aflplusplus/utils/aflpp_driver/aflpp_driver.c
+    #9 0x7ffff7c55082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082)
+    #10 0x41e57d in _start (/out/xml+0x41e57d)
+
+DEDUP_TOKEN: xmlFreeNodeList--xmlXIncludeIncludeNode--xmlXIncludeDoProcess
+[1m[32m0x60c000000dd8 is located 24 bytes inside of 120-byte region [0x60c000000dc0,0x60c000000e38)
+[1m[0m[1m[35mfreed by thread T0 here:[1m[0m
+    #0 0x49e922 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:111:3
+    #1 0x56bb51 in xmlFreeNodeList /src/libxml2/tree.c:3751:6
+    #2 0x670ce0 in xmlXIncludeIncludeNode /src/libxml2/xinclude.c
+    #3 0x66e142 in xmlXIncludeDoProcess /src/libxml2/xinclude.c:2464:6
+    #4 0x66d886 in xmlXIncludeProcessTreeFlagsData /src/libxml2/xinclude.c:2517:11
+    #5 0x66e38b in xmlXIncludeProcessFlagsData /src/libxml2/xinclude.c:2546:12
+    #6 0x66e408 in xmlXIncludeProcessFlags /src/libxml2/xinclude.c:2561:12
+    #7 0x4d7ee7 in LLVMFuzzerTestOneInput /src/libxml2/fuzz/xml.c:57:9
+    #8 0x4d9f95 in ExecuteFilesOnyByOne /src/aflplusplus/utils/aflpp_driver/aflpp_driver.c:191:7
+
+DEDUP_TOKEN: free--xmlFreeNodeList--xmlXIncludeIncludeNode
+[1m[35mpreviously allocated by thread T0 here:[1m[0m
+    #0 0x49eb8d in __interceptor_malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:129:3
+    #1 0x5799c0 in xmlStaticCopyNode /src/libxml2/tree.c:4247:24
+    #2 0x57a63c in xmlStaticCopyNode /src/libxml2/tree.c:4350:31
+    #3 0x57ae5d in xmlStaticCopyNodeList /src/libxml2/tree.c:4419:10
+    #4 0x57acc3 in xmlDocCopyNodeList /src/libxml2/tree.c:4484:22
+    #5 0x67605b in xmlXIncludeLoadFallback /src/libxml2/xinclude.c:1987:26
+    #6 0x6701e4 in xmlXIncludeLoadNode /src/libxml2/xinclude.c:2150:9
+    #7 0x66df7d in xmlXIncludeDoProcess /src/libxml2/xinclude.c:2446:9
+    #8 0x66d886 in xmlXIncludeProcessTreeFlagsData /src/libxml2/xinclude.c:2517:11
+    #9 0x66e38b in xmlXIncludeProcessFlagsData /src/libxml2/xinclude.c:2546:12
+    #10 0x66e408 in xmlXIncludeProcessFlags /src/libxml2/xinclude.c:2561:12
+    #11 0x4d7ee7 in LLVMFuzzerTestOneInput /src/libxml2/fuzz/xml.c:57:9
+    #12 0x4d9f95 in ExecuteFilesOnyByOne /src/aflplusplus/utils/aflpp_driver/aflpp_driver.c:191:7
+
+DEDUP_TOKEN: __interceptor_malloc--xmlStaticCopyNode--xmlStaticCopyNode
+SUMMARY: AddressSanitizer: heap-use-after-free /src/libxml2/tree.c:3704:22 in xmlFreeNodeList
+Shadow bytes around the buggy address:
+  0x0c187fff8160: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x0c187fff8170: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m
+  0x0c187fff8180: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x0c187fff8190: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x0c187fff81a0: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m
+=>0x0c187fff81b0: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m[[1m[35mfd[1m[0m][1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x0c187fff81c0: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x0c187fff81d0: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m
+  0x0c187fff81e0: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x0c187fff81f0: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x0c187fff8200: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==7==ABORTING

@@ -1,3 +1,23 @@
-crash_type: Index-out-of-bounds
-sanitizer: undefined
-target: libjpeg-turbo
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2818356030
+INFO: Loaded 1 modules   (25441 inline 8-bit counters): 25441 [0x779860, 0x77fbc1), 
+INFO: Loaded 1 PC tables (25441 PCs): 25441 [0x66d940,0x6d0f50), 
+/out/transform_fuzzer_dev: Running 1 inputs 1 time(s) each.
+Running: /tmp/poc
+[1m/src/libjpeg-turbo.dev/jcphuff.c:402:24:[1m[31m runtime error: [1m[0m[1mindex 737 out of bounds for type 'unsigned int[256]'[1m[0m
+    #0 0x4f954b in emit_symbol /src/libjpeg-turbo.dev/jcphuff.c:402:24
+    #1 0x4f880d in encode_mcu_AC_refine /src/libjpeg-turbo.dev/jcphuff.c:981:3
+    #2 0x4fe95e in compress_output /src/libjpeg-turbo.dev/jctrans.c:350:12
+    #3 0x4fec5f in compress_output_12 /src/libjpeg-turbo.dev/jctrans.c:372:10
+    #4 0x4e98ed in jpeg_finish_compress /src/libjpeg-turbo.dev/jcapimin.c:190:14
+    #5 0x4cd559 in tjTransform /src/libjpeg-turbo.dev/turbojpeg.c:2053:44
+    #6 0x4c074a in LLVMFuzzerTestOneInput /src/libjpeg-turbo.dev/fuzz/transform.cc:119:7
+    #7 0x426273 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:611:15
+    #8 0x4119d2 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:324:6
+    #9 0x41727c in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:860:9
+    #10 0x4407b2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7ffff7c56082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 1878e6b475720c7c51969e69ab2d276fae6d1dee)
+    #12 0x407b9d in _start (/out/transform_fuzzer_dev+0x407b9d)
+
+DEDUP_TOKEN: emit_symbol--encode_mcu_AC_refine--compress_output
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior /src/libjpeg-turbo.dev/jcphuff.c:402:24 in 

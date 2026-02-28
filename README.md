@@ -37,7 +37,19 @@ uv run parser-security-eval fetch-artifacts
 
 This fills in the `reference_patch.diff` files that step 1 left empty. Patches are generated via `git diff fix_commit~1..fix_commit` from shallow upstream clones. Expects ~87% coverage of ARVO records.
 
-### 3. Build parser targets
+### 3. Enrich the dataset
+
+Replace stub crash reports with full ASAN output from the ARVO-Meta database, map crash types to CWE IDs, and optionally extract crash inputs from ARVO Docker images:
+
+```bash
+# Fast: enrich crash reports + CWE mapping (seconds)
+uv run parser-security-eval enrich-dataset --no-crash-inputs
+
+# Full: also extract crash inputs from Docker images (slow, pulls ~127 images)
+uv run parser-security-eval enrich-dataset --crash-inputs
+```
+
+### 4. Build parser targets
 
 Build the Tier 1 parser targets in Docker (oss-fuzz base-builder images with AddressSanitizer):
 
@@ -48,7 +60,7 @@ uv run parser-security-eval build-target libxml2
 uv run parser-security-eval build-target zlib
 ```
 
-### 4. Run evaluations
+### 5. Run evaluations
 
 Run an Inspect-AI evaluation task against a model:
 
@@ -58,7 +70,7 @@ uv run parser-security-eval evaluate triage
 uv run parser-security-eval evaluate harness --target libpng
 ```
 
-### 5. Verify a patch
+### 6. Verify a patch
 
 Test a specific patch against a vulnerability:
 
@@ -72,8 +84,9 @@ uv run parser-security-eval verify libpng ARVO-42498959 path/to/patch.diff
 parser-security-eval/
   benchmark/              Curated vulnerability dataset
     metadata.json           209 records with IDs, targets, severities, paths
-    ARVO-{id}/              Per-vulnerability artifacts
-      crash_report.txt        Sanitizer crash report
+    arvo/ARVO-{id}/         Per-vulnerability artifacts
+      crash_report.txt        Full ASAN/MSAN crash output
+      crash_input             Triggering input bytes (from ARVO Docker images)
       reference_patch.diff    Ground-truth fix (from upstream git)
   scaffold/               Python package (uv project)
     src/parser_security_eval/
@@ -81,6 +94,7 @@ parser-security-eval/
       dataset/
         arvo.py                 ARVO metadata ingestion
         artifacts.py            Reference patch fetching from ARVO-Meta
+        enrich.py               Crash report, CWE, and crash input enrichment
         curator.py              Deduplication, validation, export
         ossfuzz.py              oss-fuzz bug ingestion
       models/
@@ -110,6 +124,7 @@ All commands: `uv run parser-security-eval <command> --help`
 |---|---|
 | `curate <source>` | Ingest from `arvo`, `ossfuzz`, or `all`. Writes `benchmark/metadata.json`. |
 | `fetch-artifacts` | Download ARVO-Meta DB, generate reference patches from upstream repos. |
+| `enrich-dataset` | Enrich crash reports with ASAN output, map CWE, extract crash inputs. |
 | `build-target <target>` | Build a parser target in Docker with sanitizer + fuzz engine. |
 | `evaluate <task>` | Run an Inspect-AI eval: `patching`, `triage`, or `harness`. |
 | `verify <target> <id> <patch>` | Test a patch against a specific vulnerability. |

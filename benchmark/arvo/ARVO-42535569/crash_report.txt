@@ -1,3 +1,36 @@
-crash_type: Use-of-uninitialized-value
-sanitizer: memory
-target: libxml2
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3570572341
+INFO: Loaded 1 modules   (52786 inline 8-bit counters): 52786 [0x555555d36710, 0x555555d43542), 
+INFO: Loaded 1 PC tables (52786 PCs): 52786 [0x555555d43548,0x555555e11868), 
+/out/lint: Running 1 inputs 1 time(s) each.
+Running: /tmp/poc
+[1m[31m[1m[31mUninitialized bytes in [1m[32mwrite[1m[31m at offset 0 inside [0x724000000000, 42)[1m[0m
+[1m[31m==7==WARNING: MemorySanitizer: use-of-uninitialized-value
+[1m[0m    #0 0x555555c65339 in gz_comp gzwrite.o
+    #1 0x555555c6622d in gzclose_w (/out/lint+0x71222d)
+    #2 0x55555598f5d1 in xmlGzfileClose /src/libxml2/xmlIO.c:935:13
+    #3 0x5555559876cf in xmlOutputBufferClose /src/libxml2/xmlIO.c:1527:20
+    #4 0x555555a087e5 in xmlSaveFormatFileEnc /src/libxml2/xmlsave.c:2927:11
+    #5 0x555555819a7b in parseAndPrintFile /src/libxml2/fuzz/./../xmllint.c:2613:3
+    #6 0x5555558096e9 in xmllintMain /src/libxml2/fuzz/./../xmllint.c:3730:17
+    #7 0x5555558096e9 in LLVMFuzzerTestOneInput /src/libxml2/fuzz/lint.c:206:5
+    #8 0x5555556ff3a0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x5555556e9b34 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x5555556ef5ca in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x55555571b9c2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7ffff7c37082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #13 0x5555556e060d in _start (/out/lint+0x18c60d)
+
+DEDUP_TOKEN: gz_comp--gzclose_w--xmlGzfileClose
+  [1m[35mUninitialized value was stored to memory at[1m[0m
+    #0 0x5555557a1baa in __msan_memcpy /src/llvm-project/compiler-rt/lib/msan/msan_interceptors.cpp:1733:3
+    #1 0x555555c69c9d in deflate.part.0 deflate.o
+
+DEDUP_TOKEN: __msan_memcpy--deflate.part.0
+  [1m[35mUninitialized value was created by a heap allocation[1m[0m
+    #0 0x5555557aae42 in malloc /src/llvm-project/compiler-rt/lib/msan/msan_interceptors.cpp:1007:3
+    #1 0x555555c6b096 in deflateInit2_ (/out/lint+0x717096)
+
+DEDUP_TOKEN: __interceptor_malloc--deflateInit2_
+SUMMARY: MemorySanitizer: use-of-uninitialized-value gzwrite.o in gz_comp
+Exiting

@@ -1,3 +1,49 @@
-crash_type: Use-of-uninitialized-value
-sanitizer: memory
-target: libxml2
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 715590968
+INFO: Loaded 1 modules   (54105 inline 8-bit counters): 54105 [0xd2f4b8, 0xd3c811), 
+INFO: Loaded 1 PC tables (54105 PCs): 54105 [0xbed870,0xcc0e00), 
+/out/xml: Running 1 inputs 1 time(s) each.
+Running: /tmp/poc
+[1m[31m[1m[31mUninitialized bytes in [1m[32m__interceptor_strlen[1m[31m at offset 0 inside [0x71900000013d, 8)[1m[0m
+[1m[31m==7==WARNING: MemorySanitizer: use-of-uninitialized-value
+[1m[0m    #0 0x9cc002 in xmlDictLookup /src/libxml2/dict.c:878:13
+    #1 0x642a93 in xmlNewDocNode /src/libxml2/tree.c:2340:26
+    #2 0x844b5d in xmlXIncludeIncludeNode /src/libxml2/xinclude.c:2253:8
+    #3 0x844b5d in xmlXIncludeDoProcess /src/libxml2/xinclude.c:2464:6
+    #4 0x835884 in xmlXIncludeProcessTreeFlagsData /src/libxml2/xinclude.c:2517:11
+    #5 0x846342 in xmlXIncludeProcessFlagsData /src/libxml2/xinclude.c:2546:12
+    #6 0x846342 in xmlXIncludeProcessFlags /src/libxml2/xinclude.c:2561:12
+    #7 0x5275a4 in LLVMFuzzerTestOneInput /src/libxml2/fuzz/xml.c:57:9
+    #8 0x4552b2 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:611:15
+    #9 0x440e62 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:324:6
+    #10 0x4466cc in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:860:9
+    #11 0x46f062 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7fd556ce4082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082)
+    #13 0x41f5ad in _start (/out/xml+0x41f5ad)
+
+DEDUP_TOKEN: xmlDictLookup--xmlNewDocNode--xmlXIncludeIncludeNode
+  [1m[35mUninitialized value was created by a heap deallocation[1m[0m
+    #0 0x4ced59 in free /src/llvm-project/compiler-rt/lib/msan/msan_interceptors.cpp:223:3
+    #1 0x63738d in xmlFreeNodeList /src/libxml2/tree.c:3750:3
+    #2 0x63550f in xmlFreeDoc /src/libxml2/tree.c:1250:32
+    #3 0x63668b in xmlFreeNodeList /src/libxml2/tree.c:3717:13
+    #4 0x633d6f in xmlFreeNode /src/libxml2/tree.c:3805:2
+    #5 0x6509fd in xmlStaticCopyNode /src/libxml2/tree.c:4352:17
+    #6 0x651641 in xmlStaticCopyNodeList /src/libxml2/tree.c:4419:10
+    #7 0x6513e4 in xmlDocCopyNodeList /src/libxml2/tree.c:4484:22
+    #8 0x847a40 in xmlXIncludeLoadFallback /src/libxml2/xinclude.c:1987:26
+    #9 0x83da3b in xmlXIncludeLoadNode /src/libxml2/xinclude.c:2150:9
+    #10 0x83da3b in xmlXIncludeDoProcess /src/libxml2/xinclude.c:2446:9
+    #11 0x835884 in xmlXIncludeProcessTreeFlagsData /src/libxml2/xinclude.c:2517:11
+    #12 0x846342 in xmlXIncludeProcessFlagsData /src/libxml2/xinclude.c:2546:12
+    #13 0x846342 in xmlXIncludeProcessFlags /src/libxml2/xinclude.c:2561:12
+    #14 0x5275a4 in LLVMFuzzerTestOneInput /src/libxml2/fuzz/xml.c:57:9
+    #15 0x4552b2 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:611:15
+    #16 0x440e62 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:324:6
+    #17 0x4466cc in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:860:9
+    #18 0x46f062 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #19 0x7fd556ce4082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082)
+
+DEDUP_TOKEN: free--xmlFreeNodeList--xmlFreeDoc
+SUMMARY: MemorySanitizer: use-of-uninitialized-value /src/libxml2/dict.c:878:13 in xmlDictLookup
+Exiting

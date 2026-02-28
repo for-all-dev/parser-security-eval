@@ -1,3 +1,27 @@
-crash_type: UNKNOWN WRITE
-sanitizer: address
-target: libxml2
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2542223127
+INFO: Loaded 1 modules   (52173 inline 8-bit counters): 52173 [0x55e4579ae680, 0x55e4579bb24d), 
+INFO: Loaded 1 PC tables (52173 PCs): 52173 [0x55e4579bb250,0x55e457a86f20), 
+/out/api: Running 1 inputs 1 time(s) each.
+Running: /tmp/poc
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==7==ERROR: AddressSanitizer: SEGV on unknown address 0x55e457962924 (pc 0x55e4576225fc bp 0x7ffe9de7a3a0 sp 0x7ffe9de7a360 T0)
+[1m[0m==7==The signal is caused by a WRITE memory access.
+SCARINESS: 30 (wild-addr-write)
+    #0 0x55e4576225fc in xmlBufGetEntityRefContent /src/libxml2/tree.c:5486:16
+    #1 0x55e4576225fc in xmlBufGetChildContent /src/libxml2/tree.c:5503:17
+    #2 0x55e45762223e in xmlBufGetNodeContent /src/libxml2/tree.c:5549:13
+    #3 0x55e457622906 in xmlNodeGetContent /src/libxml2/tree.c:5641:5
+    #4 0x55e457551a5a in LLVMFuzzerTestOneInput /src/libxml2/fuzz/api.c:1613:27
+    #5 0x55e4573fe520 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x55e4573e8cb4 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x55e4573ee74a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x55e45741ab42 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f77f7573082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #10 0x55e4573df78d in _start (/out/api+0x1c878d)
+
+DEDUP_TOKEN: xmlBufGetEntityRefContent--xmlBufGetChildContent--xmlBufGetNodeContent
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/libxml2/tree.c:5486:16 in xmlBufGetEntityRefContent
+==7==ABORTING

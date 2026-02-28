@@ -1,3 +1,117 @@
-crash_type: Heap-use-after-free READ 1
-sanitizer: address
-target: libxml2
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2391373719
+INFO: Loaded 1 modules   (51592 inline 8-bit counters): 51592 [0xabf270, 0xacbbf8), 
+INFO: Loaded 1 PC tables (51592 PCs): 51592 [0x94b2b0,0xa14b30), 
+/out/xml: Running 1 inputs 1 time(s) each.
+Running: /tmp/poc
+=================================================================
+[1m[31m==7==ERROR: AddressSanitizer: heap-use-after-free on address 0x625000011900 at pc 0x0000005761d5 bp 0x7ffc49ace210 sp 0x7ffc49ace208
+[1m[0m[1m[34mREAD of size 1 at 0x625000011900 thread T0[1m[0m
+SCARINESS: 40 (1-byte-read-heap-use-after-free)
+    #0 0x5761d4 in xmlParserPrintFileContextInternal /src/libxml2/error.c:210:13
+    #1 0x57af85 in xmlReportError /src/libxml2/error.c:420:9
+    #2 0x57735e in __xmlRaiseError /src/libxml2/error.c
+    #3 0x5ed098 in xmlFatalErr /src/libxml2/parserInternals.c
+    #4 0x58d52e in xmlLoadEntityContent /src/libxml2/parser.c:8277:9
+    #5 0x58d52e in xmlStringDecodeEntitiesInt /src/libxml2/parser.c:2925:4
+    #6 0x59501d in xmlParseEntityValue /src/libxml2/parser.c:4026:11
+    #7 0x5a6598 in xmlParseEntityDecl /src/libxml2/parser.c:5596:18
+    #8 0x5b1931 in xmlParseMarkupDecl /src/libxml2/parser.c:7022:4
+    #9 0x5cb16d in xmlParseInternalSubset /src/libxml2/parser.c:8554:10
+    #10 0x5ceb5e in xmlParseTryOrFinish /src/libxml2/parser.c:12114:3
+    #11 0x5ceb5e in xmlParseChunk /src/libxml2/parser.c:12204:5
+    #12 0x6d6a81 in xmlTextReaderPushData /src/libxml2/xmlreader.c:761:12
+    #13 0x6d371c in xmlTextReaderRead /src/libxml2/xmlreader.c:1180:12
+    #14 0x56c88e in LLVMFuzzerTestOneInput /src/libxml2/fuzz/xml.c:106:16
+    #15 0x43dee3 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:611:15
+    #16 0x429642 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:324:6
+    #17 0x42eeec in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:860:9
+    #18 0x458422 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #19 0x7f35749d8082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #20 0x41f80d in _start (/out/xml+0x41f80d)
+
+DEDUP_TOKEN: xmlParserPrintFileContextInternal--xmlReportError--__xmlRaiseError
+[1m[32m0x625000011900 is located 0 bytes inside of 8193-byte region [0x625000011900,0x625000013901)
+[1m[0m[1m[35mfreed by thread T0 here:[1m[0m
+    #0 0x52f47c in __interceptor_realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:85:3
+    #1 0x56cbfa in xmlFuzzRealloc /src/libxml2/fuzz/fuzz.c:99:12
+    #2 0x57004e in xmlBufGrowInternal /src/libxml2/buf.c:420:23
+    #3 0x57004e in xmlBufGrow /src/libxml2/buf.c:449:11
+    #4 0x675106 in xmlParserInputBufferGrow /src/libxml2/xmlIO.c:3208:13
+    #5 0x58d3e9 in xmlLoadEntityContent /src/libxml2/parser.c:8271:19
+    #6 0x58d3e9 in xmlStringDecodeEntitiesInt /src/libxml2/parser.c:2925:4
+    #7 0x59501d in xmlParseEntityValue /src/libxml2/parser.c:4026:11
+    #8 0x5a6598 in xmlParseEntityDecl /src/libxml2/parser.c:5596:18
+    #9 0x5b1931 in xmlParseMarkupDecl /src/libxml2/parser.c:7022:4
+    #10 0x5cb16d in xmlParseInternalSubset /src/libxml2/parser.c:8554:10
+    #11 0x5ceb5e in xmlParseTryOrFinish /src/libxml2/parser.c:12114:3
+    #12 0x5ceb5e in xmlParseChunk /src/libxml2/parser.c:12204:5
+    #13 0x6d6a81 in xmlTextReaderPushData /src/libxml2/xmlreader.c:761:12
+    #14 0x6d371c in xmlTextReaderRead /src/libxml2/xmlreader.c:1180:12
+    #15 0x56c88e in LLVMFuzzerTestOneInput /src/libxml2/fuzz/xml.c:106:16
+    #16 0x43dee3 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:611:15
+    #17 0x429642 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:324:6
+    #18 0x42eeec in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:860:9
+    #19 0x458422 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #20 0x7f35749d8082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_realloc--xmlFuzzRealloc--xmlBufGrowInternal
+[1m[35mpreviously allocated by thread T0 here:[1m[0m
+    #0 0x52f076 in __interceptor_malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:69:3
+    #1 0x56cb53 in xmlFuzzMalloc /src/libxml2/fuzz/fuzz.c:84:12
+    #2 0x56e91c in xmlBufCreateSize /src/libxml2/buf.c:172:36
+    #3 0x671452 in xmlAllocParserInputBuffer /src/libxml2/xmlIO.c:2254:19
+    #4 0x67419e in xmlParserInputBufferCreateMem /src/libxml2/xmlIO.c:2877:11
+    #5 0x56dd1f in xmlFuzzEntityLoader /src/libxml2/fuzz/fuzz.c:369:18
+    #6 0x677986 in xmlLoadExternalEntity /src/libxml2/xmlIO.c:3977:8
+    #7 0x58c328 in xmlLoadEntityContent /src/libxml2/parser.c:8217:13
+    #8 0x58c328 in xmlStringDecodeEntitiesInt /src/libxml2/parser.c:2925:4
+    #9 0x59501d in xmlParseEntityValue /src/libxml2/parser.c:4026:11
+    #10 0x5a6598 in xmlParseEntityDecl /src/libxml2/parser.c:5596:18
+    #11 0x5b1931 in xmlParseMarkupDecl /src/libxml2/parser.c:7022:4
+    #12 0x5cb16d in xmlParseInternalSubset /src/libxml2/parser.c:8554:10
+    #13 0x5ceb5e in xmlParseTryOrFinish /src/libxml2/parser.c:12114:3
+    #14 0x5ceb5e in xmlParseChunk /src/libxml2/parser.c:12204:5
+    #15 0x6d6a81 in xmlTextReaderPushData /src/libxml2/xmlreader.c:761:12
+    #16 0x6d371c in xmlTextReaderRead /src/libxml2/xmlreader.c:1180:12
+    #17 0x56c88e in LLVMFuzzerTestOneInput /src/libxml2/fuzz/xml.c:106:16
+    #18 0x43dee3 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:611:15
+    #19 0x429642 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:324:6
+    #20 0x42eeec in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:860:9
+    #21 0x458422 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #22 0x7f35749d8082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_malloc--xmlFuzzMalloc--xmlBufCreateSize
+SUMMARY: AddressSanitizer: heap-use-after-free /src/libxml2/error.c:210:13 in xmlParserPrintFileContextInternal
+Shadow bytes around the buggy address:
+  0x0c4a7fffa2d0: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x0c4a7fffa2e0: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x0c4a7fffa2f0: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x0c4a7fffa300: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x0c4a7fffa310: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+=>0x0c4a7fffa320:[[1m[35mfd[1m[0m][1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x0c4a7fffa330: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x0c4a7fffa340: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x0c4a7fffa350: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x0c4a7fffa360: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x0c4a7fffa370: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==7==ABORTING

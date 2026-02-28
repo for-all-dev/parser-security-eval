@@ -1,3 +1,38 @@
-crash_type: Use-of-uninitialized-value
-sanitizer: memory
-target: libxml2
+INFO: Seed: 452249279
+INFO: Loaded 1 modules (44005 guards): [0x101cc70, 0x1047c04), 
+/out/libxml2_xml_read_memory_fuzzer: Running 1 inputs 1 time(s) each.
+Running: /tmp/poc
+[1m[31m==7==WARNING: MemorySanitizer: use-of-uninitialized-value
+[1m[0m    #0 0x54d32c in __xmlRaiseError /src/libxml2/error.c:589:9
+    #1 0x6c4483 in xmlErrValidNode /src/libxml2/valid.c:163:5
+    #2 0x6c3e6c in xmlValidBuildContentModel /src/libxml2/valid.c:846:2
+    #3 0x6f1100 in xmlValidateElementContent /src/libxml2/valid.c:5248:8
+    #4 0x6eec20 in xmlValidateOneElement /src/libxml2/valid.c:6152:12
+    #5 0x973f75 in xmlSAX2EndElementNs /src/libxml2/SAX2.c:2467:24
+    #6 0x5e12e3 in xmlParseEndTag2 /src/libxml2/parser.c:9917:2
+    #7 0x5d5846 in xmlParseElement /src/libxml2/parser.c:10279:2
+    #8 0x5d31a5 in xmlParseContent /src/libxml2/parser.c:10083:6
+    #9 0x5d50f0 in xmlParseElement /src/libxml2/parser.c:10256:5
+    #10 0x5d31a5 in xmlParseContent /src/libxml2/parser.c:10083:6
+    #11 0x5d50f0 in xmlParseElement /src/libxml2/parser.c:10256:5
+    #12 0x5d31a5 in xmlParseContent /src/libxml2/parser.c:10083:6
+    #13 0x5d50f0 in xmlParseElement /src/libxml2/parser.c:10256:5
+    #14 0x5d31a5 in xmlParseContent /src/libxml2/parser.c:10083:6
+    #15 0x5d50f0 in xmlParseElement /src/libxml2/parser.c:10256:5
+    #16 0x5eadee in xmlParseDocument /src/libxml2/parser.c:10953:2
+    #17 0x614047 in xmlDoRead /src/libxml2/parser.c:15432:5
+    #18 0x614742 in xmlReadMemory /src/libxml2/parser.c:15518:13
+    #19 0x498c61 in LLVMFuzzerTestOneInput /src/libxml2_xml_read_memory_fuzzer.cc:31:20
+    #20 0x4d8939 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/libfuzzer/FuzzerLoop.cpp:451:13
+    #21 0x4d9572 in fuzzer::Fuzzer::RunOne(unsigned char const*, unsigned long) /src/libfuzzer/FuzzerLoop.cpp:408:3
+    #22 0x49c73e in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/libfuzzer/FuzzerDriver.cpp:268:6
+    #23 0x4aaf7d in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/libfuzzer/FuzzerDriver.cpp:620:9
+    #24 0x49b881 in main /src/libfuzzer/FuzzerMain.cpp:20:10
+    #25 0x7ffff6ee682f in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2082f)
+    #26 0x41f298 in _start (/out/libxml2_xml_read_memory_fuzzer+0x41f298)
+
+DEDUP_TOKEN: __xmlRaiseError--xmlErrValidNode--xmlValidBuildContentModel
+  [1m[35mUninitialized value was created by a heap allocation[1m[0m
+    #0 0x44e1d0 in malloc /src/llvm/projects/compiler-rt/lib/msan/msan_interceptors.cc:953
+    #1 0x7ffff6ee73e0  (/lib/x86_64-linux-gnu/libc.so.6+0x213e0)
+format

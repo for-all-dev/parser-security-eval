@@ -12,6 +12,11 @@ import typer
 from parser_security_eval.dataset.artifacts import fetch_reference_patches
 from parser_security_eval.dataset.arvo import ingest_arvo
 from parser_security_eval.dataset.curator import DatasetCurator
+from parser_security_eval.dataset.enrich import (
+    enrich_crash_reports,
+    enrich_cwe,
+    extract_crash_inputs,
+)
 from parser_security_eval.dataset.ossfuzz import fetch_ossfuzz_bugs, parse_ossfuzz_bug
 from parser_security_eval.models.vulnerability import VulnerabilityRecord
 
@@ -212,6 +217,14 @@ def evaluate(
     fuzz_duration: int = typer.Option(
         300, help="Fuzzer run duration in seconds (harness only)"
     ),
+    limit: int | None = typer.Option(
+        None, help="Max samples to evaluate (passed to inspect_eval)"
+    ),
+    ready_only: bool = typer.Option(
+        False,
+        help="Only include samples with all required artifacts "
+        "(crash_input for patching, crash_report for triage)",
+    ),
 ) -> None:
     """Run an Inspect-AI evaluation task."""
     from inspect_ai import eval as inspect_eval
@@ -224,6 +237,7 @@ def evaluate(
             target=target,
             targets_root=str(targets_root),
             fuzzing_engine=engine,
+            ready_only=ready_only,
         )
 
     elif task == "triage":
@@ -232,6 +246,7 @@ def evaluate(
         inspect_task = crash_triage(
             benchmark_dir=str(benchmark_dir),
             target=target,
+            ready_only=ready_only,
         )
 
     elif task == "harness":
@@ -255,10 +270,10 @@ def evaluate(
         )
         raise typer.Exit(1)
 
-    logs = inspect_eval(inspect_task, model=model)
+    logs = inspect_eval(inspect_task, model=model, limit=limit)
 
     for log in logs:
-        typer.echo(f"\nTask:   {log.task}")
+        typer.echo(f"\nTask:   {log.eval.task}")
         typer.echo(f"Status: {log.status}")
         if log.results:
             for score in log.results.scores:
@@ -409,3 +424,49 @@ def fetch_artifacts(
     typer.echo(f"Fetching reference patches into {benchmark_dir} …")
     success, total = fetch_reference_patches(benchmark_dir, cache_dir)
     typer.echo(f"\nDone: {success} / {total} reference patches fetched.")
+
+
+@app.command()
+def enrich_dataset(
+    benchmark_dir: Path = typer.Option(
+        Path("../benchmark"), help="Benchmark directory with metadata.json"
+    ),
+    cache_dir: Path = typer.Option(
+        _DEFAULT_CACHE, help="Cache directory containing arvo.db"
+    ),
+    crash_reports: bool = typer.Option(
+        True, help="Enrich crash reports with full ASAN output"
+    ),
+    cwe: bool = typer.Option(True, help="Map crash_type to CWE IDs"),
+    crash_inputs: bool = typer.Option(
+        False, help="Extract crash inputs from ARVO Docker images (slow, pulls images)"
+    ),
+    timeout: int = typer.Option(
+        120, help="Timeout per Docker image pull in seconds"
+    ),
+) -> None:
+    """Enrich benchmark dataset with crash reports, CWE mappings, and crash inputs."""
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+
+    if not (benchmark_dir / "metadata.json").exists():
+        typer.echo(f"Error: metadata.json not found in {benchmark_dir}", err=True)
+        raise typer.Exit(1)
+
+    if crash_reports:
+        typer.echo("Enriching crash reports with ASAN output from arvo.db …")
+        enriched, total = enrich_crash_reports(benchmark_dir, cache_dir)
+        typer.echo(f"  Crash reports enriched: {enriched} / {total}")
+
+    if cwe:
+        typer.echo("Mapping crash_type → CWE …")
+        mapped, total = enrich_cwe(benchmark_dir)
+        typer.echo(f"  CWE mapped: {mapped} / {total}")
+
+    if crash_inputs:
+        typer.echo("Extracting crash inputs from ARVO Docker images …")
+        extracted, skipped, total = extract_crash_inputs(
+            benchmark_dir, timeout_per_image=timeout
+        )
+        typer.echo(
+            f"  Crash inputs: {extracted} extracted ({skipped} cached) / {total} total"
+        )

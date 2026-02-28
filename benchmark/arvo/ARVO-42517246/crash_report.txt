@@ -1,3 +1,32 @@
-crash_type: UNKNOWN READ
-sanitizer: undefined
-target: libxml2
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3549391677
+INFO: Loaded 1 modules   (54976 inline 8-bit counters): 54976 [0x87c9c0, 0x88a080), 
+INFO: Loaded 1 PC tables (54976 PCs): 54976 [0x708bd8,0x7df7d8), 
+/out/xml: Running 1 inputs 1 time(s) each.
+Running: /tmp/poc
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==7==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0xffffffffff7ff860 (pc 0x7f024a1e4947 bp 0x7ffe18aeb780 sp 0x7ffe18aeb708 T7)
+[1m[0m==7==The signal is caused by a READ memory access.
+    #0 0x7f024a1e4947  (/lib/x86_64-linux-gnu/libc.so.6+0x188947) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #1 0x65235b in xmlDictLookup /src/libxml2/dict.c:880:13
+    #2 0x51fca1 in xmlStaticCopyNode /src/libxml2/tree.c:4312:18
+    #3 0x520453 in xmlDocCopyNode /src/libxml2/tree.c:4529:11
+    #4 0x622920 in xmlXIncludeCopyNode /src/libxml2/xinclude.c:849:18
+    #5 0x622319 in xmlXIncludeCopyXPointer /src/libxml2/xinclude.c:1219:8
+    #6 0x61f164 in xmlXIncludeIncludeNode /src/libxml2/xinclude.c:2231:6
+    #7 0x61f164 in xmlXIncludeDoProcess /src/libxml2/xinclude.c:2506:6
+    #8 0x61c583 in xmlXIncludeProcessTreeFlagsData /src/libxml2/xinclude.c:2559:11
+    #9 0x61fcdf in xmlXIncludeProcessFlagsData /src/libxml2/xinclude.c:2588:12
+    #10 0x61fcdf in xmlXIncludeProcessFlags /src/libxml2/xinclude.c:2603:12
+    #11 0x4c0598 in LLVMFuzzerTestOneInput /src/libxml2/fuzz/xml.c:57:9
+    #12 0x4263c3 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:611:15
+    #13 0x411b22 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:324:6
+    #14 0x4173cc in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:860:9
+    #15 0x440902 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #16 0x7f024a080082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #17 0x407ced in _start (/out/xml+0x407ced)
+
+DEDUP_TOKEN: xmlDictLookup--xmlStaticCopyNode
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV (/lib/x86_64-linux-gnu/libc.so.6+0x188947) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58) 
+==7==ABORTING

@@ -1,3 +1,52 @@
-crash_type: Use-of-uninitialized-value
-sanitizer: memory
-target: libxml2
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3169459372
+INFO: Loaded 1 modules   (54093 inline 8-bit counters): 54093 [0xd2f4b4, 0xd3c801), 
+INFO: Loaded 1 PC tables (54093 PCs): 54093 [0xbed950,0xcc0e20), 
+/out/schema: Running 1 inputs 1 time(s) each.
+Running: /tmp/poc
+[1m[31m==7==WARNING: MemorySanitizer: use-of-uninitialized-value
+[1m[0m    #0 0x85c2a5 in xmlStrdup /src/libxml2/xmlstring.c:71:5
+    #1 0x52db65 in __xmlRaiseError /src/libxml2/error.c:590:29
+    #2 0x5d42e5 in xmlFatalErrMsgStrIntStr /src/libxml2/parser.c:737:5
+    #3 0x5d42e5 in xmlParseElement /src/libxml2/parser.c:9985:9
+    #4 0x5e1d37 in xmlParseDocument /src/libxml2/parser.c:10815:2
+    #5 0x60bf2d in xmlDoRead /src/libxml2/parser.c:15162:5
+    #6 0x60bf2d in xmlCtxtReadFile /src/libxml2/parser.c:15407:13
+    #7 0x8c83ba in xmlSchemaAddSchemaDoc /src/libxml2/xmlschemas.c:10639:12
+    #8 0x8c5443 in xmlSchemaParse /src/libxml2/xmlschemas.c:21463:11
+    #9 0x527332 in LLVMFuzzerTestOneInput /src/libxml2/fuzz/schema.c:36:19
+    #10 0x4552a2 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:611:15
+    #11 0x440e52 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:324:6
+    #12 0x4466bc in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:860:9
+    #13 0x46f052 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7ffff7c55082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082)
+    #15 0x41f59d in _start (/out/schema+0x41f59d)
+
+DEDUP_TOKEN: xmlStrdup--__xmlRaiseError--xmlFatalErrMsgStrIntStr
+  [1m[35mUninitialized value was created by a heap deallocation[1m[0m
+    #0 0x4ced39 in free /src/llvm-project/compiler-rt/lib/msan/msan_interceptors.cpp:223:3
+    #1 0x636e7d in xmlFreeNodeList /src/libxml2/tree.c:3750:3
+    #2 0x63385f in xmlFreeNode /src/libxml2/tree.c:3805:2
+    #3 0x5c421d in xmlParseBalancedChunkMemoryInternal /src/libxml2/parser.c:13435:2
+    #4 0x5bcd42 in xmlParseReference /src/libxml2/parser.c:7180:12
+    #5 0x5d2c91 in xmlParseContentInternal /src/libxml2/parser.c:9913:6
+    #6 0x5d3f41 in xmlParseElement /src/libxml2/parser.c:9978:5
+    #7 0x5e1d37 in xmlParseDocument /src/libxml2/parser.c:10815:2
+    #8 0x60bf2d in xmlDoRead /src/libxml2/parser.c:15162:5
+    #9 0x60bf2d in xmlCtxtReadFile /src/libxml2/parser.c:15407:13
+    #10 0x8c83ba in xmlSchemaAddSchemaDoc /src/libxml2/xmlschemas.c:10639:12
+    #11 0x8c5443 in xmlSchemaParse /src/libxml2/xmlschemas.c:21463:11
+    #12 0x527332 in LLVMFuzzerTestOneInput /src/libxml2/fuzz/schema.c:36:19
+    #13 0x4552a2 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:611:15
+    #14 0x440e52 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:324:6
+    #15 0x4466bc in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:860:9
+    #16 0x46f052 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #17 0x7ffff7c55082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082)
+
+DEDUP_TOKEN: free--xmlFreeNodeList--xmlFreeNode
+SUMMARY: MemorySanitizer: use-of-uninitialized-value /src/libxml2/xmlstring.c:71:5 in xmlStrdup
+Unique heap origins: 410
+Stack depot allocated bytes: 1638400
+Unique origin histories: 19
+History depot allocated bytes: 196608
+Exiting

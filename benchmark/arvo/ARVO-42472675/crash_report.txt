@@ -1,3 +1,59 @@
-crash_type: Heap-double-free
-sanitizer: address
-target: libxml2
+======================= INFO =========================
+This binary is built for AFL-fuzz.
+To run the target function on individual input(s) execute this:
+  /out/libxml2_xml_reader_for_file_fuzzer < INPUT_FILE
+or
+  /out/libxml2_xml_reader_for_file_fuzzer INPUT_FILE1 [INPUT_FILE2 ... ]
+To fuzz with afl-fuzz execute this:
+  afl-fuzz [afl-flags] /out/libxml2_xml_reader_for_file_fuzzer [-N]
+afl-fuzz will run N iterations before re-spawning the process (default: 1000)
+======================================================
+Reading 40 bytes from /tmp/poc
+=================================================================
+[1m[31m==7==ERROR: AddressSanitizer: attempting double-free on 0x6020000001d0 in thread T0:
+[1m[0mSCARINESS: 42 (double-free)
+    #0 0x4ec4c0 in __interceptor_free /src/llvm/projects/compiler-rt/lib/asan/asan_malloc_linux.cc:124
+    #1 0x5d6668 in xmlFreeID /src/libxml2/xmlreader.c:242:2
+    #2 0x5617fc in xmlHashFree /src/libxml2/hash.c:339:7
+    #3 0x5c8ec7 in xmlTextReaderFreeDoc /src/libxml2/xmlreader.c:531:27
+    #4 0x5c8be1 in xmlFreeTextReader /src/libxml2/xmlreader.c:2278:3
+    #5 0x5317f4 in LLVMFuzzerTestOneInput /src/libxml2_xml_reader_for_file_fuzzer.cc:49:3
+    #6 0x53360a in ExecuteFilesOnyByOne(int, char**) /src/libfuzzer/afl/afl_driver.cpp:301:5
+    #7 0x533b6e in main /src/libfuzzer/afl/afl_driver.cpp:339:12
+    #8 0x7ffff6ee582f in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2082f)
+    #9 0x41d218 in _start (/out/libxml2_xml_reader_for_file_fuzzer+0x41d218)
+
+DEDUP_TOKEN: __interceptor_free--xmlFreeID--xmlHashFree
+[1m[32m0x6020000001d0 is located 0 bytes inside of 3-byte region [0x6020000001d0,0x6020000001d3)
+[1m[0m[1m[35mfreed by thread T0 here:[1m[0m
+    #0 0x4ec4c0 in __interceptor_free /src/llvm/projects/compiler-rt/lib/asan/asan_malloc_linux.cc:124
+    #1 0x5d5613 in xmlTextReaderFreeProp /src/libxml2/xmlreader.c:310:5
+    #2 0x5d61cf in xmlTextReaderFreePropList /src/libxml2/xmlreader.c:334:9
+    #3 0x5c3c0b in xmlTextReaderFreeNode /src/libxml2/xmlreader.c:463:2
+    #4 0x5c1b62 in xmlTextReaderRead /src/libxml2/xmlreader.c:1484:6
+    #5 0x5317c1 in LLVMFuzzerTestOneInput /src/libxml2_xml_reader_for_file_fuzzer.cc:44:10
+    #6 0x53360a in ExecuteFilesOnyByOne(int, char**) /src/libfuzzer/afl/afl_driver.cpp:301:5
+    #7 0x533b6e in main /src/libfuzzer/afl/afl_driver.cpp:339:12
+    #8 0x7ffff6ee582f in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2082f)
+
+DEDUP_TOKEN: __interceptor_free--xmlTextReaderFreeProp--xmlTextReaderFreePropList
+[1m[35mpreviously allocated by thread T0 here:[1m[0m
+    #0 0x4ec88f in malloc /src/llvm/projects/compiler-rt/lib/asan/asan_malloc_linux.cc:146
+    #1 0x58eb26 in xmlStrndup /src/libxml2/xmlstring.c:45:23
+    #2 0x543dab in xmlNewPropInternal /src/libxml2/tree.c:1878:25
+    #3 0x613f01 in xmlSAX2AttributeNs /src/libxml2/SAX2.c:2031:12
+    #4 0x6133c8 in xmlSAX2StartElementNs /src/libxml2/SAX2.c
+    #5 0x5c7c72 in xmlTextReaderStartElementNs /src/libxml2/xmlreader.c:738:2
+    #6 0x67deb5 in xmlParseStartTag2 /src/libxml2/parser.c
+    #7 0x68851e in xmlParseTryOrFinish /src/libxml2/parser.c:11342:14
+    #8 0x685668 in xmlParseChunk /src/libxml2/parser.c:12244:13
+    #9 0x5c2df0 in xmlTextReaderPushData /src/libxml2/xmlreader.c:888:12
+    #10 0x5bfbf1 in xmlTextReaderRead /src/libxml2/xmlreader.c:1318:12
+    #11 0x5317c1 in LLVMFuzzerTestOneInput /src/libxml2_xml_reader_for_file_fuzzer.cc:44:10
+    #12 0x53360a in ExecuteFilesOnyByOne(int, char**) /src/libfuzzer/afl/afl_driver.cpp:301:5
+    #13 0x533b6e in main /src/libfuzzer/afl/afl_driver.cpp:339:12
+    #14 0x7ffff6ee582f in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2082f)
+
+DEDUP_TOKEN: malloc--xmlStrndup--xmlNewPropInternal
+SUMMARY: AddressSanitizer: double-free /src/llvm/projects/compiler-rt/lib/asan/asan_malloc_linux.cc:124 in __interceptor_free
+==7==ABORTING

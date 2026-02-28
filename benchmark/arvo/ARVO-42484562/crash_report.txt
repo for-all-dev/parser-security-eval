@@ -1,3 +1,90 @@
-crash_type: Heap-use-after-free READ 2
-sanitizer: address
-target: libxml2
+[1mAccepting input from '/tmp/poc'[0m
+[1mUsage for fuzzing: honggfuzz -P [flags] -- /out/xml[0m
+=================================================================
+[1m[31m==7==ERROR: AddressSanitizer: heap-use-after-free on address 0x602000001110 at pc 0x00000043aa18 bp 0x7ffef4eaaad0 sp 0x7ffef4eaa258
+[1m[0m[1m[34mREAD of size 2 at 0x602000001110 thread T0[1m[0m
+SCARINESS: 42 (2-byte-read-heap-use-after-free)
+    #0 0x43aa17 in printf_common(void*, char const*, __va_list_tag*) /src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors_format.inc:547:9
+    #1 0x4d29c0 in __xmlRaiseError /src/libxml2/error.c:501:9
+    #2 0x58a579 in xmlErrValidNode /src/libxml2/valid.c:163:5
+    #3 0x5a5405 in xmlValidateRef /src/libxml2/valid.c:6556:6
+    #4 0x5a4f18 in xmlWalkValidateList /src/libxml2/valid.c:6603:2
+    #5 0x7000ea in xmlListWalk /src/libxml2/list.c:682:13
+    #6 0x5a115a in xmlValidateCheckRefCallback /src/libxml2/valid.c:6625:5
+    #7 0x56fafa in stubHashScannerFull /src/libxml2/hash.c:852:5
+    #8 0x56f7fc in xmlHashScanFull /src/libxml2/hash.c:899:7
+    #9 0x56f58e in xmlHashScan /src/libxml2/hash.c:868:5
+    #10 0x5a0f7d in xmlValidateDocumentFinal /src/libxml2/valid.c:6673:5
+    #11 0x6c5345 in xmlSAX2EndDocument /src/libxml2/SAX2.c:1029:17
+    #12 0x5248d3 in xmlParseChunk /src/libxml2/parser.c:12332:3
+    #13 0x675af0 in xmlTextReaderPushData /src/libxml2/xmlreader.c:935:12
+    #14 0x672a97 in xmlTextReaderRead /src/libxml2/xmlreader.c:1384:8
+    #15 0x4c7007 in LLVMFuzzerTestOneInput /src/libxml2/fuzz/xml.c:73:12
+    #16 0x4c833d in main (/out/xml+0x4c833d)
+    #17 0x7f14eaea283f in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2083f)
+    #18 0x41c6c8 in _start (/out/xml+0x41c6c8)
+
+DEDUP_TOKEN: printf_common(void*, char const*, __va_list_tag*)--__xmlRaiseError--xmlErrValidNode
+[1m[32m0x602000001110 is located 0 bytes inside of 4-byte region [0x602000001110,0x602000001114)
+[1m[0m[1m[35mfreed by thread T0 here:[1m[0m
+    #0 0x49472d in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:123:3
+    #1 0x688f64 in xmlTextReaderFreeProp /src/libxml2/xmlreader.c:311:5
+    #2 0x689c52 in xmlTextReaderFreePropList /src/libxml2/xmlreader.c:335:9
+    #3 0x676811 in xmlTextReaderFreeNode /src/libxml2/xmlreader.c:478:2
+    #4 0x673de9 in xmlTextReaderRead /src/libxml2/xmlreader.c:1440:3
+    #5 0x4c7007 in LLVMFuzzerTestOneInput /src/libxml2/fuzz/xml.c:73:12
+    #6 0x4c833d in main (/out/xml+0x4c833d)
+
+DEDUP_TOKEN: free--xmlTextReaderFreeProp--xmlTextReaderFreePropList
+[1m[35mpreviously allocated by thread T0 here:[1m[0m
+    #0 0x4949ad in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:145:3
+    #1 0x62b3bc in xmlStrndup /src/libxml2/xmlstring.c:45:23
+    #2 0x62b4be in xmlStrdup /src/libxml2/xmlstring.c:71:12
+    #3 0x54c6f3 in xmlNewPropInternal /src/libxml2/tree.c:1880:25
+    #4 0x54cc33 in xmlNewNsProp /src/libxml2/tree.c:1977:12
+    #5 0x6cc1fe in xmlSAX2AttributeNs /src/libxml2/SAX2.c:2003:12
+    #6 0x6cb5f5 in xmlSAX2StartElementNs /src/libxml2/SAX2.c
+    #7 0x67ab3c in xmlTextReaderStartElementNs /src/libxml2/xmlreader.c:753:2
+    #8 0x53b81a in xmlParseStartTag2 /src/libxml2/parser.c
+    #9 0x527773 in xmlParseTryOrFinish /src/libxml2/parser.c:11374:14
+    #10 0x523e9b in xmlParseChunk /src/libxml2/parser.c
+    #11 0x6756a5 in xmlTextReaderPushData /src/libxml2/xmlreader.c:893:12
+    #12 0x6723b8 in xmlTextReaderRead /src/libxml2/xmlreader.c:1321:12
+    #13 0x4c6f20 in LLVMFuzzerTestOneInput /src/libxml2/fuzz/xml.c:73:12
+    #14 0x4c833d in main (/out/xml+0x4c833d)
+
+DEDUP_TOKEN: malloc--xmlStrndup--xmlStrdup
+SUMMARY: AddressSanitizer: heap-use-after-free /src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors_format.inc:547:9 in printf_common(void*, char const*, __va_list_tag*)
+Shadow bytes around the buggy address:
+  0x0c047fff81d0: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m04[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m04[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m04[1m[0m [1m[31mfa[1m[0m
+  0x0c047fff81e0: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m04[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m04[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m04[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m
+  0x0c047fff81f0: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m02[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m02[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m02[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m02[1m[0m [1m[31mfa[1m[0m
+  0x0c047fff8200: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m02[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m02[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m04[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m
+  0x0c047fff8210: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m
+=>0x0c047fff8220: [1m[31mfa[1m[0m [1m[31mfa[1m[0m[[1m[35mfd[1m[0m][1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m
+  0x0c047fff8230: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m01[1m[0m [1m[31mfa[1m[0m
+  0x0c047fff8240: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m01[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m02[1m[0m [1m[31mfa[1m[0m
+  0x0c047fff8250: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m04[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m04[1m[0m [1m[31mfa[1m[0m
+  0x0c047fff8260: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x0c047fff8270: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+  Shadow gap:              [1m[0mcc[1m[0m
+==7==ABORTING

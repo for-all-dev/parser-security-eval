@@ -1,3 +1,53 @@
-crash_type: Use-of-uninitialized-value
-sanitizer: memory
-target: libxml2
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2234986087
+INFO: Loaded 1 modules   (52548 inline 8-bit counters): 52548 [0xd04b59, 0xd1189d), 
+INFO: Loaded 1 PC tables (52548 PCs): 52548 [0xbc98d0,0xc96d10), 
+/out/html: Running 1 inputs 1 time(s) each.
+Running: /tmp/poc
+[1m[31m==7==WARNING: MemorySanitizer: use-of-uninitialized-value
+[1m[0m    #0 0x7bc33e in htmlParseHTMLAttribute /src/libxml2/HTMLparser.c:2761:13
+    #1 0x784df4 in htmlParseAttValue /src/libxml2/HTMLparser.c:2960:8
+    #2 0x784df4 in htmlParseAttribute /src/libxml2/HTMLparser.c:3799:8
+    #3 0x784df4 in htmlParseStartTag /src/libxml2/HTMLparser.c:4073:12
+    #4 0x78b162 in htmlParseElementInternal /src/libxml2/HTMLparser.c:4692:14
+    #5 0x78b162 in htmlParseContentInternal /src/libxml2/HTMLparser.c:4902:13
+    #6 0x79067f in htmlParseDocument /src/libxml2/HTMLparser.c:5060:5
+    #7 0x7aefab in htmlDoRead /src/libxml2/HTMLparser.c:6965:5
+    #8 0x7af780 in htmlReadMemory /src/libxml2/HTMLparser.c:7047:13
+    #9 0x5347a6 in LLVMFuzzerTestOneInput /src/libxml2/fuzz/html.c:48:11
+    #10 0x43dce3 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:611:15
+    #11 0x429442 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:324:6
+    #12 0x42ecec in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:860:9
+    #13 0x458222 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7fa8c74f1082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #15 0x41f60d in _start (/out/html+0x41f60d)
+
+DEDUP_TOKEN: htmlParseHTMLAttribute--htmlParseAttValue--htmlParseAttribute
+  [1m[35mUninitialized value was stored to memory at[1m[0m
+    #0 0x7bbb4c in htmlParseHTMLAttribute /src/libxml2/HTMLparser.c:2859:6
+    #1 0x784df4 in htmlParseAttValue /src/libxml2/HTMLparser.c:2960:8
+    #2 0x784df4 in htmlParseAttribute /src/libxml2/HTMLparser.c:3799:8
+    #3 0x784df4 in htmlParseStartTag /src/libxml2/HTMLparser.c:4073:12
+    #4 0x78b162 in htmlParseElementInternal /src/libxml2/HTMLparser.c:4692:14
+    #5 0x78b162 in htmlParseContentInternal /src/libxml2/HTMLparser.c:4902:13
+    #6 0x79067f in htmlParseDocument /src/libxml2/HTMLparser.c:5060:5
+    #7 0x7aefab in htmlDoRead /src/libxml2/HTMLparser.c:6965:5
+    #8 0x7af780 in htmlReadMemory /src/libxml2/HTMLparser.c:7047:13
+    #9 0x5347a6 in LLVMFuzzerTestOneInput /src/libxml2/fuzz/html.c:48:11
+    #10 0x43dce3 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:611:15
+    #11 0x429442 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:324:6
+    #12 0x42ecec in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:860:9
+    #13 0x458222 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7fa8c74f1082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: htmlParseHTMLAttribute--htmlParseAttValue--htmlParseAttribute
+[1m[35m  [1m[35mUninitialized value was created by an allocation of '[1m[32ml[1m[35m' in the stack frame of function '[1m[32mhtmlParseHTMLAttribute[1m[35m'[1m[0m
+    #0 0x7b8dc0 in htmlParseHTMLAttribute /src/libxml2/HTMLparser.c:2736
+
+DEDUP_TOKEN: htmlParseHTMLAttribute
+SUMMARY: MemorySanitizer: use-of-uninitialized-value /src/libxml2/HTMLparser.c:2761:13 in htmlParseHTMLAttribute
+Unique heap origins: 54
+Stack depot allocated bytes: 9764880
+Unique origin histories: 8
+History depot allocated bytes: 196608
+Exiting

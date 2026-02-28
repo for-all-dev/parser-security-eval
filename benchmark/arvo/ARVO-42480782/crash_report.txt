@@ -1,3 +1,141 @@
-crash_type: Stack-buffer-overflow WRITE {*}
-sanitizer: address
-target: libxml2
+INFO: Seed: 1960697360
+INFO: Loaded 1 modules (44113 guards): [0xc7b030, 0xca6174), 
+/out/libxml2_xml_read_memory_fuzzer: Running 1 inputs 1 time(s) each.
+Running: /tmp/poc
+=================================================================
+[1m[31m==7==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7ffff6e95c08 at pc 0x00000049cb20 bp 0x7fffffffbef0 sp 0x7fffffffb6a0
+[1m[0m[1m[34mWRITE of size 37 at 0x7ffff6e95c08 thread T0[1m[0m
+SCARINESS: 60 (multi-byte-write-stack-buffer-overflow)
+    #0 0x49cb1f in __interceptor_strcat /src/llvm/projects/compiler-rt/lib/asan/asan_interceptors.cc:491
+    #1 0x6413f1 in xmlSnprintfElementContent /src/libxml2/valid.c:1279:3
+    #2 0x640fe0 in xmlSnprintfElementContent /src/libxml2/valid.c
+    #3 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #4 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #5 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #6 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #7 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #8 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #9 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #10 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #11 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #12 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #13 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #14 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #15 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #16 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #17 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #18 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #19 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #20 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #21 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #22 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #23 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #24 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #25 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #26 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #27 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #28 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #29 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #30 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #31 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #32 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #33 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #34 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #35 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #36 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #37 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #38 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #39 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #40 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #41 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #42 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #43 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #44 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #45 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #46 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #47 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #48 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #49 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #50 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #51 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #52 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #53 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #54 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #55 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #56 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #57 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #58 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #59 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #60 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #61 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #62 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #63 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #64 0x6414cd in xmlSnprintfElementContent /src/libxml2/valid.c
+    #65 0x655382 in xmlValidateElementContent /src/libxml2/valid.c:5445:6
+    #66 0x6544c3 in xmlValidateOneElement /src/libxml2/valid.c:6152:12
+    #67 0x78af57 in xmlSAX2EndElementNs /src/libxml2/SAX2.c:2467:24
+    #68 0x5d51e6 in xmlParseEndTag2 /src/libxml2/parser.c:9917:2
+    #69 0x5cf00d in xmlParseElement /src/libxml2/parser.c:10279:2
+    #70 0x5cd9d6 in xmlParseContent /src/libxml2/parser.c:10083:6
+    #71 0x5ced25 in xmlParseElement /src/libxml2/parser.c:10256:5
+    #72 0x5cd9d6 in xmlParseContent /src/libxml2/parser.c:10083:6
+    #73 0x5ced25 in xmlParseElement /src/libxml2/parser.c:10256:5
+    #74 0x5cd9d6 in xmlParseContent /src/libxml2/parser.c:10083:6
+    #75 0x5ced25 in xmlParseElement /src/libxml2/parser.c:10256:5
+    #76 0x5cd9d6 in xmlParseContent /src/libxml2/parser.c:10083:6
+    #77 0x5ced25 in xmlParseElement /src/libxml2/parser.c:10256:5
+    #78 0x5da206 in xmlParseDocument /src/libxml2/parser.c:10953:2
+    #79 0x5efb81 in xmlDoRead /src/libxml2/parser.c:15432:5
+    #80 0x513ed9 in LLVMFuzzerTestOneInput /src/libxml2_xml_read_memory_fuzzer.cc:31:20
+    #81 0x53b038 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/libfuzzer/FuzzerLoop.cpp:451:13
+    #82 0x53b85c in fuzzer::Fuzzer::RunOne(unsigned char const*, unsigned long) /src/libfuzzer/FuzzerLoop.cpp:408:3
+    #83 0x5165f1 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/libfuzzer/FuzzerDriver.cpp:268:6
+    #84 0x51e9f5 in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/libfuzzer/FuzzerDriver.cpp:585:9
+    #85 0x515bd8 in main /src/libfuzzer/FuzzerMain.cpp:20:10
+    #86 0x7ffff6ee583f in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2083f)
+    #87 0x41d208 in _start (/out/libxml2_xml_read_memory_fuzzer+0x41d208)
+
+DEDUP_TOKEN: __interceptor_strcat--xmlSnprintfElementContent--xmlSnprintfElementContent
+[1m[32mAddress 0x7ffff6e95c08 is located in stack of thread T0 at offset 5128 in frame[1m[0m
+[1m[0m    #0 0x654c3f in xmlValidateElementContent /src/libxml2/valid.c:5231
+
+DEDUP_TOKEN: xmlValidateElementContent
+  This frame has 3 object(s):
+    [32, 82) 'fn:5288'
+    [128, 5128) 'expr:5441'[1m[32m <== Memory access at offset 5128 overflows this variable[1m[0m
+    [5392, 10392) 'list:5442'
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism or swapcontext
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /src/llvm/projects/compiler-rt/lib/asan/asan_interceptors.cc:491 in __interceptor_strcat
+Shadow bytes around the buggy address:
+  0x10007edcab30: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x10007edcab40: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x10007edcab50: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x10007edcab60: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x10007edcab70: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+=>0x10007edcab80: [1m[0m00[1m[0m[[1m[31mf2[1m[0m][1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m
+  0x10007edcab90: [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m
+  0x10007edcaba0: [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x10007edcabb0: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x10007edcabc0: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x10007edcabd0: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==7==ABORTING

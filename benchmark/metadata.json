@@ -11,7 +11,7 @@
     {
       "id": "ARVO-42498959",
       "target": "libpng",
-      "cwe": null,
+      "cwe": "CWE-122",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "Heap-buffer-overflow WRITE {*}",
@@ -32,7 +32,7 @@
     {
       "id": "ARVO-42482472",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -52,7 +52,7 @@
     {
       "id": "ARVO-42480826",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -72,7 +72,7 @@
     {
       "id": "ARVO-42480782",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-121",
       "severity": "high",
       "difficulty": "easy",
       "crash_type": "Stack-buffer-overflow WRITE {*}",
@@ -93,7 +93,7 @@
     {
       "id": "ARVO-42475106",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-129",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Index-out-of-bounds",
@@ -113,7 +113,7 @@
     {
       "id": "ARVO-42470838",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -133,7 +133,7 @@
     {
       "id": "ARVO-42470816",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -153,7 +153,7 @@
     {
       "id": "ARVO-42470727",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -173,7 +173,7 @@
     {
       "id": "ARVO-42470541",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -193,7 +193,7 @@
     {
       "id": "ARVO-42470291",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -213,7 +213,7 @@
     {
       "id": "ARVO-42470158",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -233,7 +233,7 @@
     {
       "id": "ARVO-42470125",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -253,7 +253,7 @@
     {
       "id": "ARVO-42470114",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -273,7 +273,7 @@
     {
       "id": "ARVO-42471662",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-761",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Bad-free",
@@ -293,7 +293,7 @@
     {
       "id": "ARVO-42471502",
       "target": "zlib",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -313,7 +313,7 @@
     {
       "id": "ARVO-42470339",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 1",
@@ -334,7 +334,7 @@
     {
       "id": "ARVO-42470157",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -354,7 +354,7 @@
     {
       "id": "ARVO-42470143",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -374,7 +374,7 @@
     {
       "id": "ARVO-42514763",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Global-buffer-overflow READ 1",
@@ -395,7 +395,7 @@
     {
       "id": "ARVO-42478580",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 8",
@@ -416,7 +416,7 @@
     {
       "id": "ARVO-42472675",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-415",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-double-free",
@@ -436,7 +436,7 @@
     {
       "id": "ARVO-42489817",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Heap-buffer-overflow READ 2",
@@ -457,7 +457,7 @@
     {
       "id": "ARVO-42487785",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 4",
@@ -478,7 +478,7 @@
     {
       "id": "ARVO-42487244",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 4",
@@ -499,7 +499,7 @@
     {
       "id": "ARVO-42486883",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 4",
@@ -520,7 +520,7 @@
     {
       "id": "ARVO-42486772",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -540,7 +540,7 @@
     {
       "id": "ARVO-42486665",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 8",
@@ -561,7 +561,7 @@
     {
       "id": "ARVO-42486565",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 4",
@@ -582,7 +582,7 @@
     {
       "id": "ARVO-42485599",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 1",
@@ -603,7 +603,7 @@
     {
       "id": "ARVO-42485276",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 1",
@@ -624,7 +624,7 @@
     {
       "id": "ARVO-42484588",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -644,7 +644,7 @@
     {
       "id": "ARVO-42484562",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 2",
@@ -665,7 +665,7 @@
     {
       "id": "ARVO-42502940",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-119",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "UNKNOWN READ",
@@ -685,7 +685,7 @@
     {
       "id": "ARVO-42502710",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-119",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "UNKNOWN READ",
@@ -705,7 +705,7 @@
     {
       "id": "ARVO-42499472",
       "target": "zlib",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -725,7 +725,7 @@
     {
       "id": "ARVO-42499041",
       "target": "libpng",
-      "cwe": null,
+      "cwe": "CWE-121",
       "severity": "medium",
       "difficulty": "easy",
       "crash_type": "Dynamic-stack-buffer-overflow WRITE {*}",
@@ -746,7 +746,7 @@
     {
       "id": "ARVO-42499019",
       "target": "libpng",
-      "cwe": null,
+      "cwe": "CWE-121",
       "severity": "medium",
       "difficulty": "easy",
       "crash_type": "Dynamic-stack-buffer-overflow WRITE {*}",
@@ -767,7 +767,7 @@
     {
       "id": "ARVO-42497161",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 4",
@@ -788,7 +788,7 @@
     {
       "id": "ARVO-42496802",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-843",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "Bad-cast",
@@ -808,7 +808,7 @@
     {
       "id": "ARVO-42495916",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "Heap-buffer-overflow READ 1",
@@ -829,7 +829,7 @@
     {
       "id": "ARVO-42495497",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-122",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "Heap-buffer-overflow WRITE 1",
@@ -850,7 +850,7 @@
     {
       "id": "ARVO-42518431",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -870,7 +870,7 @@
     {
       "id": "ARVO-42518303",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-122",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "Heap-buffer-overflow WRITE 1",
@@ -891,7 +891,7 @@
     {
       "id": "ARVO-42517603",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 4",
@@ -912,7 +912,7 @@
     {
       "id": "ARVO-42517254",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 4",
@@ -933,7 +933,7 @@
     {
       "id": "ARVO-42517246",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-119",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "UNKNOWN READ",
@@ -953,7 +953,7 @@
     {
       "id": "ARVO-42514324",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-119",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "UNKNOWN WRITE",
@@ -973,7 +973,7 @@
     {
       "id": "ARVO-42514310",
       "target": "zlib",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -993,7 +993,7 @@
     {
       "id": "ARVO-42510936",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -1013,7 +1013,7 @@
     {
       "id": "ARVO-42510687",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -1033,7 +1033,7 @@
     {
       "id": "ARVO-42510333",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 8",
@@ -1054,7 +1054,7 @@
     {
       "id": "ARVO-42509483",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -1074,7 +1074,7 @@
     {
       "id": "ARVO-42509480",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -1094,7 +1094,7 @@
     {
       "id": "ARVO-42509457",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -1114,7 +1114,7 @@
     {
       "id": "ARVO-42509389",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -1134,7 +1134,7 @@
     {
       "id": "ARVO-42509369",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-761",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Invalid-free",
@@ -1154,7 +1154,7 @@
     {
       "id": "ARVO-42509011",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-761",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Invalid-free",
@@ -1174,7 +1174,7 @@
     {
       "id": "ARVO-42531532",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 8",
@@ -1195,7 +1195,7 @@
     {
       "id": "ARVO-42531481",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 8",
@@ -1216,7 +1216,7 @@
     {
       "id": "ARVO-42531212",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -1236,7 +1236,7 @@
     {
       "id": "ARVO-42531203",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 1",
@@ -1257,7 +1257,7 @@
     {
       "id": "ARVO-42531126",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 1",
@@ -1278,7 +1278,7 @@
     {
       "id": "ARVO-42531115",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -1298,7 +1298,7 @@
     {
       "id": "ARVO-42531092",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Global-buffer-overflow READ 1",
@@ -1319,7 +1319,7 @@
     {
       "id": "ARVO-42529030",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 1",
@@ -1340,7 +1340,7 @@
     {
       "id": "ARVO-42528997",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-122",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "Heap-buffer-overflow WRITE 1",
@@ -1361,7 +1361,7 @@
     {
       "id": "ARVO-42528958",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 8",
@@ -1382,7 +1382,7 @@
     {
       "id": "ARVO-42528951",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-122",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "Heap-buffer-overflow WRITE 1",
@@ -1403,7 +1403,7 @@
     {
       "id": "ARVO-42528949",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -1423,7 +1423,7 @@
     {
       "id": "ARVO-42528850",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 4",
@@ -1444,7 +1444,7 @@
     {
       "id": "ARVO-42528757",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Heap-buffer-overflow READ {*}",
@@ -1465,7 +1465,7 @@
     {
       "id": "ARVO-42528698",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -1485,7 +1485,7 @@
     {
       "id": "ARVO-42528694",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -1505,7 +1505,7 @@
     {
       "id": "ARVO-42527008",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 2",
@@ -1526,7 +1526,7 @@
     {
       "id": "ARVO-42526375",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-122",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "Heap-buffer-overflow WRITE 1",
@@ -1547,7 +1547,7 @@
     {
       "id": "ARVO-42525945",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-761",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "Invalid-free",
@@ -1567,7 +1567,7 @@
     {
       "id": "ARVO-42525938",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-122",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "Heap-buffer-overflow WRITE 1",
@@ -1588,7 +1588,7 @@
     {
       "id": "ARVO-42525806",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -1608,7 +1608,7 @@
     {
       "id": "ARVO-42525210",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Global-buffer-overflow READ 1",
@@ -1629,7 +1629,7 @@
     {
       "id": "ARVO-42525192",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Global-buffer-overflow READ 1",
@@ -1650,7 +1650,7 @@
     {
       "id": "ARVO-42522771",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -1670,7 +1670,7 @@
     {
       "id": "ARVO-42522712",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Global-buffer-overflow READ 1",
@@ -1691,7 +1691,7 @@
     {
       "id": "ARVO-42522648",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -1711,7 +1711,7 @@
     {
       "id": "ARVO-42522530",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Global-buffer-overflow READ 1",
@@ -1732,7 +1732,7 @@
     {
       "id": "ARVO-42522518",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Global-buffer-overflow READ 1",
@@ -1753,7 +1753,7 @@
     {
       "id": "ARVO-42522511",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Global-buffer-overflow READ 1",
@@ -1774,7 +1774,7 @@
     {
       "id": "ARVO-42522507",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Global-buffer-overflow READ 1",
@@ -1795,7 +1795,7 @@
     {
       "id": "ARVO-42522442",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Global-buffer-overflow READ 1",
@@ -1816,7 +1816,7 @@
     {
       "id": "ARVO-42522441",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Global-buffer-overflow READ 1",
@@ -1837,7 +1837,7 @@
     {
       "id": "ARVO-42522440",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -1857,7 +1857,7 @@
     {
       "id": "ARVO-42522360",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Global-buffer-overflow READ 1",
@@ -1878,7 +1878,7 @@
     {
       "id": "ARVO-42522315",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Global-buffer-overflow READ 1",
@@ -1899,7 +1899,7 @@
     {
       "id": "ARVO-42522290",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Global-buffer-overflow READ 1",
@@ -1920,7 +1920,7 @@
     {
       "id": "ARVO-42522285",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Global-buffer-overflow READ 1",
@@ -1941,7 +1941,7 @@
     {
       "id": "ARVO-42522281",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Global-buffer-overflow READ 1",
@@ -1962,7 +1962,7 @@
     {
       "id": "ARVO-42522277",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Global-buffer-overflow READ 1",
@@ -1983,7 +1983,7 @@
     {
       "id": "ARVO-42522273",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Global-buffer-overflow READ 1",
@@ -2004,7 +2004,7 @@
     {
       "id": "ARVO-42522151",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Global-buffer-overflow READ 1",
@@ -2025,7 +2025,7 @@
     {
       "id": "ARVO-42522132",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -2045,7 +2045,7 @@
     {
       "id": "ARVO-42522015",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Global-buffer-overflow READ 1",
@@ -2066,7 +2066,7 @@
     {
       "id": "ARVO-42521059",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Heap-buffer-overflow READ 1",
@@ -2087,7 +2087,7 @@
     {
       "id": "ARVO-42520608",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -2107,7 +2107,7 @@
     {
       "id": "ARVO-378750938",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -2127,7 +2127,7 @@
     {
       "id": "ARVO-372547409",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 4",
@@ -2148,7 +2148,7 @@
     {
       "id": "ARVO-369974248",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -2168,7 +2168,7 @@
     {
       "id": "ARVO-42538408",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -2188,7 +2188,7 @@
     {
       "id": "ARVO-42538231",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-122",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "Heap-buffer-overflow WRITE 1",
@@ -2209,7 +2209,7 @@
     {
       "id": "ARVO-42538067",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -2229,7 +2229,7 @@
     {
       "id": "ARVO-42538039",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -2249,7 +2249,7 @@
     {
       "id": "ARVO-42538037",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -2269,7 +2269,7 @@
     {
       "id": "ARVO-42538002",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -2289,7 +2289,7 @@
     {
       "id": "ARVO-42537958",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -2309,7 +2309,7 @@
     {
       "id": "ARVO-42537948",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -2329,7 +2329,7 @@
     {
       "id": "ARVO-42537493",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 4",
@@ -2350,7 +2350,7 @@
     {
       "id": "ARVO-42536963",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Heap-buffer-overflow READ 1",
@@ -2371,7 +2371,7 @@
     {
       "id": "ARVO-42535569",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -2391,7 +2391,7 @@
     {
       "id": "ARVO-42534845",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-119",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "UNKNOWN WRITE",
@@ -2411,7 +2411,7 @@
     {
       "id": "ARVO-42534512",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 8",
@@ -2432,7 +2432,7 @@
     {
       "id": "ARVO-42534044",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 8",
@@ -2453,7 +2453,7 @@
     {
       "id": "ARVO-42533950",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 8",
@@ -2474,7 +2474,7 @@
     {
       "id": "ARVO-42533922",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 8",
@@ -2495,7 +2495,7 @@
     {
       "id": "ARVO-42533913",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -2515,7 +2515,7 @@
     {
       "id": "ARVO-42532942",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 4",
@@ -2536,7 +2536,7 @@
     {
       "id": "ARVO-42532747",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 4",
@@ -2557,7 +2557,7 @@
     {
       "id": "ARVO-42532684",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 8",
@@ -2578,7 +2578,7 @@
     {
       "id": "ARVO-42532360",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 8",
@@ -2599,7 +2599,7 @@
     {
       "id": "ARVO-398060138",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-122",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "Heap-buffer-overflow WRITE 1",
@@ -2620,7 +2620,7 @@
     {
       "id": "ARVO-392687022",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-121",
       "severity": "high",
       "difficulty": "easy",
       "crash_type": "Stack-buffer-overflow WRITE {*}",
@@ -2641,7 +2641,7 @@
     {
       "id": "ARVO-42520431",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Heap-buffer-overflow READ 1",
@@ -2662,7 +2662,7 @@
     {
       "id": "ARVO-42517881",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-129",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Index-out-of-bounds",
@@ -2682,7 +2682,7 @@
     {
       "id": "ARVO-42518233",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-476",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Segv on unknown address",
@@ -2702,7 +2702,7 @@
     {
       "id": "ARVO-42495506",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -2722,7 +2722,7 @@
     {
       "id": "ARVO-42495540",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -2742,7 +2742,7 @@
     {
       "id": "ARVO-42541306",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Heap-buffer-overflow READ 1",
@@ -2763,7 +2763,7 @@
     {
       "id": "ARVO-42505531",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Heap-buffer-overflow READ 1",
@@ -2784,7 +2784,7 @@
     {
       "id": "ARVO-42525300",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-122",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "Heap-buffer-overflow WRITE 4",
@@ -2805,7 +2805,7 @@
     {
       "id": "ARVO-42498800",
       "target": "libpng",
-      "cwe": null,
+      "cwe": "CWE-121",
       "severity": "medium",
       "difficulty": "easy",
       "crash_type": "Dynamic-stack-buffer-overflow WRITE {*}",
@@ -2826,7 +2826,7 @@
     {
       "id": "ARVO-42498788",
       "target": "libpng",
-      "cwe": null,
+      "cwe": "CWE-121",
       "severity": "medium",
       "difficulty": "easy",
       "crash_type": "Dynamic-stack-buffer-overflow WRITE {*}",
@@ -2847,7 +2847,7 @@
     {
       "id": "ARVO-435781342",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 8",
@@ -2868,7 +2868,7 @@
     {
       "id": "ARVO-424242614",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-122",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "Heap-buffer-overflow WRITE 1",
@@ -2889,7 +2889,7 @@
     {
       "id": "ARVO-420638555",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 4",
@@ -2910,7 +2910,7 @@
     {
       "id": "ARVO-420248736",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "hard",
       "crash_type": "Heap-use-after-free READ 8",
@@ -2931,7 +2931,7 @@
     {
       "id": "ARVO-417247563",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-562",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Stack-use-after-scope READ 8",
@@ -2952,7 +2952,7 @@
     {
       "id": "ARVO-417062198",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-562",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Stack-use-after-scope READ 8",
@@ -2973,7 +2973,7 @@
     {
       "id": "ARVO-411003875",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "Use-of-uninitialized-value",
@@ -2993,7 +2993,7 @@
     {
       "id": "OSV-2017-41",
       "target": "libpng",
-      "cwe": null,
+      "cwe": "CWE-122",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-buffer-overflow",
@@ -3011,7 +3011,7 @@
     {
       "id": "OSV-2017-67",
       "target": "libpng",
-      "cwe": null,
+      "cwe": "CWE-122",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-buffer-overflow",
@@ -3029,7 +3029,7 @@
     {
       "id": "OSV-2020-2192",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-122",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-buffer-overflow",
@@ -3047,7 +3047,7 @@
     {
       "id": "OSV-2021-609",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-122",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-buffer-overflow",
@@ -3065,7 +3065,7 @@
     {
       "id": "OSV-2021-654",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-122",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-buffer-overflow",
@@ -3083,7 +3083,7 @@
     {
       "id": "OSV-2023-546",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-761",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "invalid-free in jpeg_free_large",
@@ -3101,7 +3101,7 @@
     {
       "id": "OSV-2024-1159",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "use-of-uninitialized-value in decompress_yuv.cc",
@@ -3119,7 +3119,7 @@
     {
       "id": "OSV-2024-1310",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "use-of-uninitialized-value in decompress_yuv.cc",
@@ -3137,7 +3137,7 @@
     {
       "id": "OSV-2026-91",
       "target": "libjpeg-turbo",
-      "cwe": null,
+      "cwe": "CWE-562",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "use-after-poison",
@@ -3155,7 +3155,7 @@
     {
       "id": "OSV-2020-1623",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -3173,7 +3173,7 @@
     {
       "id": "OSV-2020-1667",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -3191,7 +3191,7 @@
     {
       "id": "OSV-2020-1726",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -3209,7 +3209,7 @@
     {
       "id": "OSV-2020-1885",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -3227,7 +3227,7 @@
     {
       "id": "OSV-2020-215",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "use-of-uninitialized-value in xmlstrdup",
@@ -3245,7 +3245,7 @@
     {
       "id": "OSV-2020-755",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -3263,7 +3263,7 @@
     {
       "id": "OSV-2020-89",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -3281,7 +3281,7 @@
     {
       "id": "OSV-2020-908",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -3299,7 +3299,7 @@
     {
       "id": "OSV-2021-777",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -3317,7 +3317,7 @@
     {
       "id": "OSV-2022-1071",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -3335,7 +3335,7 @@
     {
       "id": "OSV-2022-1120",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -3353,7 +3353,7 @@
     {
       "id": "OSV-2023-1000",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -3371,7 +3371,7 @@
     {
       "id": "OSV-2023-1301",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "global-buffer-overflow",
@@ -3389,7 +3389,7 @@
     {
       "id": "OSV-2023-1303",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -3407,7 +3407,7 @@
     {
       "id": "OSV-2023-1315",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -3425,7 +3425,7 @@
     {
       "id": "OSV-2023-1365",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -3443,7 +3443,7 @@
     {
       "id": "OSV-2023-1373",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -3461,7 +3461,7 @@
     {
       "id": "OSV-2023-162",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "global-buffer-overflow",
@@ -3479,7 +3479,7 @@
     {
       "id": "OSV-2023-174",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "global-buffer-overflow",
@@ -3497,7 +3497,7 @@
     {
       "id": "OSV-2023-185",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "global-buffer-overflow",
@@ -3515,7 +3515,7 @@
     {
       "id": "OSV-2023-188",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "global-buffer-overflow",
@@ -3533,7 +3533,7 @@
     {
       "id": "OSV-2023-191",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "global-buffer-overflow",
@@ -3551,7 +3551,7 @@
     {
       "id": "OSV-2023-193",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "global-buffer-overflow",
@@ -3569,7 +3569,7 @@
     {
       "id": "OSV-2023-195",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "global-buffer-overflow",
@@ -3587,7 +3587,7 @@
     {
       "id": "OSV-2023-196",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "global-buffer-overflow",
@@ -3605,7 +3605,7 @@
     {
       "id": "OSV-2023-199",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "global-buffer-overflow",
@@ -3623,7 +3623,7 @@
     {
       "id": "OSV-2023-204",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "global-buffer-overflow",
@@ -3641,7 +3641,7 @@
     {
       "id": "OSV-2023-206",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "global-buffer-overflow",
@@ -3659,7 +3659,7 @@
     {
       "id": "OSV-2023-211",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "global-buffer-overflow",
@@ -3677,7 +3677,7 @@
     {
       "id": "OSV-2023-212",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "global-buffer-overflow",
@@ -3695,7 +3695,7 @@
     {
       "id": "OSV-2023-213",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "global-buffer-overflow",
@@ -3713,7 +3713,7 @@
     {
       "id": "OSV-2023-215",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "global-buffer-overflow",
@@ -3731,7 +3731,7 @@
     {
       "id": "OSV-2023-249",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "global-buffer-overflow",
@@ -3749,7 +3749,7 @@
     {
       "id": "OSV-2023-474",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "global-buffer-overflow",
@@ -3767,7 +3767,7 @@
     {
       "id": "OSV-2023-477",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-125",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "global-buffer-overflow",
@@ -3785,7 +3785,7 @@
     {
       "id": "OSV-2023-61",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-122",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-buffer-overflow",
@@ -3803,7 +3803,7 @@
     {
       "id": "OSV-2023-684",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -3821,7 +3821,7 @@
     {
       "id": "OSV-2023-953",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-122",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-buffer-overflow",
@@ -3839,7 +3839,7 @@
     {
       "id": "OSV-2023-969",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -3857,7 +3857,7 @@
     {
       "id": "OSV-2023-988",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-122",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-buffer-overflow",
@@ -3875,7 +3875,7 @@
     {
       "id": "OSV-2023-990",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -3893,7 +3893,7 @@
     {
       "id": "OSV-2023-999",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-122",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-buffer-overflow",
@@ -3911,7 +3911,7 @@
     {
       "id": "OSV-2024-103",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -3929,7 +3929,7 @@
     {
       "id": "OSV-2024-1209",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -3947,7 +3947,7 @@
     {
       "id": "OSV-2024-193",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-457",
       "severity": "medium",
       "difficulty": "medium",
       "crash_type": "use-of-uninitialized-value in api.c",
@@ -3965,7 +3965,7 @@
     {
       "id": "OSV-2024-194",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -3983,7 +3983,7 @@
     {
       "id": "OSV-2024-198",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -4001,7 +4001,7 @@
     {
       "id": "OSV-2024-217",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -4019,7 +4019,7 @@
     {
       "id": "OSV-2024-634",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-122",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-buffer-overflow",
@@ -4037,7 +4037,7 @@
     {
       "id": "OSV-2024-698",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -4055,7 +4055,7 @@
     {
       "id": "OSV-2024-77",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -4073,7 +4073,7 @@
     {
       "id": "OSV-2024-81",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -4091,7 +4091,7 @@
     {
       "id": "OSV-2024-82",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-416",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-use-after-free",
@@ -4109,7 +4109,7 @@
     {
       "id": "OSV-2025-457",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-122",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "heap-buffer-overflow",
@@ -4127,7 +4127,7 @@
     {
       "id": "OSV-2025-74",
       "target": "libxml2",
-      "cwe": null,
+      "cwe": "CWE-121",
       "severity": "high",
       "difficulty": "medium",
       "crash_type": "stack-buffer-overflow",

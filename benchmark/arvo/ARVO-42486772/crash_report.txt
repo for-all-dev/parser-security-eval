@@ -1,3 +1,38 @@
-crash_type: Use-of-uninitialized-value
-sanitizer: memory
-target: libxml2
+INFO: Seed: 2296952579
+INFO: Loaded 1 modules   (46085 inline 8-bit counters): 46085 [0xdcdc40, 0xdd9045), 
+INFO: Loaded 1 PC tables (46085 PCs): 46085 [0xaa7270,0xb5b2c0), 
+/out/xml: Running 1 inputs 1 time(s) each.
+Running: /tmp/poc
+[1m[31m==7==WARNING: MemorySanitizer: use-of-uninitialized-value
+[1m[0m    #0 0x78dfa9 in xmlXIncludeIncludeNode /src/libxml2/xinclude.c:2216:9
+    #1 0x7896b2 in xmlXIncludeDoProcess /src/libxml2/xinclude.c:2471:6
+    #2 0x78a18e in xmlXIncludeProcessNode /src/libxml2/xinclude.c:2648:11
+    #3 0x8512f8 in xmlTextReaderRead /src/libxml2/xmlreader.c:1594:2
+    #4 0x5243e5 in LLVMFuzzerTestOneInput /src/libxml2/fuzz/xml.c:78:12
+    #5 0x458c41 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:559:15
+    #6 0x4443e2 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:301:6
+    #7 0x44a37d in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:801:9
+    #8 0x471c62 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7ffff6ee583f in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2083f)
+    #10 0x41eb88 in _start (/out/xml+0x41eb88)
+
+DEDUP_TOKEN: xmlXIncludeIncludeNode--xmlXIncludeDoProcess--xmlXIncludeProcessNode
+  [1m[35mUninitialized value was created by a heap deallocation[1m[0m
+    #0 0x4cca19 in free /src/llvm-project/compiler-rt/lib/msan/msan_interceptors.cpp:222:3
+    #1 0x8766ac in xmlTextReaderFreeNodeList /src/libxml2/xmlreader.c:474:3
+    #2 0x8553d3 in xmlTextReaderFreeNode /src/libxml2/xmlreader.c:522:6
+    #3 0x8514a1 in xmlTextReaderRead /src/libxml2/xmlreader.c:1556:2
+    #4 0x5243e5 in LLVMFuzzerTestOneInput /src/libxml2/fuzz/xml.c:78:12
+    #5 0x458c41 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:559:15
+    #6 0x4443e2 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:301:6
+    #7 0x44a37d in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:801:9
+    #8 0x471c62 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7ffff6ee583f in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2083f)
+
+DEDUP_TOKEN: free--xmlTextReaderFreeNodeList--xmlTextReaderFreeNode
+SUMMARY: MemorySanitizer: use-of-uninitialized-value /src/libxml2/xinclude.c:2216:9 in xmlXIncludeIncludeNode
+Unique heap origins: 417
+Stack depot allocated bytes: 51216
+Unique origin histories: 66
+History depot allocated bytes: 1584
+Exiting

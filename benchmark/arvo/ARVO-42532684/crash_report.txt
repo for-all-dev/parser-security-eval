@@ -1,3 +1,106 @@
-crash_type: Heap-use-after-free READ 8
-sanitizer: address
-target: libxml2
+Running LLVMFuzzerInitialize ...
+continue...
+Reading 109 bytes from /tmp/poc
+=================================================================
+[1m[31m==7==ERROR: AddressSanitizer: heap-use-after-free on address 0x604000000658 at pc 0x0000005cc4c2 bp 0x7ffc2b795af0 sp 0x7ffc2b795ae8
+[1m[0m[1m[34mREAD of size 8 at 0x604000000658 thread T0[1m[0m
+SCARINESS: 51 (8-byte-read-heap-use-after-free)
+    #0 0x5cc4c1 in xmlRemoveID /src/libxml2/valid.c:2745:45
+    #1 0x5855ae in xmlFreeProp /src/libxml2/tree.c:2080:6
+    #2 0x57f3a0 in xmlFreePropList /src/libxml2/tree.c:2057:9
+    #3 0x57f3a0 in xmlFreeNodeList /src/libxml2/tree.c:3681:3
+    #4 0x57db97 in xmlFreeNode /src/libxml2/tree.c:3759:2
+    #5 0x53d6ba in xmlCtxtParseContent /src/libxml2/parser.c:12051:5
+    #6 0x524d68 in xmlCtxtParseEntity /src/libxml2/parser.c:12112:11
+    #7 0x523579 in xmlParseReference /src/libxml2/parser.c:7061:19
+    #8 0x5357c0 in xmlParseTryOrFinish /src/libxml2/parser.c:11232:7
+    #9 0x5357c0 in xmlParseChunk /src/libxml2/parser.c:11527:5
+    #10 0x64a92b in xmlTextReaderPushData /src/libxml2/xmlreader.c:769:12
+    #11 0x647307 in xmlTextReaderRead /src/libxml2/xmlreader.c:1228:12
+    #12 0x4dd2c2 in LLVMFuzzerTestOneInput /src/libxml2/fuzz/xml.c:126:20
+    #13 0x4df9ad in ExecuteFilesOnyByOne /src/aflplusplus/utils/aflpp_driver/aflpp_driver.c:255:7
+    #14 0x4df7b8 in LLVMFuzzerRunDriver /src/aflplusplus/utils/aflpp_driver/aflpp_driver.c
+    #15 0x4df378 in main /src/aflplusplus/utils/aflpp_driver/aflpp_driver.c:300:10
+    #16 0x7fb08db65082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #17 0x41e59d in _start (/out/xml+0x41e59d)
+
+DEDUP_TOKEN: xmlRemoveID--xmlFreeProp--xmlFreePropList
+[1m[32m0x604000000658 is located 8 bytes inside of 48-byte region [0x604000000650,0x604000000680)
+[1m[0m[1m[35mfreed by thread T0 here:[1m[0m
+    #0 0x49f732 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x5cb8e8 in xmlFreeID /src/libxml2/valid.c:2503:5
+    #2 0x5cb8e8 in xmlFreeIDTableEntry /src/libxml2/valid.c:2646:5
+    #3 0x4f5cec in xmlHashRemoveEntry3 /src/libxml2/hash.c:1276:9
+    #4 0x4f5aec in xmlHashRemoveEntry /src/libxml2/hash.c:1222:12
+    #5 0x5cc40d in xmlRemoveID /src/libxml2/valid.c:2745:9
+    #6 0x5855ae in xmlFreeProp /src/libxml2/tree.c:2080:6
+    #7 0x57f3a0 in xmlFreePropList /src/libxml2/tree.c:2057:9
+    #8 0x57f3a0 in xmlFreeNodeList /src/libxml2/tree.c:3681:3
+    #9 0x57db97 in xmlFreeNode /src/libxml2/tree.c:3759:2
+    #10 0x53d6ba in xmlCtxtParseContent /src/libxml2/parser.c:12051:5
+    #11 0x524d68 in xmlCtxtParseEntity /src/libxml2/parser.c:12112:11
+    #12 0x523579 in xmlParseReference /src/libxml2/parser.c:7061:19
+    #13 0x5357c0 in xmlParseTryOrFinish /src/libxml2/parser.c:11232:7
+    #14 0x5357c0 in xmlParseChunk /src/libxml2/parser.c:11527:5
+    #15 0x64a92b in xmlTextReaderPushData /src/libxml2/xmlreader.c:769:12
+    #16 0x647307 in xmlTextReaderRead /src/libxml2/xmlreader.c:1228:12
+    #17 0x4dd2c2 in LLVMFuzzerTestOneInput /src/libxml2/fuzz/xml.c:126:20
+    #18 0x4df9ad in ExecuteFilesOnyByOne /src/aflplusplus/utils/aflpp_driver/aflpp_driver.c:255:7
+
+DEDUP_TOKEN: free--xmlFreeID--xmlFreeIDTableEntry
+[1m[35mpreviously allocated by thread T0 here:[1m[0m
+    #0 0x49f9d6 in __interceptor_malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:69:3
+    #1 0x4dd6fd in xmlFuzzMalloc /src/libxml2/fuzz/fuzz.c:81:12
+    #2 0x5cac16 in xmlAddIDSafe /src/libxml2/valid.c:2562:22
+    #3 0x5cb42f in xmlAddID /src/libxml2/valid.c:2625:11
+    #4 0x571aa9 in xmlSAX2AttributeNs /src/libxml2/SAX2.c
+    #5 0x5700aa in xmlSAX2StartElementNs /src/libxml2/SAX2.c:2238:20
+    #6 0x651a6c in xmlTextReaderStartElementNs /src/libxml2/xmlreader.c:636:2
+    #7 0x5524a8 in xmlParseStartTag2 /src/libxml2/parser.c
+    #8 0x52ae1d in xmlParseElementStart /src/libxml2/parser.c:9833:16
+    #9 0x529fb3 in xmlParseContentInternal /src/libxml2/parser.c:9700:10
+    #10 0x53c43e in xmlParseContent /src/libxml2/parser.c:9738:5
+    #11 0x53c43e in xmlCtxtParseContent /src/libxml2/parser.c:11990:5
+    #12 0x524d68 in xmlCtxtParseEntity /src/libxml2/parser.c:12112:11
+    #13 0x523579 in xmlParseReference /src/libxml2/parser.c:7061:19
+    #14 0x5357c0 in xmlParseTryOrFinish /src/libxml2/parser.c:11232:7
+    #15 0x5357c0 in xmlParseChunk /src/libxml2/parser.c:11527:5
+    #16 0x64a92b in xmlTextReaderPushData /src/libxml2/xmlreader.c:769:12
+    #17 0x647307 in xmlTextReaderRead /src/libxml2/xmlreader.c:1228:12
+    #18 0x4dd2c2 in LLVMFuzzerTestOneInput /src/libxml2/fuzz/xml.c:126:20
+    #19 0x4df9ad in ExecuteFilesOnyByOne /src/aflplusplus/utils/aflpp_driver/aflpp_driver.c:255:7
+
+DEDUP_TOKEN: __interceptor_malloc--xmlFuzzMalloc--xmlAddIDSafe
+SUMMARY: AddressSanitizer: heap-use-after-free /src/libxml2/valid.c:2745:45 in xmlRemoveID
+Shadow bytes around the buggy address:
+  0x0c087fff8070: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m
+  0x0c087fff8080: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x0c087fff8090: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x0c087fff80a0: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m
+  0x0c087fff80b0: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m05[1m[0m [1m[31mfa[1m[0m
+=>0x0c087fff80c0: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m04[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m[[1m[35mfd[1m[0m][1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x0c087fff80d0: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m04[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m04[1m[0m
+  0x0c087fff80e0: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x0c087fff80f0: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x0c087fff8100: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x0c087fff8110: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==7==ABORTING

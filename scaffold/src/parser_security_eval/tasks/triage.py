@@ -26,6 +26,7 @@ from inspect_ai.scorer import (
     Score,
     Scorer,
     Target,
+    accuracy,
     model_graded_fact,
     scorer,
 )
@@ -218,7 +219,9 @@ def _build_sample_input(record: VulnerabilityRecord, benchmark_dir: Path) -> str
     return "\n".join(parts)
 
 
-def load_triage_dataset(benchmark_dir: str, target: str | None = None) -> list[Sample]:
+def load_triage_dataset(
+    benchmark_dir: str, target: str | None = None, ready_only: bool = False
+) -> list[Sample]:
     """Load crash reports as Inspect-AI samples for triage.
 
     Each sample contains:
@@ -228,6 +231,9 @@ def load_triage_dataset(benchmark_dir: str, target: str | None = None) -> list[S
     """
     bench_path = Path(benchmark_dir)
     records = _load_records(bench_path, target)
+
+    if ready_only:
+        records = [r for r in records if r.crash_report_path and r.cwe]
 
     samples: list[Sample] = []
     for record in records:
@@ -273,7 +279,7 @@ def triage_solver() -> Solver:
     return solve
 
 
-@scorer(metrics={"cwe_accuracy": [], "severity_accuracy": [], "root_cause_quality": []})
+@scorer(metrics=[accuracy()])
 def cwe_scorer() -> Scorer:
     """Score CWE classification accuracy.
 
@@ -317,7 +323,7 @@ def cwe_scorer() -> Scorer:
     return score
 
 
-@scorer(metrics={"severity_accuracy": []})
+@scorer(metrics=[accuracy()])
 def severity_scorer() -> Scorer:
     """Score severity classification accuracy (exact match)."""
 
@@ -413,6 +419,7 @@ def triage_scorer() -> list[Scorer]:
 def crash_triage(
     benchmark_dir: str = "benchmark",
     target: str | None = None,
+    ready_only: bool = False,
 ) -> Task:
     """Inspect-AI task: triage crash reports from parser fuzzing.
 
@@ -421,7 +428,7 @@ def crash_triage(
     - Severity level
     - Root cause description
     """
-    dataset = load_triage_dataset(benchmark_dir, target)
+    dataset = load_triage_dataset(benchmark_dir, target, ready_only=ready_only)
 
     return Task(
         dataset=dataset,

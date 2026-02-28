@@ -1,3 +1,51 @@
-crash_type: Use-of-uninitialized-value
-sanitizer: memory
-target: libxml2
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3737718324
+INFO: Loaded 1 modules   (52548 inline 8-bit counters): 52548 [0xd09b89, 0xd168cd), 
+INFO: Loaded 1 PC tables (52548 PCs): 52548 [0xbce890,0xc9bcd0), 
+/out/xpath: Running 1 inputs 1 time(s) each.
+Running: /tmp/poc
+[1m[31m==7==WARNING: MemorySanitizer: use-of-uninitialized-value
+[1m[0m    #0 0xa694a8 in valuePop /src/libxml2/xpath.c:2894:9
+    #1 0xa694a8 in xmlXPathLangFunction /src/libxml2/xpath.c:9531:11
+    #2 0xa9ce8e in xmlXPathCompOpEval /src/libxml2/xpath.c:13257:17
+    #3 0xa96b0c in xmlXPathCompOpEvalToBoolean /src/libxml2/xpath.c:13646:6
+    #4 0xaac471 in xmlXPathNodeSetFilter /src/libxml2/xpath.c:11707:15
+    #5 0xaab08a in xmlXPathCompOpEvalPredicate /src/libxml2/xpath.c:11935:9
+    #6 0xaa42b7 in xmlXPathNodeCollectAndTest /src/libxml2/xpath.c
+    #7 0xa9a8b3 in xmlXPathCompOpEval /src/libxml2/xpath.c:13153:26
+    #8 0xa98ebf in xmlXPathCompOpEval /src/libxml2/xpath.c:13060:22
+    #9 0xa9831a in xmlXPathCompOpEval /src/libxml2/xpath.c:13410:26
+    #10 0xa747d0 in xmlXPathRunEval /src/libxml2/xpath.c:13991:2
+    #11 0xa73a64 in xmlXPathEvalExpr /src/libxml2/xpath.c:14497:5
+    #12 0xab4b93 in xmlXPtrEvalXPtrPart /src/libxml2/xpointer.c:1023:2
+    #13 0xab4b93 in xmlXPtrEvalFullXPtr /src/libxml2/xpointer.c:1123:2
+    #14 0xab4b93 in xmlXPtrEvalXPointer /src/libxml2/xpointer.c:1264:6
+    #15 0xab4b93 in xmlXPtrEval /src/libxml2/xpointer.c:1370:5
+    #16 0x5348da in LLVMFuzzerTestOneInput /src/libxml2/fuzz/xpath.c:48:32
+    #17 0x43dce3 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:611:15
+    #18 0x429442 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:324:6
+    #19 0x42ecec in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:860:9
+    #20 0x458222 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #21 0x7ffff7c55082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #22 0x41f60d in _start (/out/xpath+0x41f60d)
+
+DEDUP_TOKEN: valuePop--xmlXPathLangFunction--xmlXPathCompOpEval
+  [1m[35mUninitialized value was created by a heap allocation[1m[0m
+    #0 0x4e2300 in __interceptor_malloc /src/llvm-project/compiler-rt/lib/msan/msan_interceptors.cpp:895:3
+    #1 0x534c3f in xmlFuzzMalloc /src/libxml2/fuzz/fuzz.c:82:12
+    #2 0xa42ebd in xmlXPathNewParserContext /src/libxml2/xpath.c:6263:38
+    #3 0xab38aa in xmlXPtrEval /src/libxml2/xpointer.c:1367:12
+    #4 0x5348da in LLVMFuzzerTestOneInput /src/libxml2/fuzz/xpath.c:48:32
+    #5 0x43dce3 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:611:15
+    #6 0x429442 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:324:6
+    #7 0x42ecec in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:860:9
+    #8 0x458222 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7ffff7c55082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_malloc--xmlFuzzMalloc--xmlXPathNewParserContext
+SUMMARY: MemorySanitizer: use-of-uninitialized-value /src/libxml2/xpath.c:2894:9 in valuePop
+Unique heap origins: 134
+Stack depot allocated bytes: 9764880
+Unique origin histories: 7
+History depot allocated bytes: 196608
+Exiting
