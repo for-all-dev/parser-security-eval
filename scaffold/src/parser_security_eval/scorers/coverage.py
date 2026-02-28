@@ -102,7 +102,7 @@ _COV_BUILD_CMD = (
     "export CC=clang CXX=clang++ "
     'CFLAGS="-fprofile-instr-generate -fcoverage-mapping -O1 -fno-omit-frame-pointer" '
     'CXXFLAGS="-fprofile-instr-generate -fcoverage-mapping -O1 -fno-omit-frame-pointer" '
-    "LIB_FUZZING_ENGINE=/usr/lib/libFuzzer.a "
+    "LIB_FUZZING_ENGINE=-fsanitize=fuzzer "
     "SRC=/src OUT=/out/cov WORK=/work/cov "
     "&& mkdir -p /out/cov /work/cov "
     "&& bash /src/build.sh"

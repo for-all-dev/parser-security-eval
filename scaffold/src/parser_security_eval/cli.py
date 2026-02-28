@@ -9,6 +9,7 @@ from pathlib import Path
 
 import typer
 
+from parser_security_eval.dataset.artifacts import fetch_reference_patches
 from parser_security_eval.dataset.arvo import ingest_arvo
 from parser_security_eval.dataset.curator import DatasetCurator
 from parser_security_eval.dataset.ossfuzz import fetch_ossfuzz_bugs, parse_ossfuzz_bug
@@ -391,3 +392,24 @@ def verify(
 
     if not result.success:
         raise typer.Exit(1)
+
+
+@app.command()
+def fetch_artifacts(
+    benchmark_dir: Path = typer.Option(
+        Path("../benchmark"), help="Benchmark directory with metadata.json"
+    ),
+    cache_dir: Path = typer.Option(
+        _DEFAULT_CACHE, help="Cache directory for arvo.db and repo clones"
+    ),
+) -> None:
+    """Fetch reference patches from ARVO-Meta for all benchmark records."""
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+
+    if not (benchmark_dir / "metadata.json").exists():
+        typer.echo(f"Error: metadata.json not found in {benchmark_dir}", err=True)
+        raise typer.Exit(1)
+
+    typer.echo(f"Fetching reference patches into {benchmark_dir} …")
+    success, total = fetch_reference_patches(benchmark_dir, cache_dir)
+    typer.echo(f"\nDone: {success} / {total} reference patches fetched.")

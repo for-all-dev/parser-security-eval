@@ -1,0 +1,13 @@
+diff --git a/parser.c b/parser.c
+index c3068cad..6531c9f8 100644
+--- a/parser.c
++++ b/parser.c
+@@ -7126,6 +7126,8 @@ xmlParseReference(xmlParserCtxtPtr ctxt) {
+      */
+     ent = xmlParseEntityRef(ctxt);
+     if (ent == NULL) return;
++    if (!ctxt->wellFormed)
++	return;
+     was_checked = ent->checked;
+ 
+     /* special case of predefined entities */
