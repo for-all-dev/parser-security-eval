@@ -18,3 +18,6 @@ Parsers are bad-- it'd be great if they were less bad. One way to do this would 
 
 - use monorepo features for any mixed build needs.
 - use docker orchestration, maybe with compose.yml? if you like.
+- `pydantic.BaseModels`
+- `uv run ruff check --fix` and `uv run ruff format` and `uv run pytest` and `uv run ty check`
+   - note: use typehints, but not pyright or numpy. `ty` is a new typechecker by astral. 
