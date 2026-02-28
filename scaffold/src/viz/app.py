@@ -14,7 +14,15 @@ if str(_src_dir) not in sys.path:
 import streamlit as st  # noqa: E402
 
 from viz.loader import LogData, load_log_data  # noqa: E402
-from viz.views import breakdown, diff_viewer, overview, patching, samples, usage  # noqa: E402
+from viz.views import (  # noqa: E402
+    breakdown,
+    diff_viewer,
+    overview,
+    patching,
+    samples,
+    trajectory,
+    usage,
+)
 
 LOG_DIR = Path(__file__).parent.parent.parent / "logs"
 
@@ -61,7 +69,9 @@ def main() -> None:
             selected_paths = []
             with st.container(height=200):
                 for p in eval_files:
-                    if st.checkbox(p.name, value=True, key=f"log_{p.name}", help=p.name):
+                    if st.checkbox(
+                        p.name, value=True, key=f"log_{p.name}", help=p.name
+                    ):
                         selected_paths.append(str(p))
 
         st.divider()
@@ -73,6 +83,7 @@ def main() -> None:
                 "Sample Browser",
                 "Patching Funnel",
                 "Patch Diff Viewer",
+                "Agent Trajectory",
                 "Model Usage",
             ],
         )
@@ -93,6 +104,8 @@ def main() -> None:
         patching.render(logs)
     elif page == "Patch Diff Viewer":
         diff_viewer.render(logs)
+    elif page == "Agent Trajectory":
+        trajectory.render(logs)
     elif page == "Model Usage":
         usage.render(logs)
 

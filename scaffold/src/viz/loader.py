@@ -158,6 +158,7 @@ def _summary_to_row_patching(summary: EvalSampleSummary) -> dict[str, Any]:
         "tests_pass": parsed["tests_pass"],
         "diff_lines": parsed["diff_lines"],
         "pipeline_stage": ", ".join(pipeline_stages) if pipeline_stages else "none",
+        "message_count": summary.message_count or 0,
     }
 
 
@@ -240,6 +241,140 @@ def load_patch_details(log_path: str) -> dict[str, PatchSampleDetail]:
             ground_truth_diff=raw_target.strip(),
         )
     return result
+
+
+class TrajTurn(BaseModel):
+    """One agent turn: an assistant reasoning step followed by a tool call/result."""
+
+    turn_index: int
+    reasoning: str  # assistant text before / around the diff
+    proposed_diff: str  # extracted unified diff (may be empty)
+    tool_name: str  # e.g. "try_patch"
+    tool_result: str  # full tool output text
+    tool_ok: bool  # True if result indicates success
+    model_time: float  # seconds for the LLM call
+    tool_time: float  # seconds for the tool execution
+
+
+_TOOL_SUCCESS_RE = re.compile(r"applied|success", re.IGNORECASE)
+# Reuse diff-extraction pattern from views — inline here to avoid circular import
+_TRAJ_CODE_RE = re.compile(r"```(?:diff)?\s*\n(.*?)```", re.DOTALL)
+_TRAJ_DIFF_HDR_RE = re.compile(r"((?:diff --git|---|\+\+\+).*)", re.MULTILINE)
+
+
+def _extract_diff_from_text(text: str) -> tuple[str, str]:
+    """Return (prose, diff) extracted from assistant text."""
+    for m in _TRAJ_CODE_RE.finditer(text):
+        block = m.group(1)
+        if any(
+            line.startswith(("diff --git", "--- ", "+++ ", "@@"))
+            for line in block.splitlines()
+        ):
+            return text[: m.start()].strip(), block.strip()
+    m2 = _TRAJ_DIFF_HDR_RE.search(text)
+    if m2:
+        return text[: m2.start()].strip(), text[m2.start() :].strip()
+    return text.strip(), ""
+
+
+def _resolve_attachment(value: Any, attachments: dict[str, Any]) -> str:
+    """If value is an attachment:// reference, resolve it; otherwise return as-is."""
+    s = str(value) if value else ""
+    if s.startswith("attachment://"):
+        key = s[len("attachment://") :]
+        return str(attachments.get(key, "")) or ""
+    return s
+
+
+def _parse_trajectory(sample: Any) -> list[TrajTurn]:
+    """Build ordered TrajTurn list from sample events (primary) + messages (reasoning text)."""
+    attachments: dict[str, Any] = sample.attachments or {}
+
+    # Pull ModelEvent + ToolEvent in chronological order
+    paired: list[tuple[Any, Any]] = []  # (ModelEvent, ToolEvent | None)
+    action_events = [
+        e
+        for e in (sample.events or [])
+        if type(e).__name__ in ("ModelEvent", "ToolEvent")
+    ]
+    i = 0
+    while i < len(action_events):
+        e = action_events[i]
+        if type(e).__name__ == "ModelEvent":
+            nxt = action_events[i + 1] if i + 1 < len(action_events) else None
+            tool_ev = nxt if nxt and type(nxt).__name__ == "ToolEvent" else None
+            paired.append((e, tool_ev))
+            i += 2 if tool_ev else 1
+        else:
+            i += 1
+
+    # Also collect reasoning text from assistant messages (richer than event output)
+    assistant_texts: list[str] = []
+    for msg in sample.messages or []:
+        if msg.role == "assistant":
+            text = ""
+            content = msg.content
+            if isinstance(content, list):
+                for part in content:
+                    if hasattr(part, "text") and part.text:
+                        text += part.text
+            elif isinstance(content, str):
+                text = content
+            assistant_texts.append(text)
+
+    turns: list[TrajTurn] = []
+    for turn_idx, (model_ev, tool_ev) in enumerate(paired):
+        md = model_ev.model_dump()
+        m_time = float(md.get("working_time", 0) or 0)
+
+        # Reasoning: prefer the matching assistant message (same order), fall back to event output
+        reasoning = assistant_texts[turn_idx] if turn_idx < len(assistant_texts) else ""
+        if not reasoning:
+            for choice in md.get("output", {}).get("choices", []):
+                for part in choice.get("message", {}).get("content", []):
+                    if isinstance(part, dict) and part.get("type") == "text":
+                        reasoning += part.get("text", "")
+
+        # Proposed diff: from ToolEvent arguments, resolved via attachments
+        proposed_diff = ""
+        tool_name = "try_patch"
+        tool_result = ""
+        tool_ok = False
+        t_time = 0.0
+
+        if tool_ev is not None:
+            td = tool_ev.model_dump()
+            tool_name = td.get("function", "try_patch") or "try_patch"
+            t_time = float(td.get("working_time", 0) or 0)
+            tool_result = str(td.get("result", "") or "")
+            tool_ok = bool(_TOOL_SUCCESS_RE.search(tool_result))
+            args = td.get("arguments", {}) or {}
+            if isinstance(args, dict):
+                proposed_diff = _resolve_attachment(args.get("diff", ""), attachments)
+
+        turns.append(
+            TrajTurn(
+                turn_index=turn_idx,
+                reasoning=reasoning,
+                proposed_diff=proposed_diff,
+                tool_name=tool_name,
+                tool_result=tool_result,
+                tool_ok=tool_ok,
+                model_time=m_time,
+                tool_time=t_time,
+            )
+        )
+
+    return turns
+
+
+@st.cache_data(show_spinner="Loading trajectory…")
+def load_trajectory(log_path: str, sample_id: str) -> list[TrajTurn]:
+    """Load agent turns for a single sample (requires full sample read)."""
+    for sample in read_eval_log_samples(log_path):
+        if str(sample.id) == sample_id:
+            return _parse_trajectory(sample)
+    return []
 
 
 @st.cache_data(show_spinner="Loading sample output…")
