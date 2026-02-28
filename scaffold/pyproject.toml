@@ -10,6 +10,7 @@ requires-python = ">=3.14"
 dependencies = [
     "inspect-ai>=0.3.184",
     "pydantic>=2.12.5",
+    "pyyaml>=6.0",
     "typer>=0.24.1",
 ]
 
@@ -24,6 +25,7 @@ build-backend = "uv_build"
 dev = [
     "hypothesis>=6.151.9",
     "pytest>=9.0.2",
+    "pytest-asyncio>=1.3.0",
     "ruff>=0.15.4",
     "ty>=0.0.19",
 ]
