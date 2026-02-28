@@ -5,18 +5,18 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-# Ensure scaffold/ is on sys.path so `viz.*` imports resolve when streamlit
-# runs this file directly (streamlit adds viz/ but not its parent).
-_scaffold_dir = Path(__file__).parent.parent
-if str(_scaffold_dir) not in sys.path:
-    sys.path.insert(0, str(_scaffold_dir))
+# Ensure src/ is on sys.path so `viz.*` imports resolve when streamlit
+# runs this file directly (streamlit adds src/viz/ but not its parent).
+_src_dir = Path(__file__).parent.parent
+if str(_src_dir) not in sys.path:
+    sys.path.insert(0, str(_src_dir))
 
 import streamlit as st  # noqa: E402
 
 from viz.loader import LogData, load_log_data  # noqa: E402
 from viz.views import breakdown, diff_viewer, overview, patching, samples, usage  # noqa: E402
 
-LOG_DIR = Path(__file__).parent.parent / "logs"
+LOG_DIR = Path(__file__).parent.parent.parent / "logs"
 
 st.set_page_config(
     page_title="Parser Security Eval",
