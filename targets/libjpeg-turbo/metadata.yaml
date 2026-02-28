@@ -1,0 +1,10 @@
+name: libjpeg-turbo
+format_type: binary-image
+language: c
+ossfuzz_project: libjpeg-turbo
+repository: https://github.com/libjpeg-turbo/libjpeg-turbo
+ossfuzz_url: https://github.com/google/oss-fuzz/tree/master/projects/libjpeg-turbo
+fuzz_targets:
+  - libjpeg_turbo_fuzzer
+has_corpus: true
+has_dictionary: false
