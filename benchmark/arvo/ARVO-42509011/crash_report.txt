@@ -1,0 +1,3 @@
+crash_type: Invalid-free
+sanitizer: address
+target: libxml2

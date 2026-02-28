@@ -1,0 +1,3 @@
+crash_type: Heap-use-after-free READ 4
+sanitizer: address
+target: libxml2

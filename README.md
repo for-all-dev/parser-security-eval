@@ -1,0 +1,124 @@
+# parser-security-eval
+
+Evaluation framework for AI-driven parser security. An AI agent is given a vulnerable parser and a crash report, and must produce a patch that eliminates the vulnerability. Benchmarked against 209 real-world vulnerabilities from [ARVO](https://github.com/n132/ARVO) across 4 parser libraries, with ground-truth reference patches for scoring.
+
+## Prerequisites
+
+- Python 3.14+ and [uv](https://docs.astral.sh/uv/)
+- Docker (for building and fuzzing parser targets)
+- ~200 MB disk for the ARVO-Meta database download (cached)
+
+## Quickstart
+
+All commands run from the `scaffold/` directory.
+
+```bash
+cd scaffold
+uv sync
+```
+
+### 1. Curate the benchmark dataset
+
+Ingest vulnerability metadata from ARVO and/or oss-fuzz, filter to Tier 1 targets, deduplicate, and export `benchmark/metadata.json`:
+
+```bash
+uv run parser-security-eval curate arvo
+```
+
+This populates `benchmark/` with per-vulnerability directories containing crash reports and empty reference patch stubs.
+
+### 2. Fetch reference patches
+
+Download the ARVO-Meta SQLite database, look up fix commits, and generate `reference_patch.diff` for each vulnerability from upstream git history:
+
+```bash
+uv run parser-security-eval fetch-artifacts
+```
+
+This fills in the `reference_patch.diff` files that step 1 left empty. Patches are generated via `git diff fix_commit~1..fix_commit` from shallow upstream clones. Expects ~87% coverage of ARVO records.
+
+### 3. Build parser targets
+
+Build the Tier 1 parser targets in Docker (oss-fuzz base-builder images with AddressSanitizer):
+
+```bash
+uv run parser-security-eval build-target libpng
+uv run parser-security-eval build-target libjpeg-turbo
+uv run parser-security-eval build-target libxml2
+uv run parser-security-eval build-target zlib
+```
+
+### 4. Run evaluations
+
+Run an Inspect-AI evaluation task against a model:
+
+```bash
+uv run parser-security-eval evaluate patching --model anthropic/claude-sonnet-4-6
+uv run parser-security-eval evaluate triage
+uv run parser-security-eval evaluate harness --target libpng
+```
+
+### 5. Verify a patch
+
+Test a specific patch against a vulnerability:
+
+```bash
+uv run parser-security-eval verify libpng ARVO-42498959 path/to/patch.diff
+```
+
+## Project structure
+
+```
+parser-security-eval/
+  benchmark/              Curated vulnerability dataset
+    metadata.json           209 records with IDs, targets, severities, paths
+    ARVO-{id}/              Per-vulnerability artifacts
+      crash_report.txt        Sanitizer crash report
+      reference_patch.diff    Ground-truth fix (from upstream git)
+  scaffold/               Python package (uv project)
+    src/parser_security_eval/
+      cli.py                  Typer CLI entry point
+      dataset/
+        arvo.py                 ARVO metadata ingestion
+        artifacts.py            Reference patch fetching from ARVO-Meta
+        curator.py              Deduplication, validation, export
+        ossfuzz.py              oss-fuzz bug ingestion
+      models/
+        vulnerability.py        VulnerabilityRecord pydantic model
+      sandbox/
+        docker.py               Docker sandbox for builds and fuzzing
+      scorers/
+        patch.py                Patch correctness scorer
+        coverage.py             Code coverage scorer
+      tasks/
+        patching.py             Vulnerability patching eval task
+        triage.py               Crash triage eval task
+        harness.py              Fuzz harness generation eval task
+  targets/                Parser target definitions (oss-fuzz compatible)
+    libpng/                 Dockerfile, build.sh, metadata.yaml, corpus/
+    libjpeg-turbo/
+    libxml2/
+    zlib/
+    _template/              Skeleton for adding new targets
+```
+
+## CLI reference
+
+All commands: `uv run parser-security-eval <command> --help`
+
+| Command | Description |
+|---|---|
+| `curate <source>` | Ingest from `arvo`, `ossfuzz`, or `all`. Writes `benchmark/metadata.json`. |
+| `fetch-artifacts` | Download ARVO-Meta DB, generate reference patches from upstream repos. |
+| `build-target <target>` | Build a parser target in Docker with sanitizer + fuzz engine. |
+| `evaluate <task>` | Run an Inspect-AI eval: `patching`, `triage`, or `harness`. |
+| `verify <target> <id> <patch>` | Test a patch against a specific vulnerability. |
+
+## Development
+
+```bash
+cd scaffold
+uv run ruff check --fix    # lint
+uv run ruff format         # format
+uv run pytest              # test (333 tests)
+```

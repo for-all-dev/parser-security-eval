@@ -1,0 +1,3 @@
+crash_type: Stack-buffer-overflow WRITE {*}
+sanitizer: address
+target: libxml2

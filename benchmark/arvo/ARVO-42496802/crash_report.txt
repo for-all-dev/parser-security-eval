@@ -1,0 +1,3 @@
+crash_type: Bad-cast
+sanitizer: undefined
+target: libxml2

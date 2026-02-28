@@ -1,0 +1,3 @@
+crash_type: Stack-use-after-scope READ 8
+sanitizer: address
+target: libxml2

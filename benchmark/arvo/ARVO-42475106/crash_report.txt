@@ -1,0 +1,3 @@
+crash_type: Index-out-of-bounds
+sanitizer: undefined
+target: libxml2

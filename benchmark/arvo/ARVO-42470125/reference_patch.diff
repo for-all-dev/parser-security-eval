@@ -1,0 +1,14 @@
+diff --git a/SAX2.c b/SAX2.c
+index 5cbb700a..0f0ad2a4 100644
+--- a/SAX2.c
++++ b/SAX2.c
+@@ -2805,7 +2805,8 @@ xmlSAX2CDataBlock(void *ctx, const xmlChar *value, int len)
+ 	xmlTextConcat(lastChild, value, len);
+     } else {
+ 	ret = xmlNewCDataBlock(ctxt->myDoc, value, len);
+-	xmlAddChild(ctxt->node, ret);
++	if (xmlAddChild(ctxt->node, ret) == NULL)
++		xmlFreeNode(ret);
+     }
+ }
+ 

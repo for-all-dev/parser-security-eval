@@ -26,10 +26,12 @@ class SandboxConfig:
 
 
 # Maps engine config values to oss-fuzz engine library paths.
+# LIB_FUZZING_ENGINE values matching what oss-fuzz's compile_* scripts set.
+# For libfuzzer the compile script sets LIB_FUZZING_ENGINE="-fsanitize=fuzzer".
 ENGINE_LIB: dict[str, str] = {
-    "libfuzzer": "/usr/lib/libFuzzer.a",
+    "libfuzzer": "-fsanitize=fuzzer",
     "afl": "/usr/lib/afl/afl-compiler-rt.o",
-    "honggfuzz": "/usr/lib/honggfuzz/honggfuzz.a",
+    "honggfuzz": "/src/honggfuzz/honggfuzz.a",
 }
 
 
@@ -44,6 +46,8 @@ def _build_env(config: SandboxConfig) -> dict[str, str]:
         "CXXFLAGS": san_flags,
         "LIB_FUZZING_ENGINE": ENGINE_LIB.get(config.engine, ENGINE_LIB["libfuzzer"]),
         "SANITIZER": sanitizer,
+        "FUZZING_ENGINE": config.engine,
+        "ARCHITECTURE": "x86_64",
         "SRC": "/src",
         "OUT": "/out",
         "WORK": "/work",

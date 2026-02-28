@@ -1,0 +1,35 @@
+diff --git a/HTMLparser.c b/HTMLparser.c
+index 3bebda6e..b8b6bd23 100644
+--- a/HTMLparser.c
++++ b/HTMLparser.c
+@@ -411,7 +411,7 @@ htmlCurrentChar(xmlParserCtxtPtr ctxt, int *len) {
+ 	return(ctxt->token);
+     }
+ 
+-    if ((ctxt->input->end - ctxt->input->cur < 4) &&
++    if ((ctxt->input->end - ctxt->input->cur < INPUT_CHUNK) &&
+         (xmlParserGrow(ctxt) < 0))
+         return(0);
+ 
+diff --git a/parserInternals.c b/parserInternals.c
+index a06bb76a..52491505 100644
+--- a/parserInternals.c
++++ b/parserInternals.c
+@@ -527,7 +527,7 @@ xmlNextChar(xmlParserCtxtPtr ctxt)
+ 	return;
+     }
+ 
+-    if (ctxt->input->end - ctxt->input->cur < 4) {
++    if (ctxt->input->end - ctxt->input->cur < INPUT_CHUNK) {
+         if (xmlParserGrow(ctxt) < 0)
+             return;
+         if (ctxt->input->cur >= ctxt->input->end)
+@@ -674,7 +674,7 @@ xmlCurrentChar(xmlParserCtxtPtr ctxt, int *len) {
+     if (ctxt->instate == XML_PARSER_EOF)
+ 	return(0);
+ 
+-    if ((ctxt->input->end - ctxt->input->cur < 4) &&
++    if ((ctxt->input->end - ctxt->input->cur < INPUT_CHUNK) &&
+         (xmlParserGrow(ctxt) < 0))
+         return(0);
+ 

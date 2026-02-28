@@ -9,7 +9,7 @@ build/
 
 .claude/worktrees/
 .cache/
-benchmark/arvo/
 scaffold/benchmark/
 
 .env
+benchmark/arvo/records.jsonl
