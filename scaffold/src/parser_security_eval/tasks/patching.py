@@ -282,5 +282,7 @@ def vulnerability_patching(
     return Task(
         dataset=samples,
         solver=patching_solver(),
-        scorer=patching_scorer(targets_root=targets_root, fuzzing_engine=fuzzing_engine),
+        scorer=patching_scorer(
+            targets_root=targets_root, fuzzing_engine=fuzzing_engine
+        ),
     )
