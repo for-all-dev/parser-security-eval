@@ -19,6 +19,7 @@ from pathlib import Path
 import yaml
 from inspect_ai import Task, task
 from inspect_ai.dataset import Sample
+from inspect_ai.model import ChatMessageAssistant
 from inspect_ai.scorer import Score, Scorer, mean, scorer
 from inspect_ai.solver import (
     Generate,
@@ -138,6 +139,23 @@ def _extract_diff(text: str) -> str | None:
         return bare.group(1)
 
     return None
+
+
+def _extract_diff_from_state(state: TaskState) -> str | None:
+    """Find the last diff in any assistant message, falling back to output.completion.
+
+    Scans assistant messages in reverse so we pick up the most recent working
+    diff even if the model kept iterating after producing one.
+    """
+    for msg in reversed(state.messages):
+        if isinstance(msg, ChatMessageAssistant):
+            text = msg.text
+            diff = _extract_diff(text)
+            if diff:
+                return diff
+    # final fallback: output.completion (covers the case where the last
+    # generate() produced text that didn't make it into messages yet)
+    return _extract_diff(state.output.completion)
 
 
 def _patch_result_to_score(result: PatchResult) -> float:
@@ -447,7 +465,7 @@ def patching_scorer(
             sanitizer: str = meta.get("sanitizer", "address")
             crash_input_path: str | None = meta.get("crash_input_path")
 
-            patch_diff = _extract_diff(state.output.completion)
+            patch_diff = _extract_diff_from_state(state)
 
             if patch_diff is None:
                 return Score(
@@ -529,5 +547,5 @@ def vulnerability_patching(
         scorer=patching_scorer(
             targets_root=targets_root, fuzzing_engine=fuzzing_engine
         ),
-        message_limit=30,
+        message_limit=60,
     )

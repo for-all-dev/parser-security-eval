@@ -4,6 +4,7 @@ import asyncio
 import json
 import stat
 from pathlib import Path
+from inspect_ai.model import ChatMessageAssistant, ChatMessageUser
 from inspect_ai.scorer import Score
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -11,6 +12,7 @@ import pytest
 
 from parser_security_eval.tasks.patching import (
     _extract_diff,
+    _extract_diff_from_state,
     _patch_result_to_score,
     _resolve_fuzz_binary,
     load_patching_dataset,
@@ -131,6 +133,66 @@ class TestExtractDiff:
         result = _extract_diff(text)
         assert result is not None
         assert "real.c" in result
+
+
+# ---------------------------------------------------------------------------
+# _extract_diff_from_state
+# ---------------------------------------------------------------------------
+
+DIFF_TEXT = "```diff\n--- a/f.c\n+++ b/f.c\n@@ -1 +1 @@\n-old\n+new\n```"
+
+
+def _make_state_with_messages(messages: list, completion: str = "") -> MagicMock:
+    state = MagicMock()
+    state.messages = messages
+    state.output.completion = completion
+    return state
+
+
+class TestExtractDiffFromState:
+    def test_finds_diff_in_last_assistant_message(self) -> None:
+        msgs = [
+            ChatMessageUser(content="fix this"),
+            ChatMessageAssistant(content="No diff yet."),
+            ChatMessageAssistant(content=DIFF_TEXT),
+        ]
+        state = _make_state_with_messages(msgs)
+        result = _extract_diff_from_state(state)
+        assert result is not None
+        assert "--- a/f.c" in result
+
+    def test_picks_most_recent_diff(self) -> None:
+        msgs = [
+            ChatMessageAssistant(content="```diff\n--- a/old.c\n+++ b/old.c\n@@ -1 +1 @@\n-x\n+y\n```"),
+            ChatMessageAssistant(content="Improving patch."),
+            ChatMessageAssistant(content="```diff\n--- a/new.c\n+++ b/new.c\n@@ -1 +1 @@\n-x\n+z\n```"),
+        ]
+        state = _make_state_with_messages(msgs)
+        result = _extract_diff_from_state(state)
+        assert result is not None
+        assert "new.c" in result
+
+    def test_falls_back_to_completion_when_no_message_diff(self) -> None:
+        msgs = [ChatMessageAssistant(content="I'll work on it.")]
+        state = _make_state_with_messages(msgs, completion=DIFF_TEXT)
+        result = _extract_diff_from_state(state)
+        assert result is not None
+        assert "--- a/f.c" in result
+
+    def test_returns_none_when_no_diff_anywhere(self) -> None:
+        msgs = [ChatMessageAssistant(content="No solution yet.")]
+        state = _make_state_with_messages(msgs, completion="")
+        result = _extract_diff_from_state(state)
+        assert result is None
+
+    def test_skips_non_assistant_messages(self) -> None:
+        msgs = [
+            ChatMessageUser(content=DIFF_TEXT),  # user message with diff — should skip
+            ChatMessageAssistant(content="No diff here."),
+        ]
+        state = _make_state_with_messages(msgs, completion="")
+        result = _extract_diff_from_state(state)
+        assert result is None
 
 
 # ---------------------------------------------------------------------------
