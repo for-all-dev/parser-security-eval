@@ -1,0 +1,3 @@
+crash_type: Use-of-uninitialized-value
+sanitizer: memory
+target: zlib

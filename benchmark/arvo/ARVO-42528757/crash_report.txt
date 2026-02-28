@@ -1,0 +1,3 @@
+crash_type: Heap-buffer-overflow READ {*}
+sanitizer: address
+target: libxml2

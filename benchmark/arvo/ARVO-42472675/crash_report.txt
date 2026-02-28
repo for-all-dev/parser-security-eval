@@ -1,0 +1,3 @@
+crash_type: Heap-double-free
+sanitizer: address
+target: libxml2

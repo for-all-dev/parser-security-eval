@@ -1,0 +1,3 @@
+crash_type: Segv on unknown address
+sanitizer: address
+target: libjpeg-turbo

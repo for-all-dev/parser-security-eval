@@ -190,13 +190,13 @@ def fetch_reference_patches(
         if not diff:
             continue
 
-        # Write the patch
-        vuln_dir = benchmark_dir / rec["id"]
+        # Write the patch into benchmark/arvo/ARVO-{id}/
+        vuln_dir = benchmark_dir / "arvo" / rec["id"]
         vuln_dir.mkdir(parents=True, exist_ok=True)
         patch_path = vuln_dir / "reference_patch.diff"
         patch_path.write_text(diff)
 
-        rec["reference_patch_path"] = f"{rec['id']}/reference_patch.diff"
+        rec["reference_patch_path"] = f"arvo/{rec['id']}/reference_patch.diff"
         success += 1
         if success % 20 == 0:
             logger.info("Progress: %d / %d patches fetched", success, total)

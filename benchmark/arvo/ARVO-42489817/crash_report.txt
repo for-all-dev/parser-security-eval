@@ -1,0 +1,3 @@
+crash_type: Heap-buffer-overflow READ 2
+sanitizer: address
+target: libjpeg-turbo
