@@ -1,14 +1,16 @@
-"""Fetch reference patches from the ARVO-Meta database.
+"""Fetch reference patches and vulnerable source from the ARVO-Meta database.
 
 Downloads arvo.db (SQLite) from the ARVO-Meta releases, queries it for
 fix_commit and repo_addr fields, then generates reference patches via
 ``git diff fix_commit~1..fix_commit`` from shallow upstream clones.
+Also extracts pre-fix source files for inclusion in patching task prompts.
 """
 
 from __future__ import annotations
 
 import json
 import logging
+import re
 import shutil
 import sqlite3
 import subprocess
@@ -208,6 +210,170 @@ def fetch_reference_patches(
     # Write back updated metadata
     metadata_path.write_text(json.dumps(metadata, indent=2, default=str) + "\n")
     logger.info("Wrote %d / %d reference patches", success, total)
+    return success, total
+
+
+_C_EXTENSIONS = frozenset((".c", ".cc", ".cpp", ".h", ".hh", ".hpp"))
+
+
+def _parse_c_files_from_patch(patch_text: str) -> list[str]:
+    """Extract C/C++ file paths from ``diff --git`` headers in a unified diff."""
+    paths: list[str] = []
+    seen: set[str] = set()
+    for m in re.finditer(r"^diff --git a/(\S+) b/\S+", patch_text, re.MULTILINE):
+        p = m.group(1)
+        suffix = Path(p).suffix.lower()
+        if suffix in _C_EXTENSIONS and p not in seen:
+            paths.append(p)
+            seen.add(p)
+    return paths
+
+
+def _git_show_file(repo_dir: Path, commit: str, file_path: str) -> str | None:
+    """Retrieve file contents at ``commit`` via ``git show``."""
+    result = subprocess.run(
+        ["git", "-C", str(repo_dir), "show", f"{commit}:{file_path}"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        return None
+    return result.stdout
+
+
+def extract_vulnerable_sources(
+    benchmark_dir: Path,
+    cache_dir: Path,
+    max_files_per_record: int = 5,
+) -> tuple[int, int]:
+    """Extract pre-fix source files for records that have a reference patch.
+
+    For each ARVO record with a reference patch and a fix_commit in arvo.db,
+    parses the patch to find modified C/H files, then runs
+    ``git show fix_commit~1:<path>`` to get the vulnerable version.
+
+    Returns ``(records_with_sources, total_records)``.
+    """
+    metadata_path = benchmark_dir / "metadata.json"
+    metadata = json.loads(metadata_path.read_text())
+    records = metadata.get("records", [])
+
+    # Build id → record mapping for ARVO records that have a reference patch
+    id_to_record: dict[int, dict] = {}
+    for rec in records:
+        rid = rec["id"]
+        if rid.startswith("ARVO-") and rec.get("reference_patch_path"):
+            try:
+                local_id = int(rid.removeprefix("ARVO-"))
+                id_to_record[local_id] = rec
+            except ValueError:
+                continue
+
+    total = len(id_to_record)
+    logger.info("Found %d ARVO records with reference patches", total)
+
+    db_path = download_arvo_db(cache_dir)
+    arvo_data = query_arvo_db(db_path, list(id_to_record.keys()))
+    repos_dir = cache_dir / "repos"
+    success = 0
+    failed_repos: set[str] = set()
+
+    for local_id, rec in id_to_record.items():
+        info = arvo_data.get(local_id)
+        if not info:
+            continue
+
+        raw_commit = (info.get("fix_commit") or "").strip()
+        repo_addr = (info.get("repo_addr") or "").strip()
+        if not raw_commit or not repo_addr:
+            continue
+
+        fix_commit = raw_commit.split("\n")[0].strip()
+        if not fix_commit:
+            continue
+
+        # Read the reference patch to find which files were modified
+        patch_path = benchmark_dir / rec["reference_patch_path"]
+        if not patch_path.exists():
+            continue
+        patch_text = patch_path.read_text()
+        c_files = _parse_c_files_from_patch(patch_text)[:max_files_per_record]
+        if not c_files:
+            continue
+
+        # Check if already extracted
+        existing = rec.get("vulnerable_source_paths", {})
+        if len(existing) >= len(c_files):
+            # Verify files still exist on disk
+            all_exist = all((benchmark_dir / p).exists() for p in existing.values())
+            if all_exist:
+                success += 1
+                continue
+
+        normalized_url = _normalize_repo_url(repo_addr)
+        cache_key = _repo_cache_key(normalized_url)
+
+        if cache_key in failed_repos:
+            continue
+
+        repo_dir = repos_dir / cache_key
+        try:
+            _clone_or_update(repo_addr, repo_dir)
+        except subprocess.CalledProcessError:
+            logger.warning("Failed to clone %s", repo_addr)
+            failed_repos.add(cache_key)
+            continue
+
+        # Ensure the commit is available
+        try:
+            subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(repo_dir),
+                    "fetch",
+                    "--depth=2",
+                    "origin",
+                    fix_commit,
+                ],
+                check=True,
+                capture_output=True,
+            )
+        except subprocess.CalledProcessError:
+            logger.warning("Could not fetch commit %s in %s", fix_commit, repo_dir)
+            continue
+
+        vuln_dir = benchmark_dir / "arvo" / rec["id"] / "vulnerable_src"
+        vuln_dir.mkdir(parents=True, exist_ok=True)
+
+        source_paths: dict[str, str] = {}
+        for file_path in c_files:
+            content = _git_show_file(repo_dir, f"{fix_commit}~1", file_path)
+            if content is None:
+                logger.debug(
+                    "Could not extract %s at %s~1 for %s",
+                    file_path,
+                    fix_commit,
+                    rec["id"],
+                )
+                continue
+            # Flatten into vulnerable_src/ using basename (handle collisions)
+            basename = Path(file_path).name
+            dest = vuln_dir / basename
+            dest.write_text(content)
+            rel = f"arvo/{rec['id']}/vulnerable_src/{basename}"
+            source_paths[file_path] = rel
+
+        if source_paths:
+            rec["vulnerable_source_paths"] = source_paths
+            success += 1
+
+        if success % 20 == 0 and success > 0:
+            logger.info("Progress: %d / %d sources extracted", success, total)
+
+    # Write back updated metadata
+    metadata_path.write_text(json.dumps(metadata, indent=2, default=str) + "\n")
+    logger.info("Extracted vulnerable sources for %d / %d records", success, total)
     return success, total
 
 

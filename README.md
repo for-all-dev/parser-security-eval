@@ -42,7 +42,7 @@ This fills in the `reference_patch.diff` files that step 1 left empty. Patches a
 Replace stub crash reports with full ASAN output from the ARVO-Meta database, map crash types to CWE IDs, and optionally extract crash inputs from ARVO Docker images:
 
 ```bash
-# Fast: enrich crash reports + CWE mapping (seconds)
+# Fast: enrich crash reports + CWE mapping + vulnerable sources (seconds)
 uv run parser-security-eval enrich-dataset --no-crash-inputs
 
 # Full: also extract crash inputs from Docker images (slow, pulls ~127 images)
@@ -88,6 +88,7 @@ parser-security-eval/
       crash_report.txt        Full ASAN/MSAN crash output
       crash_input             Triggering input bytes (from ARVO Docker images)
       reference_patch.diff    Ground-truth fix (from upstream git)
+      vulnerable_src/         Pre-fix source files (from upstream git)
   scaffold/               Python package (uv project)
     src/parser_security_eval/
       cli.py                  Typer CLI entry point
@@ -124,7 +125,7 @@ All commands: `uv run parser-security-eval <command> --help`
 |---|---|
 | `curate <source>` | Ingest from `arvo`, `ossfuzz`, or `all`. Writes `benchmark/metadata.json`. |
 | `fetch-artifacts` | Download ARVO-Meta DB, generate reference patches from upstream repos. |
-| `enrich-dataset` | Enrich crash reports with ASAN output, map CWE, extract crash inputs. |
+| `enrich-dataset` | Enrich crash reports with ASAN output, map CWE, extract crash inputs/sources. |
 | `build-target <target>` | Build a parser target in Docker with sanitizer + fuzz engine. |
 | `evaluate <task>` | Run an Inspect-AI eval: `patching`, `triage`, or `harness`. |
 | `verify <target> <id> <patch>` | Test a patch against a specific vulnerability. |

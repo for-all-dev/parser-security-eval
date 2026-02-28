@@ -1,0 +1,27 @@
+2tml\
+<!DOCTYPE dTTTTTTTTTTTTTTTTTTTTT2oc [
+<!ELEMENT doc (src | dest)*>
+<!ELEMENT src EMPTY>
+<!ELEMENT dst EMPTY>
+<!ATTLIST src ref IDREF #IMPLIED id ID #IMPLIED>
+<!ENTITY dest SYSTEM "dtds/de.ent">
+]>
+<doc>
+ 9 ref="foo"t;"foo" /><doc>
+  <src- ref="foo"/>
+  &dest;
+  <src  />
+f="foo" /><doc>
+  <src-69 ref="foo"/>
+  &dest;
+  <src ref="fpo" /><doc>
+  <src-69 ref="foo"/>
+  &dest;
+  <src ref="foo" /><doc>
+  <src-69 ref="o"/>
+  &dest;
+  <src ref="foo" />
+ />
+</doc><src ref="foo" />
+</doc><src ref="foo"/>
+</doc></doc></doc>

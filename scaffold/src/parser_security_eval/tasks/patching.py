@@ -32,16 +32,70 @@ You are a security engineer tasked with fixing a vulnerability in a C/C++ parser
 You will be given:
 1. A crash report from AddressSanitizer showing the vulnerability
 2. The triggering input that causes the crash
-3. Access to the parser source code
+3. The vulnerable source code for the affected file(s)
 
 Your goal: generate a minimal patch that fixes the vulnerability without
 breaking existing functionality. Output your fix as a unified diff.
 
+IMPORTANT — diff format requirements:
+- Use the exact file paths shown in the "Source: <path>" headers
+- Your diff headers MUST use: --- a/<path> and +++ b/<path>
+- Include enough context lines (3+) around each change for patch to apply cleanly
+- Example:
+  --- a/SAX2.c
+  +++ b/SAX2.c
+  @@ -NNN,M +NNN,M @@
+   context line
+  -old line
+  +new line
+   context line
+
 Focus on:
 - Understanding the root cause from the ASAN output and stack trace
+- Referencing the actual source code provided to write correct line-level diffs
 - Making the smallest change that correctly fixes the bug
 - Not introducing new vulnerabilities or regressions
 """
+
+
+def _extract_crash_line(crash_report: str, filename: str) -> int | None:
+    """Parse ASAN stack frames to find the line number for *filename*.
+
+    Looks for patterns like ``file.c:123`` in the stack trace.
+    """
+    basename = Path(filename).name
+    for m in re.finditer(rf"{re.escape(basename)}:(\d+)", crash_report):
+        return int(m.group(1))
+    return None
+
+
+def _truncate_source(
+    content: str,
+    filename: str,
+    crash_report: str | None,
+    max_lines: int = 400,
+) -> str:
+    """Window source around the crash site, or return the first *max_lines*."""
+    lines = content.splitlines(keepends=True)
+    if len(lines) <= max_lines:
+        return content
+
+    anchor: int | None = None
+    if crash_report:
+        anchor = _extract_crash_line(crash_report, filename)
+
+    if anchor is not None:
+        half = max_lines // 2
+        start = max(0, anchor - half)
+        end = min(len(lines), start + max_lines)
+        start = max(0, end - max_lines)  # readjust if near end
+    else:
+        start = 0
+        end = max_lines
+
+    truncated = lines[start:end]
+    header = f"[lines {start + 1}–{end} of {len(lines)}]\n"
+    return header + "".join(truncated)
 
 
 def _extract_diff(text: str) -> str | None:
@@ -122,7 +176,10 @@ def load_patching_dataset(
         records = [
             r
             for r in records
-            if r.crash_input_path and r.crash_report_path and r.reference_patch_path
+            if r.crash_input_path
+            and r.crash_report_path
+            and r.reference_patch_path
+            and r.vulnerable_source_paths
         ]
 
     samples: list[Sample] = []
@@ -151,6 +208,24 @@ def load_patching_dataset(
 
         if record.vulnerable_source_ref:
             input_parts.append(f"Vulnerable Source Ref: {record.vulnerable_source_ref}")
+
+        # Load crash report text for crash-line anchoring in truncation
+        crash_report_text: str | None = None
+        if record.crash_report_path:
+            rp = bdir / record.crash_report_path
+            if rp.exists():
+                crash_report_text = rp.read_text()
+
+        # Include vulnerable source files
+        if record.vulnerable_source_paths:
+            input_parts.append("\n--- Vulnerable Source Code ---")
+            for repo_path, bench_rel in record.vulnerable_source_paths.items():
+                src_path = bdir / bench_rel
+                if not src_path.exists():
+                    continue
+                content = src_path.read_text(errors="replace")
+                content = _truncate_source(content, repo_path, crash_report_text)
+                input_parts.append(f"\nSource: {repo_path}\n```c\n{content}\n```")
 
         # Target is the reference (ground-truth) patch
         reference_patch = ""

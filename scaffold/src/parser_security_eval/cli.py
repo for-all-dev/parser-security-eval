@@ -9,7 +9,10 @@ from pathlib import Path
 
 import typer
 
-from parser_security_eval.dataset.artifacts import fetch_reference_patches
+from parser_security_eval.dataset.artifacts import (
+    extract_vulnerable_sources,
+    fetch_reference_patches,
+)
 from parser_security_eval.dataset.arvo import ingest_arvo
 from parser_security_eval.dataset.curator import DatasetCurator
 from parser_security_eval.dataset.enrich import (
@@ -441,11 +444,12 @@ def enrich_dataset(
     crash_inputs: bool = typer.Option(
         False, help="Extract crash inputs from ARVO Docker images (slow, pulls images)"
     ),
-    timeout: int = typer.Option(
-        120, help="Timeout per Docker image pull in seconds"
+    extract_sources: bool = typer.Option(
+        True, help="Extract vulnerable source files from cached git repos"
     ),
+    timeout: int = typer.Option(120, help="Timeout per Docker image pull in seconds"),
 ) -> None:
-    """Enrich benchmark dataset with crash reports, CWE mappings, and crash inputs."""
+    """Enrich benchmark dataset with crash reports, CWE mappings, crash inputs, and source."""
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     if not (benchmark_dir / "metadata.json").exists():
@@ -470,3 +474,8 @@ def enrich_dataset(
         typer.echo(
             f"  Crash inputs: {extracted} extracted ({skipped} cached) / {total} total"
         )
+
+    if extract_sources:
+        typer.echo("Extracting vulnerable source files from cached repos …")
+        sourced, total = extract_vulnerable_sources(benchmark_dir, cache_dir)
+        typer.echo(f"  Vulnerable sources: {sourced} / {total}")

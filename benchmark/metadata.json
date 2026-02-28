@@ -24,10 +24,13 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42498959/crash_input",
       "crash_report_path": "arvo/ARVO-42498959/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42498959/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "contrib/oss-fuzz/libpng_read_fuzzer.cc": "arvo/ARVO-42498959/vulnerable_src/libpng_read_fuzzer.cc"
+      }
     },
     {
       "id": "ARVO-42482472",
@@ -44,10 +47,13 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42482472/crash_input",
       "crash_report_path": "arvo/ARVO-42482472/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42482472/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "valid.c": "arvo/ARVO-42482472/vulnerable_src/valid.c"
+      }
     },
     {
       "id": "ARVO-42480826",
@@ -64,10 +70,13 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42480826/crash_input",
       "crash_report_path": "arvo/ARVO-42480826/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42480826/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "valid.c": "arvo/ARVO-42480826/vulnerable_src/valid.c"
+      }
     },
     {
       "id": "ARVO-42480782",
@@ -85,10 +94,13 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42480782/crash_input",
       "crash_report_path": "arvo/ARVO-42480782/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42480782/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "valid.c": "arvo/ARVO-42480782/vulnerable_src/valid.c"
+      }
     },
     {
       "id": "ARVO-42475106",
@@ -105,10 +117,13 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42475106/crash_input",
       "crash_report_path": "arvo/ARVO-42475106/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42475106/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "parser.c": "arvo/ARVO-42475106/vulnerable_src/parser.c"
+      }
     },
     {
       "id": "ARVO-42470838",
@@ -125,10 +140,13 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42470838/crash_input",
       "crash_report_path": "arvo/ARVO-42470838/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42470838/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "SAX2.c": "arvo/ARVO-42470838/vulnerable_src/SAX2.c"
+      }
     },
     {
       "id": "ARVO-42470816",
@@ -145,10 +163,13 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42470816/crash_input",
       "crash_report_path": "arvo/ARVO-42470816/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42470816/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "SAX2.c": "arvo/ARVO-42470816/vulnerable_src/SAX2.c"
+      }
     },
     {
       "id": "ARVO-42470727",
@@ -165,10 +186,13 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42470727/crash_input",
       "crash_report_path": "arvo/ARVO-42470727/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42470727/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "SAX2.c": "arvo/ARVO-42470727/vulnerable_src/SAX2.c"
+      }
     },
     {
       "id": "ARVO-42470541",
@@ -185,10 +209,13 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42470541/crash_input",
       "crash_report_path": "arvo/ARVO-42470541/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42470541/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "SAX2.c": "arvo/ARVO-42470541/vulnerable_src/SAX2.c"
+      }
     },
     {
       "id": "ARVO-42470291",
@@ -205,10 +232,13 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42470291/crash_input",
       "crash_report_path": "arvo/ARVO-42470291/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42470291/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "SAX2.c": "arvo/ARVO-42470291/vulnerable_src/SAX2.c"
+      }
     },
     {
       "id": "ARVO-42470158",
@@ -225,10 +255,13 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42470158/crash_input",
       "crash_report_path": "arvo/ARVO-42470158/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42470158/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "SAX2.c": "arvo/ARVO-42470158/vulnerable_src/SAX2.c"
+      }
     },
     {
       "id": "ARVO-42470125",
@@ -245,10 +278,13 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42470125/crash_input",
       "crash_report_path": "arvo/ARVO-42470125/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42470125/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "SAX2.c": "arvo/ARVO-42470125/vulnerable_src/SAX2.c"
+      }
     },
     {
       "id": "ARVO-42470114",
@@ -265,10 +301,13 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42470114/crash_input",
       "crash_report_path": "arvo/ARVO-42470114/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42470114/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "SAX2.c": "arvo/ARVO-42470114/vulnerable_src/SAX2.c"
+      }
     },
     {
       "id": "ARVO-42471662",
@@ -285,10 +324,13 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42471662/crash_input",
       "crash_report_path": "arvo/ARVO-42471662/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42471662/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "SAX2.c": "arvo/ARVO-42471662/vulnerable_src/SAX2.c"
+      }
     },
     {
       "id": "ARVO-42471502",
@@ -326,10 +368,13 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42470339/crash_input",
       "crash_report_path": "arvo/ARVO-42470339/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42470339/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "SAX2.c": "arvo/ARVO-42470339/vulnerable_src/SAX2.c"
+      }
     },
     {
       "id": "ARVO-42470157",
@@ -346,10 +391,13 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42470157/crash_input",
       "crash_report_path": "arvo/ARVO-42470157/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42470157/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "SAX2.c": "arvo/ARVO-42470157/vulnerable_src/SAX2.c"
+      }
     },
     {
       "id": "ARVO-42470143",
@@ -366,10 +414,13 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42470143/crash_input",
       "crash_report_path": "arvo/ARVO-42470143/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42470143/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "SAX2.c": "arvo/ARVO-42470143/vulnerable_src/SAX2.c"
+      }
     },
     {
       "id": "ARVO-42514763",
@@ -408,10 +459,13 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42478580/crash_input",
       "crash_report_path": "arvo/ARVO-42478580/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42478580/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "xmlreader.c": "arvo/ARVO-42478580/vulnerable_src/xmlreader.c"
+      }
     },
     {
       "id": "ARVO-42472675",
@@ -428,10 +482,13 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42472675/crash_input",
       "crash_report_path": "arvo/ARVO-42472675/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42472675/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "xmlreader.c": "arvo/ARVO-42472675/vulnerable_src/xmlreader.c"
+      }
     },
     {
       "id": "ARVO-42489817",
@@ -449,10 +506,13 @@
         "overflow",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42489817/crash_input",
       "crash_report_path": "arvo/ARVO-42489817/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42489817/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "jdcoefct.c": "arvo/ARVO-42489817/vulnerable_src/jdcoefct.c"
+      }
     },
     {
       "id": "ARVO-42487785",
@@ -473,7 +533,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42487785/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42487785/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "xinclude.c": "arvo/ARVO-42487785/vulnerable_src/xinclude.c"
+      }
     },
     {
       "id": "ARVO-42487244",
@@ -491,10 +554,13 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42487244/crash_input",
       "crash_report_path": "arvo/ARVO-42487244/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42487244/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "xmlreader.c": "arvo/ARVO-42487244/vulnerable_src/xmlreader.c"
+      }
     },
     {
       "id": "ARVO-42486883",
@@ -512,10 +578,13 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42486883/crash_input",
       "crash_report_path": "arvo/ARVO-42486883/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42486883/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "xmlreader.c": "arvo/ARVO-42486883/vulnerable_src/xmlreader.c"
+      }
     },
     {
       "id": "ARVO-42486772",
@@ -532,10 +601,13 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42486772/crash_input",
       "crash_report_path": "arvo/ARVO-42486772/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42486772/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "xinclude.c": "arvo/ARVO-42486772/vulnerable_src/xinclude.c"
+      }
     },
     {
       "id": "ARVO-42486665",
@@ -553,10 +625,13 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42486665/crash_input",
       "crash_report_path": "arvo/ARVO-42486665/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42486665/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "xinclude.c": "arvo/ARVO-42486665/vulnerable_src/xinclude.c"
+      }
     },
     {
       "id": "ARVO-42486565",
@@ -574,10 +649,13 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42486565/crash_input",
       "crash_report_path": "arvo/ARVO-42486565/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42486565/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "xinclude.c": "arvo/ARVO-42486565/vulnerable_src/xinclude.c"
+      }
     },
     {
       "id": "ARVO-42485599",
@@ -595,10 +673,14 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42485599/crash_input",
       "crash_report_path": "arvo/ARVO-42485599/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42485599/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "HTMLparser.c": "arvo/ARVO-42485599/vulnerable_src/HTMLparser.c",
+        "buf.c": "arvo/ARVO-42485599/vulnerable_src/buf.c"
+      }
     },
     {
       "id": "ARVO-42485276",
@@ -616,10 +698,13 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42485276/crash_input",
       "crash_report_path": "arvo/ARVO-42485276/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42485276/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "HTMLparser.c": "arvo/ARVO-42485276/vulnerable_src/HTMLparser.c"
+      }
     },
     {
       "id": "ARVO-42484588",
@@ -636,10 +721,13 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42484588/crash_input",
       "crash_report_path": "arvo/ARVO-42484588/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42484588/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "xmlreader.c": "arvo/ARVO-42484588/vulnerable_src/xmlreader.c"
+      }
     },
     {
       "id": "ARVO-42484562",
@@ -657,10 +745,13 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42484562/crash_input",
       "crash_report_path": "arvo/ARVO-42484562/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42484562/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "xmlreader.c": "arvo/ARVO-42484562/vulnerable_src/xmlreader.c"
+      }
     },
     {
       "id": "ARVO-42502940",
@@ -780,10 +871,14 @@
         "use-after-free",
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42497161/crash_input",
       "crash_report_path": "arvo/ARVO-42497161/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42497161/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "xinclude.c": "arvo/ARVO-42497161/vulnerable_src/xinclude.c",
+        "xpointer.c": "arvo/ARVO-42497161/vulnerable_src/xpointer.c"
+      }
     },
     {
       "id": "ARVO-42496802",
@@ -800,10 +895,13 @@
       "tags": [
         "platform:linux"
       ],
-      "crash_input_path": null,
+      "crash_input_path": "arvo/ARVO-42496802/crash_input",
       "crash_report_path": "arvo/ARVO-42496802/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42496802/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "parser.c": "arvo/ARVO-42496802/vulnerable_src/parser.c"
+      }
     },
     {
       "id": "ARVO-42495916",
@@ -824,7 +922,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42495916/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42495916/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "jdhuff.h": "arvo/ARVO-42495916/vulnerable_src/jdhuff.h"
+      }
     },
     {
       "id": "ARVO-42495497",
@@ -845,7 +946,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42495497/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42495497/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "rdppm.c": "arvo/ARVO-42495497/vulnerable_src/rdppm.c"
+      }
     },
     {
       "id": "ARVO-42518431",
@@ -865,7 +969,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42518431/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42518431/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "parser.c": "arvo/ARVO-42518431/vulnerable_src/parser.c"
+      }
     },
     {
       "id": "ARVO-42518303",
@@ -886,7 +993,14 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42518303/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42518303/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "fuzz/decompress.cc": "arvo/ARVO-42518303/vulnerable_src/decompress.cc",
+        "fuzz/decompress_yuv.cc": "arvo/ARVO-42518303/vulnerable_src/decompress_yuv.cc",
+        "tjbench.c": "arvo/ARVO-42518303/vulnerable_src/tjbench.c",
+        "tjexample.c": "arvo/ARVO-42518303/vulnerable_src/tjexample.c",
+        "turbojpeg-jni.c": "arvo/ARVO-42518303/vulnerable_src/turbojpeg-jni.c"
+      }
     },
     {
       "id": "ARVO-42517603",
@@ -907,7 +1021,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42517603/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42517603/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "xinclude.c": "arvo/ARVO-42517603/vulnerable_src/xinclude.c"
+      }
     },
     {
       "id": "ARVO-42517254",
@@ -928,7 +1045,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42517254/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42517254/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "xinclude.c": "arvo/ARVO-42517254/vulnerable_src/xinclude.c"
+      }
     },
     {
       "id": "ARVO-42517246",
@@ -948,7 +1068,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42517246/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42517246/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "xinclude.c": "arvo/ARVO-42517246/vulnerable_src/xinclude.c"
+      }
     },
     {
       "id": "ARVO-42514324",
@@ -988,7 +1111,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42514310/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42514310/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "deflate.c": "arvo/ARVO-42514310/vulnerable_src/deflate.c"
+      }
     },
     {
       "id": "ARVO-42510936",
@@ -1008,7 +1134,14 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42510936/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42510936/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "debugXML.c": "arvo/ARVO-42510936/vulnerable_src/debugXML.c",
+        "include/libxml/xpath.h": "arvo/ARVO-42510936/vulnerable_src/xpath.h",
+        "include/libxml/xpointer.h": "arvo/ARVO-42510936/vulnerable_src/xpointer.h",
+        "python/types.c": "arvo/ARVO-42510936/vulnerable_src/types.c",
+        "runtest.c": "arvo/ARVO-42510936/vulnerable_src/runtest.c"
+      }
     },
     {
       "id": "ARVO-42510687",
@@ -1028,7 +1161,14 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42510687/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42510687/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "debugXML.c": "arvo/ARVO-42510687/vulnerable_src/debugXML.c",
+        "include/libxml/xpath.h": "arvo/ARVO-42510687/vulnerable_src/xpath.h",
+        "include/libxml/xpointer.h": "arvo/ARVO-42510687/vulnerable_src/xpointer.h",
+        "python/types.c": "arvo/ARVO-42510687/vulnerable_src/types.c",
+        "runtest.c": "arvo/ARVO-42510687/vulnerable_src/runtest.c"
+      }
     },
     {
       "id": "ARVO-42510333",
@@ -1049,7 +1189,11 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42510333/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42510333/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "tree.c": "arvo/ARVO-42510333/vulnerable_src/tree.c",
+        "xinclude.c": "arvo/ARVO-42510333/vulnerable_src/xinclude.c"
+      }
     },
     {
       "id": "ARVO-42509483",
@@ -1089,7 +1233,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42509480/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42509480/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "parser.c": "arvo/ARVO-42509480/vulnerable_src/parser.c"
+      }
     },
     {
       "id": "ARVO-42509457",
@@ -1109,7 +1256,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42509457/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42509457/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "parser.c": "arvo/ARVO-42509457/vulnerable_src/parser.c"
+      }
     },
     {
       "id": "ARVO-42509389",
@@ -1129,7 +1279,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42509389/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42509389/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "parser.c": "arvo/ARVO-42509389/vulnerable_src/parser.c"
+      }
     },
     {
       "id": "ARVO-42509369",
@@ -1149,7 +1302,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42509369/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42509369/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "parser.c": "arvo/ARVO-42509369/vulnerable_src/parser.c"
+      }
     },
     {
       "id": "ARVO-42509011",
@@ -1169,7 +1325,14 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42509011/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42509011/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "debugXML.c": "arvo/ARVO-42509011/vulnerable_src/debugXML.c",
+        "include/libxml/xpath.h": "arvo/ARVO-42509011/vulnerable_src/xpath.h",
+        "include/libxml/xpointer.h": "arvo/ARVO-42509011/vulnerable_src/xpointer.h",
+        "python/types.c": "arvo/ARVO-42509011/vulnerable_src/types.c",
+        "runtest.c": "arvo/ARVO-42509011/vulnerable_src/runtest.c"
+      }
     },
     {
       "id": "ARVO-42531532",
@@ -1190,7 +1353,13 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42531532/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42531532/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "SAX2.c": "arvo/ARVO-42531532/vulnerable_src/SAX2.c",
+        "include/private/entities.h": "arvo/ARVO-42531532/vulnerable_src/entities.h",
+        "include/private/parser.h": "arvo/ARVO-42531532/vulnerable_src/parser.h",
+        "parser.c": "arvo/ARVO-42531532/vulnerable_src/parser.c"
+      }
     },
     {
       "id": "ARVO-42531481",
@@ -1211,7 +1380,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42531481/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42531481/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "parser.c": "arvo/ARVO-42531481/vulnerable_src/parser.c"
+      }
     },
     {
       "id": "ARVO-42531212",
@@ -1231,7 +1403,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42531212/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42531212/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "parserInternals.c": "arvo/ARVO-42531212/vulnerable_src/parserInternals.c"
+      }
     },
     {
       "id": "ARVO-42531203",
@@ -1252,7 +1427,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42531203/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42531203/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "parserInternals.c": "arvo/ARVO-42531203/vulnerable_src/parserInternals.c"
+      }
     },
     {
       "id": "ARVO-42531126",
@@ -1273,7 +1451,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42531126/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42531126/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "parserInternals.c": "arvo/ARVO-42531126/vulnerable_src/parserInternals.c"
+      }
     },
     {
       "id": "ARVO-42531115",
@@ -1293,7 +1474,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42531115/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42531115/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "parser.c": "arvo/ARVO-42531115/vulnerable_src/parser.c"
+      }
     },
     {
       "id": "ARVO-42531092",
@@ -1314,7 +1498,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42531092/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42531092/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "buf.c": "arvo/ARVO-42531092/vulnerable_src/buf.c"
+      }
     },
     {
       "id": "ARVO-42529030",
@@ -1335,7 +1522,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42529030/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42529030/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "buf.c": "arvo/ARVO-42529030/vulnerable_src/buf.c"
+      }
     },
     {
       "id": "ARVO-42528997",
@@ -1356,7 +1546,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42528997/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42528997/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "parser.c": "arvo/ARVO-42528997/vulnerable_src/parser.c"
+      }
     },
     {
       "id": "ARVO-42528958",
@@ -1398,7 +1591,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42528951/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42528951/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "parser.c": "arvo/ARVO-42528951/vulnerable_src/parser.c"
+      }
     },
     {
       "id": "ARVO-42528949",
@@ -1418,7 +1614,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42528949/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42528949/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "parser.c": "arvo/ARVO-42528949/vulnerable_src/parser.c"
+      }
     },
     {
       "id": "ARVO-42528850",
@@ -1439,7 +1638,11 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42528850/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42528850/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "parser.c": "arvo/ARVO-42528850/vulnerable_src/parser.c",
+        "tree.c": "arvo/ARVO-42528850/vulnerable_src/tree.c"
+      }
     },
     {
       "id": "ARVO-42528757",
@@ -1460,7 +1663,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42528757/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42528757/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "dict.c": "arvo/ARVO-42528757/vulnerable_src/dict.c"
+      }
     },
     {
       "id": "ARVO-42528698",
@@ -1480,7 +1686,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42528698/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42528698/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "parser.c": "arvo/ARVO-42528698/vulnerable_src/parser.c"
+      }
     },
     {
       "id": "ARVO-42528694",
@@ -1500,7 +1709,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42528694/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42528694/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "parser.c": "arvo/ARVO-42528694/vulnerable_src/parser.c"
+      }
     },
     {
       "id": "ARVO-42527008",
@@ -1521,7 +1733,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42527008/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42527008/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "HTMLparser.c": "arvo/ARVO-42527008/vulnerable_src/HTMLparser.c"
+      }
     },
     {
       "id": "ARVO-42526375",
@@ -1542,7 +1757,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42526375/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42526375/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "fuzz/transform.cc": "arvo/ARVO-42526375/vulnerable_src/transform.cc"
+      }
     },
     {
       "id": "ARVO-42525945",
@@ -1562,7 +1780,11 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42525945/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42525945/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "fuzz/transform.cc": "arvo/ARVO-42525945/vulnerable_src/transform.cc",
+        "turbojpeg.h": "arvo/ARVO-42525945/vulnerable_src/turbojpeg.h"
+      }
     },
     {
       "id": "ARVO-42525938",
@@ -1583,7 +1805,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42525938/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42525938/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "fuzz/transform.cc": "arvo/ARVO-42525938/vulnerable_src/transform.cc"
+      }
     },
     {
       "id": "ARVO-42525806",
@@ -1603,7 +1828,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42525806/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42525806/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "jchuff.c": "arvo/ARVO-42525806/vulnerable_src/jchuff.c"
+      }
     },
     {
       "id": "ARVO-42525210",
@@ -1624,7 +1852,12 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42525210/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42525210/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "buf.c": "arvo/ARVO-42525210/vulnerable_src/buf.c",
+        "encoding.c": "arvo/ARVO-42525210/vulnerable_src/encoding.c",
+        "parserInternals.c": "arvo/ARVO-42525210/vulnerable_src/parserInternals.c"
+      }
     },
     {
       "id": "ARVO-42525192",
@@ -1645,7 +1878,12 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42525192/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42525192/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "buf.c": "arvo/ARVO-42525192/vulnerable_src/buf.c",
+        "encoding.c": "arvo/ARVO-42525192/vulnerable_src/encoding.c",
+        "parserInternals.c": "arvo/ARVO-42525192/vulnerable_src/parserInternals.c"
+      }
     },
     {
       "id": "ARVO-42522771",
@@ -1665,7 +1903,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42522771/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522771/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "parserInternals.c": "arvo/ARVO-42522771/vulnerable_src/parserInternals.c"
+      }
     },
     {
       "id": "ARVO-42522712",
@@ -1686,7 +1927,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42522712/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522712/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "HTMLparser.c": "arvo/ARVO-42522712/vulnerable_src/HTMLparser.c"
+      }
     },
     {
       "id": "ARVO-42522648",
@@ -1706,7 +1950,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42522648/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522648/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "parserInternals.c": "arvo/ARVO-42522648/vulnerable_src/parserInternals.c"
+      }
     },
     {
       "id": "ARVO-42522530",
@@ -1727,7 +1974,13 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42522530/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522530/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "HTMLparser.c": "arvo/ARVO-42522530/vulnerable_src/HTMLparser.c",
+        "include/private/parser.h": "arvo/ARVO-42522530/vulnerable_src/parser.h",
+        "parser.c": "arvo/ARVO-42522530/vulnerable_src/parser.c",
+        "parserInternals.c": "arvo/ARVO-42522530/vulnerable_src/parserInternals.c"
+      }
     },
     {
       "id": "ARVO-42522518",
@@ -1748,7 +2001,13 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42522518/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522518/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "HTMLparser.c": "arvo/ARVO-42522518/vulnerable_src/HTMLparser.c",
+        "include/private/parser.h": "arvo/ARVO-42522518/vulnerable_src/parser.h",
+        "parser.c": "arvo/ARVO-42522518/vulnerable_src/parser.c",
+        "parserInternals.c": "arvo/ARVO-42522518/vulnerable_src/parserInternals.c"
+      }
     },
     {
       "id": "ARVO-42522511",
@@ -1769,7 +2028,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42522511/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522511/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "HTMLparser.c": "arvo/ARVO-42522511/vulnerable_src/HTMLparser.c"
+      }
     },
     {
       "id": "ARVO-42522507",
@@ -1790,7 +2052,11 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42522507/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522507/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "HTMLparser.c": "arvo/ARVO-42522507/vulnerable_src/HTMLparser.c",
+        "parserInternals.c": "arvo/ARVO-42522507/vulnerable_src/parserInternals.c"
+      }
     },
     {
       "id": "ARVO-42522442",
@@ -1811,7 +2077,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42522442/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522442/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "parser.c": "arvo/ARVO-42522442/vulnerable_src/parser.c"
+      }
     },
     {
       "id": "ARVO-42522441",
@@ -1832,7 +2101,11 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42522441/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522441/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "HTMLparser.c": "arvo/ARVO-42522441/vulnerable_src/HTMLparser.c",
+        "parser.c": "arvo/ARVO-42522441/vulnerable_src/parser.c"
+      }
     },
     {
       "id": "ARVO-42522440",
@@ -1852,7 +2125,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42522440/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522440/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "HTMLparser.c": "arvo/ARVO-42522440/vulnerable_src/HTMLparser.c"
+      }
     },
     {
       "id": "ARVO-42522360",
@@ -1873,7 +2149,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42522360/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522360/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "parser.c": "arvo/ARVO-42522360/vulnerable_src/parser.c"
+      }
     },
     {
       "id": "ARVO-42522315",
@@ -1894,7 +2173,11 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42522315/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522315/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "HTMLparser.c": "arvo/ARVO-42522315/vulnerable_src/HTMLparser.c",
+        "parserInternals.c": "arvo/ARVO-42522315/vulnerable_src/parserInternals.c"
+      }
     },
     {
       "id": "ARVO-42522290",
@@ -1915,7 +2198,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42522290/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522290/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "HTMLparser.c": "arvo/ARVO-42522290/vulnerable_src/HTMLparser.c"
+      }
     },
     {
       "id": "ARVO-42522285",
@@ -1936,7 +2222,11 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42522285/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522285/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "HTMLparser.c": "arvo/ARVO-42522285/vulnerable_src/HTMLparser.c",
+        "parserInternals.c": "arvo/ARVO-42522285/vulnerable_src/parserInternals.c"
+      }
     },
     {
       "id": "ARVO-42522281",
@@ -1957,7 +2247,11 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42522281/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522281/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "HTMLparser.c": "arvo/ARVO-42522281/vulnerable_src/HTMLparser.c",
+        "parserInternals.c": "arvo/ARVO-42522281/vulnerable_src/parserInternals.c"
+      }
     },
     {
       "id": "ARVO-42522277",
@@ -1978,7 +2272,11 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42522277/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522277/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "HTMLparser.c": "arvo/ARVO-42522277/vulnerable_src/HTMLparser.c",
+        "parserInternals.c": "arvo/ARVO-42522277/vulnerable_src/parserInternals.c"
+      }
     },
     {
       "id": "ARVO-42522273",
@@ -1999,7 +2297,11 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42522273/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522273/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "HTMLparser.c": "arvo/ARVO-42522273/vulnerable_src/HTMLparser.c",
+        "parserInternals.c": "arvo/ARVO-42522273/vulnerable_src/parserInternals.c"
+      }
     },
     {
       "id": "ARVO-42522151",
@@ -2020,7 +2322,13 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42522151/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522151/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "HTMLparser.c": "arvo/ARVO-42522151/vulnerable_src/HTMLparser.c",
+        "include/private/parser.h": "arvo/ARVO-42522151/vulnerable_src/parser.h",
+        "parser.c": "arvo/ARVO-42522151/vulnerable_src/parser.c",
+        "parserInternals.c": "arvo/ARVO-42522151/vulnerable_src/parserInternals.c"
+      }
     },
     {
       "id": "ARVO-42522132",
@@ -2040,7 +2348,11 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42522132/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42522132/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "include/libxml/xpath.h": "arvo/ARVO-42522132/vulnerable_src/xpath.h",
+        "xpath.c": "arvo/ARVO-42522132/vulnerable_src/xpath.c"
+      }
     },
     {
       "id": "ARVO-42522015",
@@ -2082,7 +2394,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42521059/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42521059/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "parser.c": "arvo/ARVO-42521059/vulnerable_src/parser.c"
+      }
     },
     {
       "id": "ARVO-42520608",
@@ -2102,7 +2417,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42520608/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42520608/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "fuzz/transform.cc": "arvo/ARVO-42520608/vulnerable_src/transform.cc"
+      }
     },
     {
       "id": "ARVO-378750938",
@@ -2143,7 +2461,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-372547409/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-372547409/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "fuzz/api.c": "arvo/ARVO-372547409/vulnerable_src/api.c"
+      }
     },
     {
       "id": "ARVO-369974248",
@@ -2163,7 +2484,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-369974248/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-369974248/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "fuzz/decompress_yuv.cc": "arvo/ARVO-369974248/vulnerable_src/decompress_yuv.cc"
+      }
     },
     {
       "id": "ARVO-42538408",
@@ -2204,7 +2528,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42538231/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42538231/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "fuzz/transform.cc": "arvo/ARVO-42538231/vulnerable_src/transform.cc"
+      }
     },
     {
       "id": "ARVO-42538067",
@@ -2224,7 +2551,14 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42538067/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42538067/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "fuzz/compress12_lossless.cc": "arvo/ARVO-42538067/vulnerable_src/compress12_lossless.cc",
+        "fuzz/compress16_lossless.cc": "arvo/ARVO-42538067/vulnerable_src/compress16_lossless.cc",
+        "fuzz/compress_lossless.cc": "arvo/ARVO-42538067/vulnerable_src/compress_lossless.cc",
+        "fuzz/compress_yuv.cc": "arvo/ARVO-42538067/vulnerable_src/compress_yuv.cc",
+        "fuzz/decompress.cc": "arvo/ARVO-42538067/vulnerable_src/decompress.cc"
+      }
     },
     {
       "id": "ARVO-42538039",
@@ -2244,7 +2578,14 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42538039/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42538039/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "fuzz/compress12_lossless.cc": "arvo/ARVO-42538039/vulnerable_src/compress12_lossless.cc",
+        "fuzz/compress16_lossless.cc": "arvo/ARVO-42538039/vulnerable_src/compress16_lossless.cc",
+        "fuzz/compress_lossless.cc": "arvo/ARVO-42538039/vulnerable_src/compress_lossless.cc",
+        "fuzz/compress_yuv.cc": "arvo/ARVO-42538039/vulnerable_src/compress_yuv.cc",
+        "fuzz/decompress.cc": "arvo/ARVO-42538039/vulnerable_src/decompress.cc"
+      }
     },
     {
       "id": "ARVO-42538037",
@@ -2264,7 +2605,14 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42538037/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42538037/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "fuzz/compress12_lossless.cc": "arvo/ARVO-42538037/vulnerable_src/compress12_lossless.cc",
+        "fuzz/compress16_lossless.cc": "arvo/ARVO-42538037/vulnerable_src/compress16_lossless.cc",
+        "fuzz/compress_lossless.cc": "arvo/ARVO-42538037/vulnerable_src/compress_lossless.cc",
+        "fuzz/compress_yuv.cc": "arvo/ARVO-42538037/vulnerable_src/compress_yuv.cc",
+        "fuzz/decompress.cc": "arvo/ARVO-42538037/vulnerable_src/decompress.cc"
+      }
     },
     {
       "id": "ARVO-42538002",
@@ -2284,7 +2632,12 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42538002/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42538002/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "fuzz/compress.cc": "arvo/ARVO-42538002/vulnerable_src/compress.cc",
+        "fuzz/compress12.cc": "arvo/ARVO-42538002/vulnerable_src/compress12.cc",
+        "fuzz/transform.cc": "arvo/ARVO-42538002/vulnerable_src/transform.cc"
+      }
     },
     {
       "id": "ARVO-42537958",
@@ -2304,7 +2657,12 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42537958/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42537958/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "fuzz/compress.cc": "arvo/ARVO-42537958/vulnerable_src/compress.cc",
+        "fuzz/compress12.cc": "arvo/ARVO-42537958/vulnerable_src/compress12.cc",
+        "fuzz/transform.cc": "arvo/ARVO-42537958/vulnerable_src/transform.cc"
+      }
     },
     {
       "id": "ARVO-42537948",
@@ -2324,7 +2682,12 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42537948/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42537948/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "fuzz/compress.cc": "arvo/ARVO-42537948/vulnerable_src/compress.cc",
+        "fuzz/compress12.cc": "arvo/ARVO-42537948/vulnerable_src/compress12.cc",
+        "fuzz/transform.cc": "arvo/ARVO-42537948/vulnerable_src/transform.cc"
+      }
     },
     {
       "id": "ARVO-42537493",
@@ -2345,7 +2708,13 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42537493/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42537493/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "HTMLtree.c": "arvo/ARVO-42537493/vulnerable_src/HTMLtree.c",
+        "include/private/io.h": "arvo/ARVO-42537493/vulnerable_src/io.h",
+        "xmlIO.c": "arvo/ARVO-42537493/vulnerable_src/xmlIO.c",
+        "xmlsave.c": "arvo/ARVO-42537493/vulnerable_src/xmlsave.c"
+      }
     },
     {
       "id": "ARVO-42536963",
@@ -2366,7 +2735,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42536963/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42536963/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "parserInternals.c": "arvo/ARVO-42536963/vulnerable_src/parserInternals.c"
+      }
     },
     {
       "id": "ARVO-42535569",
@@ -2406,7 +2778,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42534845/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42534845/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "tree.c": "arvo/ARVO-42534845/vulnerable_src/tree.c"
+      }
     },
     {
       "id": "ARVO-42534512",
@@ -2427,7 +2802,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42534512/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42534512/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "tree.c": "arvo/ARVO-42534512/vulnerable_src/tree.c"
+      }
     },
     {
       "id": "ARVO-42534044",
@@ -2448,7 +2826,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42534044/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42534044/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "fuzz/api.c": "arvo/ARVO-42534044/vulnerable_src/api.c"
+      }
     },
     {
       "id": "ARVO-42533950",
@@ -2469,7 +2850,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42533950/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42533950/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "fuzz/api.c": "arvo/ARVO-42533950/vulnerable_src/api.c"
+      }
     },
     {
       "id": "ARVO-42533922",
@@ -2490,7 +2874,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42533922/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42533922/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "fuzz/api.c": "arvo/ARVO-42533922/vulnerable_src/api.c"
+      }
     },
     {
       "id": "ARVO-42533913",
@@ -2510,7 +2897,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42533913/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42533913/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "tree.c": "arvo/ARVO-42533913/vulnerable_src/tree.c"
+      }
     },
     {
       "id": "ARVO-42532942",
@@ -2531,7 +2921,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42532942/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42532942/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "valid.c": "arvo/ARVO-42532942/vulnerable_src/valid.c"
+      }
     },
     {
       "id": "ARVO-42532747",
@@ -2552,7 +2945,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42532747/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42532747/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "valid.c": "arvo/ARVO-42532747/vulnerable_src/valid.c"
+      }
     },
     {
       "id": "ARVO-42532684",
@@ -2573,7 +2969,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42532684/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42532684/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "valid.c": "arvo/ARVO-42532684/vulnerable_src/valid.c"
+      }
     },
     {
       "id": "ARVO-42532360",
@@ -2594,7 +2993,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42532360/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42532360/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "xmlreader.c": "arvo/ARVO-42532360/vulnerable_src/xmlreader.c"
+      }
     },
     {
       "id": "ARVO-398060138",
@@ -2615,7 +3017,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-398060138/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-398060138/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "SAX2.c": "arvo/ARVO-398060138/vulnerable_src/SAX2.c"
+      }
     },
     {
       "id": "ARVO-392687022",
@@ -2636,7 +3041,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-392687022/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-392687022/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "valid.c": "arvo/ARVO-392687022/vulnerable_src/valid.c"
+      }
     },
     {
       "id": "ARVO-42520431",
@@ -2657,7 +3065,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42520431/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42520431/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "jcapimin.c": "arvo/ARVO-42520431/vulnerable_src/jcapimin.c"
+      }
     },
     {
       "id": "ARVO-42517881",
@@ -2677,7 +3088,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42517881/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42517881/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "turbojpeg.c": "arvo/ARVO-42517881/vulnerable_src/turbojpeg.c"
+      }
     },
     {
       "id": "ARVO-42518233",
@@ -2697,7 +3111,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42518233/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42518233/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "turbojpeg.c": "arvo/ARVO-42518233/vulnerable_src/turbojpeg.c"
+      }
     },
     {
       "id": "ARVO-42495506",
@@ -2717,7 +3134,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42495506/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42495506/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "rdppm.c": "arvo/ARVO-42495506/vulnerable_src/rdppm.c"
+      }
     },
     {
       "id": "ARVO-42495540",
@@ -2737,7 +3157,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-42495540/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-42495540/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "rdppm.c": "arvo/ARVO-42495540/vulnerable_src/rdppm.c"
+      }
     },
     {
       "id": "ARVO-42541306",
@@ -2863,7 +3286,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-435781342/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-435781342/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "parserInternals.c": "arvo/ARVO-435781342/vulnerable_src/parserInternals.c"
+      }
     },
     {
       "id": "ARVO-424242614",
@@ -2884,7 +3310,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-424242614/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-424242614/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "parser.c": "arvo/ARVO-424242614/vulnerable_src/parser.c"
+      }
     },
     {
       "id": "ARVO-420638555",
@@ -2905,7 +3334,11 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-420638555/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-420638555/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "fuzz/api.c": "arvo/ARVO-420638555/vulnerable_src/api.c",
+        "valid.c": "arvo/ARVO-420638555/vulnerable_src/valid.c"
+      }
     },
     {
       "id": "ARVO-420248736",
@@ -2926,7 +3359,11 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-420248736/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-420248736/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "fuzz/api.c": "arvo/ARVO-420248736/vulnerable_src/api.c",
+        "valid.c": "arvo/ARVO-420248736/vulnerable_src/valid.c"
+      }
     },
     {
       "id": "ARVO-417247563",
@@ -2947,7 +3384,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-417247563/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-417247563/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "xmlIO.c": "arvo/ARVO-417247563/vulnerable_src/xmlIO.c"
+      }
     },
     {
       "id": "ARVO-417062198",
@@ -2968,7 +3408,10 @@
       "crash_input_path": null,
       "crash_report_path": "arvo/ARVO-417062198/crash_report.txt",
       "reference_patch_path": "arvo/ARVO-417062198/reference_patch.diff",
-      "vulnerable_source_ref": null
+      "vulnerable_source_ref": null,
+      "vulnerable_source_paths": {
+        "xmlIO.c": "arvo/ARVO-417062198/vulnerable_src/xmlIO.c"
+      }
     },
     {
       "id": "ARVO-411003875",
