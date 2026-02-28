@@ -35,7 +35,9 @@ Focus on:
 """
 
 
-def load_patching_dataset(benchmark_dir: str, target: str | None = None) -> list[Sample]:
+def load_patching_dataset(
+    benchmark_dir: str, target: str | None = None
+) -> list[Sample]:
     """Load vulnerability records as Inspect-AI samples."""
     raise NotImplementedError
 
