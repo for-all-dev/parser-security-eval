@@ -15,6 +15,8 @@
 #
 ################################################################################
 
+shopt -s nullglob
+
 cd /src/zlib
 
 ./configure || (cat configure.log && false)
