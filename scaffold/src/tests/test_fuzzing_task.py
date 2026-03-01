@@ -765,12 +765,14 @@ class TestLoadLiveFuzzingDataset:
 
 
 class TestMemoryStubs:
-    def test_load_returns_dict(self) -> None:
-        result = load_session_memory("testparser")
-        assert isinstance(result, dict)
+    def test_load_returns_str(self) -> None:
+        # No prior memory file → empty string
+        result = load_session_memory("nonexistent-target-xyzzy")
+        assert isinstance(result, str)
 
     def test_save_does_not_raise(self) -> None:
-        save_session_memory("testparser", {"key": "value"})
+        # Empty session_state → no harnesses or crashes to persist, no error
+        save_session_memory("testparser", {"harness_records": [], "all_crash_hashes": {}})
 
 
 # ---------------------------------------------------------------------------

@@ -23,7 +23,6 @@ with clear TODOs pending the interface from issue #73.
 from __future__ import annotations
 
 import hashlib
-import json
 import logging
 import re
 import tempfile
@@ -49,6 +48,10 @@ from parser_security_eval.models.fuzzing import (
     FuzzingResult,
     HarnessRecord,
     LiveFuzzingSessionResult,
+)
+from parser_security_eval.memory.store import (
+    load_memory,
+    memory_to_context,
 )
 from parser_security_eval.sandbox.campaign import FuzzingCampaign
 from parser_security_eval.sandbox.docker import DockerSandbox, SandboxConfig
@@ -136,24 +139,57 @@ IMPORTANT RULES
 # ---------------------------------------------------------------------------
 
 
-def load_session_memory(target_name: str) -> dict[str, Any]:
-    """Load persistent memory for a target at session start.
+def load_session_memory(target_name: str) -> str:
+    """Load and format persistent memory for a target at session start.
 
-    TODO(#73): integrate with the memory interface from issue #73.
-    Currently returns an empty dict; replace with a real implementation
-    once the memory store API is defined.
+    Returns a formatted context string (via memory_to_context) ready to
+    inject into the agent's user prompt, or an empty string if no prior
+    memory exists for this target.
     """
-    logger.debug("load_session_memory: stub called for target=%s", target_name)
-    return {}
+    mem = load_memory(target_name)
+    if not mem.hypotheses_tried and not mem.crashes_found and not mem.harness_variants:
+        return ""
+    return memory_to_context(mem)
 
 
-def save_session_memory(target_name: str, memory: dict[str, Any]) -> None:
-    """Persist session memory after each cycle.
+def save_session_memory(target_name: str, session_state: dict[str, Any]) -> None:
+    """Persist session state into the target's TargetMemory store.
 
-    TODO(#73): integrate with the memory interface from issue #73.
-    Currently a no-op; replace once the memory store API is defined.
+    Writes harness records and crash summaries discovered during this
+    session so they are available to future agent invocations.
     """
-    logger.debug("save_session_memory: stub called for target=%s", target_name)
+    from datetime import UTC, datetime
+
+    from parser_security_eval.memory.models import (
+        CrashSummary,
+        HarnessRecord as MemHarnessRecord,
+    )
+    from parser_security_eval.memory.store import add_crash, add_harness
+
+    for hr in session_state.get("harness_records", []):
+        add_harness(
+            target_name,
+            MemHarnessRecord(
+                id=hr.source_hash,
+                source_hash=hr.source_hash,
+                entry_point=hr.entry_point,
+                compile_success=hr.compile_success,
+                compile_iterations=hr.repair_iterations,
+                crashes_found=hr.crashes_found,
+                coverage_achieved=0.0,
+                created_at=datetime.now(UTC),
+            ),
+        )
+    for stack_hash in session_state.get("all_crash_hashes", {}):
+        add_crash(
+            target_name,
+            CrashSummary(
+                id=stack_hash,
+                stack_hash=stack_hash,
+                entry_point=session_state.get("current_entry_point", "unknown"),
+                found_at=datetime.now(UTC),
+            ),
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -626,13 +662,11 @@ def load_live_fuzzing_dataset(
     fuzz_targets: list[str] = metadata.get("fuzz_targets", [])
     cwe_hints: list[str] = metadata.get("cwe_hints", [])
 
-    # Load persistent memory (stub for now)
-    mem = load_session_memory(target_name)
-    memory_section = ""
-    if mem:
-        memory_section = (
-            "\n## Previous session notes\n" + json.dumps(mem, indent=2) + "\n"
-        )
+    # Load persistent memory from prior sessions
+    mem_context = load_session_memory(target_name)
+    memory_section = (
+        "\n## Previous session notes\n" + mem_context + "\n" if mem_context else ""
+    )
 
     user_prompt = f"""\
 You are starting a live fuzzing session against **{target_name}**.
@@ -773,8 +807,8 @@ def live_fuzzing_solver(
             state.metadata = {}
         state.metadata["_session_state"] = session_state
 
-        # Save session memory (stub)
-        save_session_memory(target_name, {"cycle_count": session_state["cycle_count"]})
+        # Persist session memory for future runs
+        save_session_memory(target_name, session_state)
 
         return state
 
