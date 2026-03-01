@@ -1,7 +1,34 @@
 """Live fuzzing campaign runner.
 
-Provides higher-level orchestration of fuzzing runs on top of DockerSandbox,
-including stats parsing, OOM/timeout detection, and coverage artifact collection.
+A *campaign* is one complete, time-bounded fuzzing run against a single fuzz
+target: the fuzzer starts inside the sandbox, runs for a configurable duration
+(default 300 s), then stops and hands back all artifacts — crash inputs,
+coverage profiles, and execution statistics.
+
+This module sits above ``DockerSandbox``.  Where ``DockerSandbox.run_fuzzer()``
+is a thin wrapper that fires a command and returns raw output,
+``FuzzingCampaign`` adds:
+
+- **Engine abstraction** — ``FuzzerEngine`` implementations translate a common
+  interface into engine-specific shell commands (libFuzzer, AFL++, Honggfuzz).
+  New engines can be added by implementing the four-method protocol and
+  registering them in ``_ENGINES``.
+- **OOM / timeout detection** — exit code 137 (SIGKILL from the OOM killer)
+  and -1 (our asyncio timeout) are surfaced as explicit boolean flags on
+  ``CampaignResult`` rather than buried in exit codes.
+- **Artifact collection** — crash inputs and ``.profraw`` coverage profiles are
+  copied out of the container into a local temp directory and returned as
+  ``Path`` lists for downstream processing.
+- **Stats parsing** — engine-specific log parsers extract executions/sec,
+  total executions, corpus size, and crash count into a structured
+  ``FuzzingStats`` model.
+
+Typical usage::
+
+    async with DockerSandbox(config) as sandbox:
+        await sandbox.build_target()
+        result = await FuzzingCampaign(sandbox, "libxml2_xml_read_memory_fuzzer").run()
+        print(result.stats.execs_per_sec, len(result.crash_files))
 """
 
 import logging
@@ -78,7 +105,7 @@ class FuzzerEngine(Protocol):
         ...
 
 
-class LibFuzzerEngine:
+class LibFuzzerEngine(FuzzerEngine):
     """libFuzzer engine implementation."""
 
     def build_command(
@@ -151,7 +178,7 @@ class LibFuzzerEngine:
         return "/out/*.profraw"
 
 
-class AFLPlusPlusEngine:
+class AFLPlusPlusEngine(FuzzerEngine):
     """AFL++ engine implementation."""
 
     def build_command(
@@ -216,7 +243,7 @@ class AFLPlusPlusEngine:
         return "/out/*.profraw"
 
 
-class HonggfuzzEngine:
+class HonggfuzzEngine(FuzzerEngine):
     """Honggfuzz engine implementation."""
 
     def build_command(
