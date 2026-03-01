@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import plotly.express as px
 import streamlit as st
 
@@ -24,7 +26,7 @@ def render(logs: dict[str, LogData]) -> None:
         return
 
     for path, log in logs.items():
-        fname = path.split("/")[-1]
+        fname = Path(path).stem
         st.subheader(fname)
         df = log.df
 
@@ -55,7 +57,9 @@ def render(logs: dict[str, LogData]) -> None:
                 title="Total Tokens per Sample",
                 labels={"total_tokens": "Total Tokens"},
             )
-            st.plotly_chart(fig_hist, use_container_width=True)
+            st.plotly_chart(
+                fig_hist, use_container_width=True, key=f"usage_hist_{fname}"
+            )
 
         with col2:
             if "total_time" in df.columns:
@@ -67,6 +71,8 @@ def render(logs: dict[str, LogData]) -> None:
                     title="Tokens vs Time",
                     labels={"total_tokens": "Total Tokens", "total_time": "Time (s)"},
                 )
-                st.plotly_chart(fig_scatter, use_container_width=True)
+                st.plotly_chart(
+                    fig_scatter, use_container_width=True, key=f"usage_scatter_{fname}"
+                )
 
         st.divider()
