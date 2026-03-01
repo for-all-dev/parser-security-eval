@@ -1,0 +1,20 @@
+name = "patching-model-sweep"
+description = "Compare patching performance across models on tier-1 targets"
+task = "patching"
+output_dir = "results/patching-model-sweep"
+repetitions = 1
+
+[defaults]
+benchmark_dir = "../benchmark"
+targets_root = "../targets"
+ready_only = true
+limit = 20
+engine = "libfuzzer"
+
+[grid]
+model = [
+    "anthropic/claude-sonnet-4-6",
+    "openai/gpt-4o",
+    "google/gemini-2.0-flash",
+]
+target = ["libpng", "libjpeg-turbo", "libxml2", "zlib"]

@@ -70,7 +70,27 @@ uv run parser-security-eval evaluate triage
 uv run parser-security-eval evaluate harness --target libpng
 ```
 
-### 6. Verify a patch
+### 6. Run experiment sweeps
+
+Run multi-model, multi-target evaluation sweeps from a TOML config:
+
+```bash
+# Preview what will run (no execution)
+uv run parser-security-eval experiment run experiments/patching-model-sweep.toml --dry-run
+
+# Execute the sweep (restartable — safe to Ctrl-C and resume)
+uv run parser-security-eval experiment run experiments/patching-model-sweep.toml
+
+# Check progress
+uv run parser-security-eval experiment status results/patching-model-sweep
+
+# Analyze results (rich tables + optional JSON export)
+uv run parser-security-eval experiment analyze results/patching-model-sweep --json results.json
+```
+
+Example TOML configs in `scaffold/experiments/`: `patching-model-sweep.toml`, `triage-sweep.toml`, `fuzzing-baseline.toml`.
+
+### 7. Verify a patch
 
 Test a specific patch against a vulnerability:
 
@@ -109,6 +129,14 @@ parser-security-eval/
         patching.py             Vulnerability patching eval task
         triage.py               Crash triage eval task
         harness.py              Fuzz harness generation eval task
+        fuzzing.py              Live fuzzing eval task
+      experiments/
+        models.py               Pydantic models for experiment configs and state
+        runner.py               Grid expansion, task building, run loop
+        state.py                Manifest persistence (atomic save/load/resume)
+        analysis.py             Results aggregation and breakdowns
+        cli.py                  Typer sub-app (run/status/analyze commands)
+    experiments/                Example TOML experiment configs
   targets/                Parser target definitions (oss-fuzz compatible)
     libpng/                 Dockerfile, build.sh, metadata.yaml, corpus/
     libjpeg-turbo/
@@ -128,6 +156,10 @@ All commands: `uv run parser-security-eval <command> --help`
 | `enrich-dataset` | Enrich crash reports with ASAN output, map CWE, extract crash inputs/sources. |
 | `build-target <target>` | Build a parser target in Docker with sanitizer + fuzz engine. |
 | `evaluate <task>` | Run an Inspect-AI eval: `patching`, `triage`, or `harness`. |
+| `fuzzing` | Run a single-agent live fuzzing campaign. |
+| `experiment run <config.toml>` | Run or resume a TOML-driven experiment sweep. |
+| `experiment status <output_dir>` | Show run statuses for an experiment. |
+| `experiment analyze <output_dir>` | Leaderboard + breakdowns from completed runs. |
 | `verify <target> <id> <patch>` | Test a patch against a specific vulnerability. |
 
 ## Development
