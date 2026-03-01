@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root xmlns:ex="http://example.com/ns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ex:child xsi:type="ex:MyType">value</ex:child>
+</root>

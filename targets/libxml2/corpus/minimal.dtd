@@ -1,0 +1,3 @@
+<!ELEMENT root (child*)>
+<!ELEMENT child (#PCDATA)>
+<!ATTLIST child id ID #IMPLIED>

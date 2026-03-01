@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document>
+    <level1 attr1="val1">
+      <level2 attr2="val2">
+        <level3 attr3="val3">
+          <level4 attr4="val4">
+            <level5 attr5="val5">
+              <level6 attr6="val6">
+                <level7 attr7="val7">
+                  <level8 attr8="val8">
+                    <level9 attr9="val9">
+                      <level10 attr10="val10">
+                        <level11 attr11="val11">
+                          <level12 attr12="val12">
+                            <level13 attr13="val13">
+                              <level14 attr14="val14">
+                                <level15 attr15="val15">
+                                  <level16 attr16="val16">
+                                    <level17 attr17="val17">
+                                      <level18 attr18="val18">
+                                        <level19 attr19="val19">
+                                          <level20 attr20="val20">
+                                            <level21 attr21="val21">
+                                              <level22 attr22="val22">
+                                                <level23 attr23="val23">
+                                                  <level24 attr24="val24">
+                                                    <level25 attr25="val25">
+    <leaf>content</leaf>
+                                                    </level25>
+                                                  </level24>
+                                                </level23>
+                                              </level22>
+                                            </level21>
+                                          </level20>
+                                        </level19>
+                                      </level18>
+                                    </level17>
+                                  </level16>
+                                </level15>
+                              </level14>
+                            </level13>
+                          </level12>
+                        </level11>
+                      </level10>
+                    </level9>
+                  </level8>
+                </level7>
+              </level6>
+            </level5>
+          </level4>
+        </level3>
+      </level2>
+    </level1>
+</document>

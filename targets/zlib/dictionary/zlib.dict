@@ -1,0 +1,6 @@
+# zlib/gzip/deflate magic bytes
+"\x1f\x8b"
+"\x78\x9c"
+"\x78\x01"
+"\x78\xda"
+"\x1f\x8b\x08"
