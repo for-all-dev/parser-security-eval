@@ -66,14 +66,20 @@ Focus on:
 - Making the smallest change that correctly fixes the bug
 - Not introducing new vulnerabilities or regressions
 
-You have three tools to iteratively develop and test your patch:
+You have four tools to iteratively develop and test your patch:
 1. try_patch(diff) - Apply your unified diff to the source tree. Returns success or rejection errors.
 2. compile_target() - Rebuild the target with sanitizers. Returns success or compiler errors.
 3. run_crash_input() - Run the triggering input against the rebuilt binary. Returns "CRASH ELIMINATED" or ASAN output.
+4. read_source_file(file_path, start_line, end_line) - Read lines from a source file in the container. Use this if try_patch fails to verify exact file contents and line numbers.
 
 Workflow: write a diff -> try_patch -> compile_target -> run_crash_input -> iterate if needed.
+If try_patch keeps failing, use read_source_file to inspect the actual file in the container.
 The source tree resets before each try_patch call, so you can retry freely.
 When you are satisfied, include your final working diff in a ```diff fenced block in your last message.
+
+IMPORTANT: Attempt a patch within the first 10 tool calls. Do not spend all your
+turns reading source files — read just enough to understand the crash site, then
+try a fix. You can always iterate if the first attempt is wrong.
 """
 
 
@@ -293,6 +299,41 @@ def _make_compile_tool(sandbox: DockerSandbox, sanitizer: str, engine: str) -> T
     return compile_target()
 
 
+def _make_read_source_tool(sandbox: DockerSandbox) -> Tool:
+    """Create a tool that reads a file from the source tree in the container."""
+    src_dir = f"/src/{sandbox.config.target_name}"
+
+    @tool
+    def read_source_file() -> Tool:
+        async def execute(
+            file_path: str, start_line: int = 1, end_line: int = 200
+        ) -> str:
+            """Read lines from a source file in the container.
+
+            Use this to inspect the actual file contents when patches fail to apply.
+            This helps you see the exact whitespace, line numbers, and content.
+
+            Args:
+                file_path: Path relative to the source root (e.g. "parser.c").
+                start_line: First line to read (1-indexed, default 1).
+                end_line: Last line to read (inclusive, default 200).
+            """
+            full_path = f"{src_dir}/{file_path}"
+            exit_code, stdout, stderr = await sandbox.exec(
+                f"sed -n '{start_line},{end_line}p' '{full_path}'"
+            )
+            if exit_code != 0:
+                return f"ERROR reading {file_path}: {stderr.strip()}"
+            total_rc, total_out, _ = await sandbox.exec(f"wc -l < '{full_path}'")
+            total_lines = total_out.strip() if total_rc == 0 else "?"
+            header = f"[{file_path} lines {start_line}-{end_line} of {total_lines}]\n"
+            return header + stdout
+
+        return execute
+
+    return read_source_file()
+
+
 def _make_run_crash_tool(
     sandbox: DockerSandbox,
     fuzz_binary: str,
@@ -310,14 +351,17 @@ def _make_run_crash_tool(
             exit_code, stdout, stderr = await sandbox.exec(
                 f"{fuzz_binary} {crash_input_container_path}"
             )
-            asan_crash = (
-                "ERROR: AddressSanitizer" in stderr
-                or "SUMMARY: AddressSanitizer" in stderr
+            combined = stdout + "\n" + stderr
+            sanitizer_crash = (
+                "ERROR: AddressSanitizer" in combined
+                or "SUMMARY: AddressSanitizer" in combined
+                or "SUMMARY: UndefinedBehaviorSanitizer" in combined
+                or "runtime error:" in combined
             )
-            if exit_code == 0 and not asan_crash:
+            if exit_code == 0 and not sanitizer_crash:
                 return "CRASH ELIMINATED - no sanitizer errors detected."
-            # Truncate ASAN output
-            lines = (stdout + "\n" + stderr).strip().splitlines()
+            # Truncate sanitizer output
+            lines = combined.strip().splitlines()
             tail = "\n".join(lines[-60:])
             return f"CRASH DETECTED (exit {exit_code}):\n{tail}"
 
@@ -423,6 +467,12 @@ def load_patching_dataset(
                         else None
                     ),
                     "benchmark_dir": benchmark_dir,
+                    "vulnerable_source_paths": (
+                        record.vulnerable_source_paths
+                        if record.vulnerable_source_paths
+                        else {}
+                    ),
+                    "vulnerable_source_ref": record.vulnerable_source_ref,
                 },
             )
         )
@@ -447,6 +497,8 @@ def patching_solver(
         target_name: str = meta.get("target", "")
         sanitizer: str = meta.get("sanitizer", "address")
         crash_input_path: str | None = meta.get("crash_input_path")
+        vuln_source_paths: dict[str, str] = meta.get("vulnerable_source_paths", {})
+        vuln_ref: str | None = meta.get("vulnerable_source_ref")
 
         target_dir = Path(targets_root) / target_name
         fuzz_binary = _resolve_fuzz_binary(target_dir, target_name)
@@ -466,11 +518,44 @@ def patching_solver(
                 if local.exists():
                     await sandbox.copy_in(local, container_crash_path)
 
+            src_dir = f"/src/{target_name}"
+            compile_cmd = (
+                f"env SANITIZER={sanitizer} FUZZING_ENGINE={fuzzing_engine} "
+                "FUZZING_LANGUAGE=c compile"
+            )
+
+            if vuln_ref:
+                # Checkout the exact vulnerable commit so the source tree,
+                # headers, and build system are all self-consistent.
+                await sandbox.exec(f"cd {src_dir} && git checkout {vuln_ref}")
+                # Build with the vulnerable source.
+                await sandbox.exec(compile_cmd, timeout=config.timeout_seconds)
+            else:
+                # Fallback: build HEAD first, then swap in vulnerable files.
+                await sandbox.exec(compile_cmd, timeout=config.timeout_seconds)
+                for repo_path, bench_rel in vuln_source_paths.items():
+                    local_src = Path(benchmark_dir) / bench_rel
+                    if local_src.exists():
+                        container_dest = f"{src_dir}/{repo_path}"
+                        parent = str(Path(container_dest).parent)
+                        await sandbox.exec(f"mkdir -p {parent}")
+                        await sandbox.copy_in(local_src, container_dest)
+                await sandbox.exec(compile_cmd, timeout=config.timeout_seconds)
+
+            # Commit the vulnerable state so `git checkout .` in
+            # try_patch resets to the vulnerable version, not HEAD.
+            await sandbox.exec(
+                f"cd {src_dir} && git add -A && "
+                "git -c user.email=eval@local -c user.name=eval "
+                "commit -m 'vulnerable baseline' --allow-empty"
+            )
+
             # Build tools that close over this sandbox
             tools: list[Tool] = [
                 _make_try_patch_tool(sandbox),
                 _make_compile_tool(sandbox, sanitizer, fuzzing_engine),
                 _make_run_crash_tool(sandbox, fuzz_binary, container_crash_path),
+                _make_read_source_tool(sandbox),
             ]
 
             # Inject system prompt
@@ -507,6 +592,7 @@ def patching_scorer(
             benchmark_dir: str = meta.get("benchmark_dir", "benchmark")
             sanitizer: str = meta.get("sanitizer", "address")
             crash_input_path: str | None = meta.get("crash_input_path")
+            vuln_source_paths: dict[str, str] = meta.get("vulnerable_source_paths", {})
 
             patch_diff = _extract_diff_from_state(state)
 
@@ -534,6 +620,29 @@ def patching_scorer(
             )
 
             async with DockerSandbox(config) as sandbox:
+                src_dir = f"/src/{vuln_target}"
+                compile_cmd = (
+                    f"env SANITIZER={sanitizer} FUZZING_ENGINE={fuzzing_engine} "
+                    "FUZZING_LANGUAGE=c compile"
+                )
+
+                # Mirror the solver setup: checkout vulnerable ref or
+                # swap in vulnerable source files.
+                vuln_ref: str | None = meta.get("vulnerable_source_ref")
+                if vuln_ref:
+                    await sandbox.exec(f"cd {src_dir} && git checkout {vuln_ref}")
+                    await sandbox.exec(compile_cmd, timeout=config.timeout_seconds)
+                else:
+                    await sandbox.exec(compile_cmd, timeout=config.timeout_seconds)
+                    for repo_path, bench_rel in vuln_source_paths.items():
+                        local_src = Path(benchmark_dir) / bench_rel
+                        if local_src.exists():
+                            container_dest = f"{src_dir}/{repo_path}"
+                            parent = str(Path(container_dest).parent)
+                            await sandbox.exec(f"mkdir -p {parent}")
+                            await sandbox.copy_in(local_src, container_dest)
+                    await sandbox.exec(compile_cmd, timeout=config.timeout_seconds)
+
                 result = await score_patch(
                     sandbox=sandbox,
                     patch_diff=patch_diff,

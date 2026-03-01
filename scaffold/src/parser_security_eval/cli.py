@@ -12,6 +12,7 @@ import typer
 from parser_security_eval.dataset.artifacts import (
     extract_vulnerable_sources,
     fetch_reference_patches,
+    resolve_vulnerable_refs,
 )
 from parser_security_eval.dataset.arvo import ingest_arvo
 from parser_security_eval.dataset.curator import DatasetCurator
@@ -490,6 +491,9 @@ def enrich_dataset(
     extract_sources: bool = typer.Option(
         True, help="Extract vulnerable source files from cached git repos"
     ),
+    resolve_refs: bool = typer.Option(
+        True, help="Resolve vulnerable_source_ref commit hashes from fix commits"
+    ),
     timeout: int = typer.Option(120, help="Timeout per Docker image pull in seconds"),
 ) -> None:
     """Enrich benchmark dataset with crash reports, CWE mappings, crash inputs, and source."""
@@ -522,6 +526,11 @@ def enrich_dataset(
         typer.echo("Extracting vulnerable source files from cached repos …")
         sourced, total = extract_vulnerable_sources(benchmark_dir, cache_dir)
         typer.echo(f"  Vulnerable sources: {sourced} / {total}")
+
+    if resolve_refs:
+        typer.echo("Resolving vulnerable_source_ref commit hashes …")
+        resolved, total = resolve_vulnerable_refs(benchmark_dir, cache_dir)
+        typer.echo(f"  Vulnerable refs: {resolved} / {total}")
 
 
 @app.command()

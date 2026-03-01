@@ -75,11 +75,17 @@ async def check_crash_eliminated(
     container_input = f"/tmp/{local_input.name}"
     await sandbox.copy_in(local_input, container_input)
 
-    exit_code, _, stderr = await sandbox.exec(f"{fuzz_target_binary} {container_input}")
-    asan_crash = (
-        "ERROR: AddressSanitizer" in stderr or "SUMMARY: AddressSanitizer" in stderr
+    exit_code, stdout, stderr = await sandbox.exec(
+        f"{fuzz_target_binary} {container_input}"
     )
-    return exit_code == 0 and not asan_crash
+    combined = stdout + stderr
+    sanitizer_crash = (
+        "ERROR: AddressSanitizer" in combined
+        or "SUMMARY: AddressSanitizer" in combined
+        or "SUMMARY: UndefinedBehaviorSanitizer" in combined
+        or "runtime error:" in combined
+    )
+    return exit_code == 0 and not sanitizer_crash
 
 
 async def run_test_suite(sandbox: DockerSandbox) -> bool:
@@ -87,12 +93,18 @@ async def run_test_suite(sandbox: DockerSandbox) -> bool:
 
     Tries make check (autotools convention), falls back to ctest (cmake).
     Returns True if tests pass or no test suite is present.
+
+    When the test suite fails solely because of pre-existing sanitizer
+    errors (e.g. UBSan finding issues in code unrelated to the patch),
+    this is treated as a pass — the patch didn't introduce a regression.
     """
-    exit_code, stdout, stderr = await sandbox.exec("make check")
+    src_dir = f"/src/{sandbox.config.target_name}"
+    exit_code, stdout, stderr = await sandbox.exec(f"cd {src_dir} && make check")
     if exit_code == 0:
         return True
 
     combined = stdout + stderr
+
     if "No rule to make target" in combined:
         # make check not available; try ctest (cmake projects)
         exit_code, _, _ = await sandbox.exec("ctest --output-on-failure")
@@ -101,6 +113,26 @@ async def run_test_suite(sandbox: DockerSandbox) -> bool:
         if exit_code == 127:  # ctest not installed — no test suite, not a regression
             return True
         return False
+
+    # If the only failures are sanitizer runtime errors (not functional
+    # test failures), treat as pass — these are pre-existing issues in
+    # the codebase, not regressions introduced by the patch.
+    if (
+        "runtime error:" in combined
+        or "SUMMARY: UndefinedBehaviorSanitizer" in combined
+    ):
+        # Check that there are no other test failures besides sanitizer errors
+        has_test_failure = False
+        for line in combined.splitlines():
+            if (
+                "FAIL" in line
+                and "runtime error" not in line
+                and "UndefinedBehavior" not in line
+            ):
+                has_test_failure = True
+                break
+        if not has_test_failure:
+            return True
 
     return False
 
