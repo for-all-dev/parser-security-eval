@@ -5,7 +5,7 @@ ossfuzz_project: libxml2
 repository: https://gitlab.gnome.org/GNOME/libxml2
 ossfuzz_url: https://github.com/google/oss-fuzz/tree/master/projects/libxml2
 fuzz_targets:
-  - libxml2_xml_read_memory_fuzzer
-  - xml_xpath_fuzzer
+  - xml
+  - xpath
 has_corpus: true
 has_dictionary: true
