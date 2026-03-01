@@ -1,0 +1,10 @@
+name: libarchive
+format_type: archive
+language: c
+ossfuzz_project: libarchive
+repository: https://github.com/libarchive/libarchive.git
+ossfuzz_url: https://github.com/google/oss-fuzz/tree/master/projects/libarchive
+fuzz_targets:
+  - libarchive_fuzzer
+has_corpus: false
+has_dictionary: false
