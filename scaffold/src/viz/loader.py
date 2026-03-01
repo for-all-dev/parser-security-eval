@@ -260,6 +260,9 @@ _TOOL_SUCCESS_RE = re.compile(
     r"^(patch applied|compilation succeeded|crash eliminated|no crash|tests pass)",
     re.IGNORECASE,
 )
+# Tools whose output is content on success and "ERROR ..." on failure,
+# with no status keyword — handled separately from the regex above.
+_TOOL_ERROR_PREFIX_NAMES: frozenset[str] = frozenset({"read_source_file"})
 # Reuse diff-extraction pattern from views — inline here to avoid circular import
 _TRAJ_CODE_RE = re.compile(r"```(?:diff)?\s*\n(.*?)```", re.DOTALL)
 _TRAJ_DIFF_HDR_RE = re.compile(r"((?:diff --git|---|\+\+\+).*)", re.MULTILINE)
@@ -356,6 +359,11 @@ def _parse_trajectory(sample: Any) -> list[TrajTurn]:
             if error_field is not None:
                 # Prefer structured error field: None/falsy = success
                 tool_ok = not error_field
+            elif tool_name in _TOOL_ERROR_PREFIX_NAMES:
+                # Tools that signal failure by returning "ERROR ..." rather than
+                # using status keywords (e.g. read_source_file returns file content
+                # on success and "ERROR reading <path>: ..." on failure).
+                tool_ok = not tool_result.startswith("ERROR")
             else:
                 # Fall back to regex on resolved result text
                 tool_ok = bool(_TOOL_SUCCESS_RE.search(tool_result))

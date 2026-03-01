@@ -302,6 +302,92 @@ class TestEvaluateCommand:
 
         assert isinstance(task_arg, Task)
 
+    def test_seed_without_limit_emits_warning(self, tmp_path: Path) -> None:
+        """--seed without --limit is accepted but should emit a warning."""
+        import warnings
+
+        bdir = make_benchmark(tmp_path)
+
+        with (
+            patch("inspect_ai.eval", return_value=self._fake_logs()),
+            warnings.catch_warnings(record=True) as caught,
+        ):
+            warnings.simplefilter("always")
+            result = runner.invoke(
+                app,
+                [
+                    "evaluate",
+                    "patching",
+                    "--model",
+                    "mock/model",
+                    "--seed",
+                    "42",
+                    "--benchmark-dir",
+                    str(bdir),
+                    "--targets-root",
+                    str(tmp_path / "targets"),
+                ],
+            )
+
+        assert result.exit_code == 0, result.output
+        assert any(
+            "--seed" in str(w.message) or "seed" in str(w.message).lower()
+            for w in caught
+        )
+
+    def test_seed_with_limit_selects_reproducibly(self, tmp_path: Path) -> None:
+        """Same seed + limit produces the same sample selection on repeated calls."""
+        import json as _json
+
+        # Build a benchmark with 3 records
+        records = []
+        for i in range(3):
+            vuln_id = f"OSS-FUZZ-{20000 + i}"
+            record_dir = tmp_path / "libpng" / vuln_id
+            record_dir.mkdir(parents=True, exist_ok=True)
+            (record_dir / "crash_report.txt").write_text(f"ASAN #{i}")
+            (record_dir / "fix.diff").write_text(
+                f"--- a/f.c\n+++ b/f.c\n@@ -1 +1 @@\n-{i}\n+{i + 1}\n"
+            )
+            records.append(
+                {
+                    "id": vuln_id,
+                    "target": "libpng",
+                    "severity": "high",
+                    "difficulty": "medium",
+                    "crash_type": "heap-buffer-overflow",
+                    "sanitizer": "address",
+                    "affected_file": "f.c",
+                    "affected_function": None,
+                    "cwe": None,
+                    "root_cause": None,
+                    "crash_input_path": None,
+                    "crash_report_path": f"libpng/{vuln_id}/crash_report.txt",
+                    "reference_patch_path": f"libpng/{vuln_id}/fix.diff",
+                    "vulnerable_source_ref": None,
+                    "tags": [],
+                    "lines_changed_in_fix": None,
+                    "ossfuzz_project": None,
+                }
+            )
+        (tmp_path / "metadata.json").write_text(
+            _json.dumps(
+                {
+                    "version": "0.1.0",
+                    "total_vulnerabilities": 3,
+                    "targets": ["libpng"],
+                    "records": records,
+                }
+            )
+        )
+
+        from parser_security_eval.tasks.patching import load_patching_dataset
+
+        # load_patching_dataset with same seed twice must yield same order
+        ids_a = [s.id for s in load_patching_dataset(str(tmp_path), seed=7)]
+        ids_b = [s.id for s in load_patching_dataset(str(tmp_path), seed=7)]
+        assert ids_a == ids_b
+
 
 # ---------------------------------------------------------------------------
 # build-target

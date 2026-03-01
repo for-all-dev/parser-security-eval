@@ -22,8 +22,10 @@ FROM gcr.io/oss-fuzz-base/base-builder
 RUN apt-get update && apt-get install -y make yasm cmake
 
 # Clone the libjpeg-turbo fuzz scripts and the main branch of the library
+# Full clone of libjpeg-turbo so we can checkout vulnerable commits.
+# Fuzz scripts repo stays shallow — it's not the evaluation target.
 RUN git clone --depth 1 https://github.com/libjpeg-turbo/fuzz && \
-    git clone --depth 1 https://github.com/libjpeg-turbo/libjpeg-turbo -b main libjpeg-turbo.main
+    git clone https://github.com/libjpeg-turbo/libjpeg-turbo -b main libjpeg-turbo.main
 
 # Build seed corpora from the upstream seed-corpora repository
 RUN git clone --depth 1 https://github.com/libjpeg-turbo/seed-corpora && \

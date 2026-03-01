@@ -10,7 +10,8 @@ FROM gcr.io/oss-fuzz-base/base-builder
 # RUN apt-get update && apt-get install -y <packages>
 
 # Clone or copy target source
-# RUN git clone --depth 1 <repo-url> /src/<project>
+# Full clone (no --depth 1) so we can checkout vulnerable commits.
+# RUN git clone <repo-url> /src/<project>
 # COPY src/ /src/<project>/
 
 # Optional: install CASR for crash triage

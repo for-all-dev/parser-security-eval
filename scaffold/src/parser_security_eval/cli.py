@@ -12,6 +12,7 @@ import typer
 from parser_security_eval.dataset.artifacts import (
     extract_vulnerable_sources,
     fetch_reference_patches,
+    resolve_vulnerable_refs,
 )
 from parser_security_eval.dataset.arvo import ingest_arvo
 from parser_security_eval.dataset.curator import DatasetCurator
@@ -26,6 +27,9 @@ from parser_security_eval.models.vulnerability import VulnerabilityRecord
 app = typer.Typer(
     name="parser-security-eval", help="Parser security evaluation framework."
 )
+
+memory_app = typer.Typer(name="memory", help="Inspect per-target agent memory.")
+app.add_typer(memory_app, name="memory")
 
 logger = logging.getLogger(__name__)
 
@@ -231,9 +235,21 @@ def evaluate(
     sample_id: str | None = typer.Option(
         None, help="Run only the sample with this ID (passed to inspect_eval)"
     ),
+    seed: int | None = typer.Option(
+        None,
+        help="Random seed for sample shuffling (patching task only). Requires --limit to have effect.",
+    ),
 ) -> None:
     """Run an Inspect-AI evaluation task."""
+    import warnings
+
     from inspect_ai import eval as inspect_eval
+
+    if seed is not None and limit is None:
+        warnings.warn(
+            "--seed has no effect without --limit: the full dataset will be used.",
+            stacklevel=1,
+        )
 
     if task == "patching":
         from parser_security_eval.tasks.patching import vulnerability_patching
@@ -244,6 +260,7 @@ def evaluate(
             targets_root=str(targets_root),
             fuzzing_engine=engine,
             ready_only=ready_only,
+            seed=seed,
         )
 
     elif task == "triage":
@@ -490,6 +507,9 @@ def enrich_dataset(
     extract_sources: bool = typer.Option(
         True, help="Extract vulnerable source files from cached git repos"
     ),
+    resolve_refs: bool = typer.Option(
+        True, help="Resolve vulnerable_source_ref commit hashes from fix commits"
+    ),
     timeout: int = typer.Option(120, help="Timeout per Docker image pull in seconds"),
 ) -> None:
     """Enrich benchmark dataset with crash reports, CWE mappings, crash inputs, and source."""
@@ -522,6 +542,11 @@ def enrich_dataset(
         typer.echo("Extracting vulnerable source files from cached repos …")
         sourced, total = extract_vulnerable_sources(benchmark_dir, cache_dir)
         typer.echo(f"  Vulnerable sources: {sourced} / {total}")
+
+    if resolve_refs:
+        typer.echo("Resolving vulnerable_source_ref commit hashes …")
+        resolved, total = resolve_vulnerable_refs(benchmark_dir, cache_dir)
+        typer.echo(f"  Vulnerable refs: {resolved} / {total}")
 
 
 @app.command()
@@ -572,3 +597,103 @@ def fuzzing(
                     f"{k}={v.value:.3f}" for k, v in score.metrics.items()
                 )
                 typer.echo(f"  {score.name}: {metrics_str}")
+
+
+@memory_app.command("show")
+def memory_show(
+    target: str = typer.Argument(help="Parser target name (e.g. 'libxml2')"),
+    targets_root: Path = typer.Option(
+        Path("../targets"), help="Targets root directory"
+    ),
+    max_tokens: int = typer.Option(2000, help="Token budget for the context block"),
+) -> None:
+    """Print the agent memory context (as would be sent to an LLM) for a target.
+
+    Example:
+        parser-security-eval memory show libxml2
+    """
+    from parser_security_eval.memory.store import load_memory, memory_to_context
+
+    memory = load_memory(target, targets_dir=targets_root)
+    ctx = memory_to_context(memory, max_tokens=max_tokens)
+    typer.echo(ctx)
+
+
+@app.command()
+def preprocess(
+    target: str = typer.Argument(help="Parser target name (e.g. 'libpng')"),
+    entry_point: str | None = typer.Option(
+        None,
+        "--entry-point",
+        "-e",
+        help=(
+            "Entry-point function to focus on.  "
+            "Defaults to the first value in key_entry_points from metadata.yaml."
+        ),
+    ),
+    targets_root: Path = typer.Option(
+        Path("../targets"), help="Targets root directory"
+    ),
+    model: str = typer.Option(
+        "anthropic/claude-sonnet-4-6", help="Model to use for grammar extraction"
+    ),
+    force_refresh: bool = typer.Option(
+        False,
+        "--force-refresh",
+        help="Ignore cached results and re-run all extraction steps",
+    ),
+) -> None:
+    """Run the pre-processing pipeline for a parser target.
+
+    Extracts a call graph and input-format grammar, assembles them into a
+    HarnessContext, and outputs the result as JSON to stdout.  Results are
+    also cached in targets/<target>/preprocess/ for subsequent runs.
+
+    Example:
+        parser-security-eval preprocess libpng --entry-point png_read_png
+    """
+    import os
+
+    import yaml
+
+    from parser_security_eval.preprocess.context_builder import build_context
+
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+
+    target_dir = targets_root / target
+    if not target_dir.exists():
+        typer.echo(f"Error: target directory not found: {target_dir}", err=True)
+        raise typer.Exit(1)
+
+    metadata_path = target_dir / "metadata.yaml"
+    if not metadata_path.exists():
+        typer.echo(f"Error: no metadata.yaml in {target_dir}", err=True)
+        raise typer.Exit(1)
+
+    with open(metadata_path) as fh:
+        metadata = yaml.safe_load(fh)
+
+    # Resolve entry point
+    key_entry_points: list[str] = metadata.get("key_entry_points", [])
+    if entry_point is None:
+        if not key_entry_points:
+            typer.echo(
+                "Error: no --entry-point given and key_entry_points is empty in metadata.yaml",
+                err=True,
+            )
+            raise typer.Exit(1)
+        entry_point = key_entry_points[0]
+
+    # Set the model environment variable for inspect_ai.model.get_model()
+    os.environ.setdefault("INSPECT_EVAL_MODEL", model)
+
+    async def _run() -> str:
+        ctx = await build_context(
+            target_dir=target_dir,
+            entry_point=entry_point,  # type: ignore[arg-type]
+            force_refresh=force_refresh,
+        )
+        return ctx.model_dump_json(indent=2)
+
+    result_json = asyncio.run(_run())
+    typer.echo(result_json)

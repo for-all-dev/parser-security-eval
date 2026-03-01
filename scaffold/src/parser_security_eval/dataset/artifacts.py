@@ -377,6 +377,122 @@ def extract_vulnerable_sources(
     return success, total
 
 
+def resolve_vulnerable_refs(
+    benchmark_dir: Path,
+    cache_dir: Path,
+) -> tuple[int, int]:
+    """Resolve ``vulnerable_source_ref`` (git commit hash) for each record.
+
+    For each ARVO record with a fix_commit in arvo.db, resolves
+    ``fix_commit~1`` to a full SHA and writes it to
+    ``record["vulnerable_source_ref"]``.  This commit hash can then be
+    used by the solver/scorer to ``git checkout`` the exact vulnerable
+    state inside the Docker container.
+
+    Returns ``(resolved_count, total_count)``.
+    """
+    metadata_path = benchmark_dir / "metadata.json"
+    metadata = json.loads(metadata_path.read_text())
+    records = metadata.get("records", [])
+
+    id_to_record: dict[int, dict] = {}
+    for rec in records:
+        rid = rec["id"]
+        if rid.startswith("ARVO-"):
+            try:
+                local_id = int(rid.removeprefix("ARVO-"))
+                id_to_record[local_id] = rec
+            except ValueError:
+                continue
+
+    total = len(id_to_record)
+    logger.info("Found %d ARVO records to resolve vulnerable refs", total)
+
+    db_path = download_arvo_db(cache_dir)
+    arvo_data = query_arvo_db(db_path, list(id_to_record.keys()))
+    repos_dir = cache_dir / "repos"
+    resolved = 0
+    failed_repos: set[str] = set()
+
+    for local_id, rec in id_to_record.items():
+        # Skip if already resolved
+        if rec.get("vulnerable_source_ref"):
+            resolved += 1
+            continue
+
+        info = arvo_data.get(local_id)
+        if not info:
+            continue
+
+        raw_commit = (info.get("fix_commit") or "").strip()
+        repo_addr = (info.get("repo_addr") or "").strip()
+        if not raw_commit or not repo_addr:
+            continue
+
+        fix_commit = raw_commit.split("\n")[0].strip()
+        if not fix_commit:
+            continue
+
+        normalized_url = _normalize_repo_url(repo_addr)
+        cache_key = _repo_cache_key(normalized_url)
+
+        if cache_key in failed_repos:
+            continue
+
+        repo_dir = repos_dir / cache_key
+        try:
+            _clone_or_update(repo_addr, repo_dir)
+        except subprocess.CalledProcessError:
+            logger.warning("Failed to clone %s", repo_addr)
+            failed_repos.add(cache_key)
+            continue
+
+        # Ensure the commit is available
+        try:
+            subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(repo_dir),
+                    "fetch",
+                    "--depth=2",
+                    "origin",
+                    fix_commit,
+                ],
+                check=True,
+                capture_output=True,
+            )
+        except subprocess.CalledProcessError:
+            logger.warning("Could not fetch commit %s in %s", fix_commit, repo_dir)
+            continue
+
+        # Resolve fix_commit~1 to a full SHA
+        result = subprocess.run(
+            ["git", "-C", str(repo_dir), "rev-parse", f"{fix_commit}~1"],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            logger.warning(
+                "Could not resolve %s~1 for %s: %s",
+                fix_commit,
+                rec["id"],
+                result.stderr.strip(),
+            )
+            continue
+
+        vuln_ref = result.stdout.strip()
+        rec["vulnerable_source_ref"] = vuln_ref
+        resolved += 1
+
+        if resolved % 20 == 0:
+            logger.info("Progress: %d / %d refs resolved", resolved, total)
+
+    metadata_path.write_text(json.dumps(metadata, indent=2, default=str) + "\n")
+    logger.info("Resolved vulnerable refs for %d / %d records", resolved, total)
+    return resolved, total
+
+
 def _cleanup_unreferenced_arvo_dirs(benchmark_dir: Path, metadata: dict) -> None:
     """Remove arvo/ subdirectories not referenced by any record in metadata."""
     arvo_dir = benchmark_dir / "arvo"
