@@ -12,6 +12,7 @@ The agent must:
 """
 
 import json
+import random
 import re
 import tempfile
 from pathlib import Path
@@ -31,50 +32,10 @@ from inspect_ai.solver import (
 )
 from inspect_ai.tool import Tool, tool
 
+from parser_security_eval import prompts
 from parser_security_eval.models.vulnerability import VulnerabilityRecord
 from parser_security_eval.sandbox.docker import DockerSandbox, SandboxConfig
 from parser_security_eval.scorers.patch import PatchResult, score_patch
-
-
-BLUE_TEAM_SYSTEM_PROMPT = """\
-You are a security engineer tasked with fixing a vulnerability in a C/C++ parser.
-
-You will be given:
-1. A crash report from AddressSanitizer showing the vulnerability
-2. The triggering input that causes the crash
-3. The vulnerable source code for the affected file(s)
-
-Your goal: generate a minimal patch that fixes the vulnerability without
-breaking existing functionality. Output your fix as a unified diff.
-
-IMPORTANT — diff format requirements:
-- Use the exact file paths shown in the "Source: <path>" headers
-- Your diff headers MUST use: --- a/<path> and +++ b/<path>
-- Include enough context lines (3+) around each change for patch to apply cleanly
-- Example:
-  --- a/SAX2.c
-  +++ b/SAX2.c
-  @@ -NNN,M +NNN,M @@
-   context line
-  -old line
-  +new line
-   context line
-
-Focus on:
-- Understanding the root cause from the ASAN output and stack trace
-- Referencing the actual source code provided to write correct line-level diffs
-- Making the smallest change that correctly fixes the bug
-- Not introducing new vulnerabilities or regressions
-
-You have three tools to iteratively develop and test your patch:
-1. try_patch(diff) - Apply your unified diff to the source tree. Returns success or rejection errors.
-2. compile_target() - Rebuild the target with sanitizers. Returns success or compiler errors.
-3. run_crash_input() - Run the triggering input against the rebuilt binary. Returns "CRASH ELIMINATED" or ASAN output.
-
-Workflow: write a diff -> try_patch -> compile_target -> run_crash_input -> iterate if needed.
-The source tree resets before each try_patch call, so you can retry freely.
-When you are satisfied, include your final working diff in a ```diff fenced block in your last message.
-"""
 
 
 def _extract_crash_line(
@@ -327,12 +288,24 @@ def _make_run_crash_tool(
 
 
 def load_patching_dataset(
-    benchmark_dir: str, target: str | None = None, ready_only: bool = False
+    benchmark_dir: str,
+    target: str | None = None,
+    ready_only: bool = False,
+    seed: int | None = None,
 ) -> list[Sample]:
     """Load vulnerability records as Inspect-AI samples.
 
     Reads benchmark_dir/metadata.json, filters by target if given,
     and constructs one Sample per VulnerabilityRecord.
+
+    Pipeline order:
+      1. Filter by target (if provided)
+      2. Filter by ready_only (if True)
+      3. Shuffle with seed (if provided) — before any limit is applied
+         Note: inspect_eval(limit=N) selects the first N samples from
+         Task(dataset=...) in list order, so we must shuffle here rather
+         than relying on inspect_ai's sample_shuffle parameter, in order
+         to guarantee that --limit picks from the shuffled order.
     """
     bdir = Path(benchmark_dir)
     metadata_path = bdir / "metadata.json"
@@ -355,6 +328,9 @@ def load_patching_dataset(
             and r.reference_patch_path
             and r.vulnerable_source_paths
         ]
+
+    if seed is not None:
+        random.Random(seed).shuffle(records)
 
     samples: list[Sample] = []
     for record in records:
@@ -474,7 +450,9 @@ def patching_solver(
             ]
 
             # Inject system prompt
-            state = await system_message(BLUE_TEAM_SYSTEM_PROMPT)(state, generate)
+            state = await system_message(prompts.load("patching.system"))(
+                state, generate
+            )
 
             # Register tools and run the agentic loop
             state = await use_tools(tools)(state, generate)
@@ -565,6 +543,7 @@ def vulnerability_patching(
     targets_root: str = "targets",
     fuzzing_engine: str = "libfuzzer",
     ready_only: bool = False,
+    seed: int | None = None,
 ) -> Task:
     """Inspect-AI task: patch parser vulnerabilities given crash reports.
 
@@ -573,7 +552,9 @@ def vulnerability_patching(
         inspect eval tasks/patching.py -T benchmark_dir=benchmark -T target=libpng
         inspect eval tasks/patching.py -T benchmark_dir=benchmark -T fuzzing_engine=afl
     """
-    samples = load_patching_dataset(benchmark_dir, target, ready_only=ready_only)
+    samples = load_patching_dataset(
+        benchmark_dir, target, ready_only=ready_only, seed=seed
+    )
     if not samples:
         filter_msg = f" for target '{target}'" if target else ""
         raise ValueError(

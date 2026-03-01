@@ -32,37 +32,11 @@ from inspect_ai.scorer import (
 )
 from inspect_ai.solver import Solver, TaskState, generate, solver, system_message
 
+from parser_security_eval import prompts
 from parser_security_eval.models.vulnerability import (
     Severity,
     VulnerabilityRecord,
 )
-
-
-TRIAGE_SYSTEM_PROMPT = """\
-You are a security analyst tasked with triaging a crash found by a fuzzer.
-
-You will be given:
-1. A crash report from AddressSanitizer
-2. The triggering input
-3. Access to the parser source code
-
-Your goal:
-- Identify the root cause of the crash
-- Classify the vulnerability using CWE (e.g., CWE-416 for Use After Free)
-- Assess the severity (critical, high, medium, low)
-- Explain the vulnerability clearly
-
-You MUST output your analysis in the following JSON format (and nothing else after it):
-
-```json
-{
-  "cwe": "CWE-XXX",
-  "severity": "critical|high|medium|low",
-  "root_cause": "Brief description of the root cause",
-  "explanation": "Detailed explanation of the vulnerability"
-}
-```
-"""
 
 # CWE parent-child relationships for partial credit scoring.
 # Maps child CWE to its parent CWE(s). This is a subset covering
@@ -271,7 +245,7 @@ def triage_solver() -> Solver:
 
     async def solve(state: TaskState, generate_fn: Solver) -> TaskState:
         # Apply system message
-        state = await system_message(TRIAGE_SYSTEM_PROMPT)(state, generate_fn)
+        state = await system_message(prompts.load("triage.system"))(state, generate_fn)
         # Generate response
         state = await generate()(state, generate_fn)
         return state
@@ -370,26 +344,6 @@ def severity_scorer() -> Scorer:
     return score
 
 
-ROOT_CAUSE_GRADING_TEMPLATE = """\
-You are evaluating whether a security analyst correctly identified the root cause
-of a vulnerability.
-
-Ground truth root cause:
-{criterion}
-
-Analyst's root cause description:
-{answer}
-
-Does the analyst's description correctly identify the root cause?
-Consider: Is the core issue identified? Are the key technical details correct?
-Minor wording differences are acceptable.
-
-Grade as:
-- C (correct) if the root cause is essentially correct
-- I (incorrect) if the root cause is wrong or missing key details
-"""
-
-
 def root_cause_scorer() -> Scorer:
     """Score root cause description quality using model-graded comparison.
 
@@ -397,7 +351,7 @@ def root_cause_scorer() -> Scorer:
     the model's root cause description against the ground truth.
     """
     return model_graded_fact(
-        template=ROOT_CAUSE_GRADING_TEMPLATE,
+        template=prompts.load("triage.root_cause_grading"),
         instructions=(
             "Grade the answer as C or I based on whether it "
             "correctly identifies the root cause."
