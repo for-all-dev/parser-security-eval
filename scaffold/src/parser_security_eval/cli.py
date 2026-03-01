@@ -617,3 +617,83 @@ def memory_show(
     memory = load_memory(target, targets_dir=targets_root)
     ctx = memory_to_context(memory, max_tokens=max_tokens)
     typer.echo(ctx)
+
+
+@app.command()
+def preprocess(
+    target: str = typer.Argument(help="Parser target name (e.g. 'libpng')"),
+    entry_point: str | None = typer.Option(
+        None,
+        "--entry-point",
+        "-e",
+        help=(
+            "Entry-point function to focus on.  "
+            "Defaults to the first value in key_entry_points from metadata.yaml."
+        ),
+    ),
+    targets_root: Path = typer.Option(
+        Path("../targets"), help="Targets root directory"
+    ),
+    model: str = typer.Option(
+        "anthropic/claude-sonnet-4-6", help="Model to use for grammar extraction"
+    ),
+    force_refresh: bool = typer.Option(
+        False,
+        "--force-refresh",
+        help="Ignore cached results and re-run all extraction steps",
+    ),
+) -> None:
+    """Run the pre-processing pipeline for a parser target.
+
+    Extracts a call graph and input-format grammar, assembles them into a
+    HarnessContext, and outputs the result as JSON to stdout.  Results are
+    also cached in targets/<target>/preprocess/ for subsequent runs.
+
+    Example:
+        parser-security-eval preprocess libpng --entry-point png_read_png
+    """
+    import os
+
+    import yaml
+
+    from parser_security_eval.preprocess.context_builder import build_context
+
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+
+    target_dir = targets_root / target
+    if not target_dir.exists():
+        typer.echo(f"Error: target directory not found: {target_dir}", err=True)
+        raise typer.Exit(1)
+
+    metadata_path = target_dir / "metadata.yaml"
+    if not metadata_path.exists():
+        typer.echo(f"Error: no metadata.yaml in {target_dir}", err=True)
+        raise typer.Exit(1)
+
+    with open(metadata_path) as fh:
+        metadata = yaml.safe_load(fh)
+
+    # Resolve entry point
+    key_entry_points: list[str] = metadata.get("key_entry_points", [])
+    if entry_point is None:
+        if not key_entry_points:
+            typer.echo(
+                "Error: no --entry-point given and key_entry_points is empty in metadata.yaml",
+                err=True,
+            )
+            raise typer.Exit(1)
+        entry_point = key_entry_points[0]
+
+    # Set the model environment variable for inspect_ai.model.get_model()
+    os.environ.setdefault("INSPECT_EVAL_MODEL", model)
+
+    async def _run() -> str:
+        ctx = await build_context(
+            target_dir=target_dir,
+            entry_point=entry_point,  # type: ignore[arg-type]
+            force_refresh=force_refresh,
+        )
+        return ctx.model_dump_json(indent=2)
+
+    result_json = asyncio.run(_run())
+    typer.echo(result_json)
