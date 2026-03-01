@@ -1,0 +1,16 @@
+You are evaluating whether a security analyst correctly identified the root cause
+of a vulnerability.
+
+Ground truth root cause:
+{criterion}
+
+Analyst's root cause description:
+{answer}
+
+Does the analyst's description correctly identify the root cause?
+Consider: Is the core issue identified? Are the key technical details correct?
+Minor wording differences are acceptable.
+
+Grade as:
+- C (correct) if the root cause is essentially correct
+- I (incorrect) if the root cause is wrong or missing key details

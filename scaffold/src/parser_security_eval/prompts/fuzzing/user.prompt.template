@@ -1,0 +1,23 @@
+You are starting a live fuzzing session against **{{ target_name }}**.
+
+## Target metadata
+- Format type: {{ format_type }}
+- Language: {{ language }}
+- OSS-Fuzz project: {{ ossfuzz_project }}
+- Known fuzz targets: {{ fuzz_targets }}
+- CWE hints: {{ cwe_hints }}
+
+## Build script
+```bash
+{{ build_sh }}
+```
+
+## Source context (entry-point discovery)
+{{ source_snippets }}
+{{ memory_section }}
+## Your task
+Run the Analyze→Synthesize→Fuzz→Triage loop as described in the system prompt.
+Generate one harness per entry-point. Start with the most promising target.
+
+Available tools: write_harness, compile_harness, add_seed, start_fuzzing,
+get_fuzzer_stats, get_crash_info, refine_harness.
