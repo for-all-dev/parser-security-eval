@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+from enum import Enum
 from pathlib import Path
 
 import typer
@@ -23,6 +24,44 @@ from parser_security_eval.dataset.enrich import (
 )
 from parser_security_eval.dataset.ossfuzz import fetch_ossfuzz_bugs, parse_ossfuzz_bug
 from parser_security_eval.models.vulnerability import VulnerabilityRecord
+
+
+# ---------------------------------------------------------------------------
+# Enums for finite-choice CLI arguments
+# ---------------------------------------------------------------------------
+
+
+class TaskName(str, Enum):
+    """Evaluation task names."""
+
+    patching = "patching"
+    triage = "triage"
+    harness = "harness"
+
+
+class FuzzEngine(str, Enum):
+    """Supported fuzz engines."""
+
+    libfuzzer = "libfuzzer"
+    afl = "afl"
+    honggfuzz = "honggfuzz"
+
+
+class SanitizerType(str, Enum):
+    """Supported sanitizers."""
+
+    address = "address"
+    undefined = "undefined"
+    memory = "memory"
+
+
+class DataSource(str, Enum):
+    """Data sources for the curation pipeline."""
+
+    arvo = "arvo"
+    ossfuzz = "ossfuzz"
+    all = "all"
+
 
 app = typer.Typer(
     name="parser-security-eval", help="Parser security evaluation framework."
@@ -65,7 +104,7 @@ def _format_summary(summary: dict) -> str:
 
 
 def run_curation_pipeline(
-    source: str,
+    source: str | DataSource,
     output: Path,
     targets: list[str],
     cache_dir: Path,
@@ -160,7 +199,7 @@ def run_curation_pipeline(
 
 @app.command()
 def curate(
-    source: str = typer.Argument(
+    source: DataSource = typer.Argument(
         help="Data source: 'arvo', 'ossfuzz', or 'all' (both)"
     ),
     output: Path = typer.Option(
@@ -184,13 +223,9 @@ def curate(
     """
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
-    if source not in ("arvo", "ossfuzz", "all"):
-        typer.echo(f"Error: source must be 'arvo', 'ossfuzz', or 'all', got '{source}'")
-        raise typer.Exit(code=1)
-
     target_list = [t.strip() for t in targets.split(",") if t.strip()]
 
-    typer.echo(f"Curating from source={source} for targets={target_list}")
+    typer.echo(f"Curating from source={source.value} for targets={target_list}")
     typer.echo(f"Output directory: {output}")
 
     summary = run_curation_pipeline(
@@ -207,7 +242,7 @@ def curate(
 
 @app.command()
 def evaluate(
-    task: str = typer.Argument(help="Task: 'patching', 'triage', or 'harness'"),
+    task: TaskName = typer.Argument(help="Task: 'patching', 'triage', or 'harness'"),
     model: str = typer.Option("anthropic/claude-sonnet-4-6", help="Model to evaluate"),
     target: str | None = typer.Option(
         None, help="Parser target filter (e.g. 'libpng')"
@@ -218,8 +253,8 @@ def evaluate(
     targets_root: Path = typer.Option(
         Path("../targets"), help="Targets root directory (patching / harness)"
     ),
-    engine: str = typer.Option(
-        "libfuzzer", help="Fuzz engine: libfuzzer, afl, honggfuzz"
+    engine: FuzzEngine = typer.Option(
+        FuzzEngine.libfuzzer, help="Fuzz engine: libfuzzer, afl, honggfuzz"
     ),
     fuzz_duration: int = typer.Option(
         300, help="Fuzzer run duration in seconds (harness only)"
@@ -251,19 +286,19 @@ def evaluate(
             stacklevel=1,
         )
 
-    if task == "patching":
+    if task is TaskName.patching:
         from parser_security_eval.tasks.patching import vulnerability_patching
 
         inspect_task = vulnerability_patching(
             benchmark_dir=str(benchmark_dir),
             target=target,
             targets_root=str(targets_root),
-            fuzzing_engine=engine,
+            fuzzing_engine=engine.value,
             ready_only=ready_only,
             seed=seed,
         )
 
-    elif task == "triage":
+    elif task is TaskName.triage:
         from parser_security_eval.tasks.triage import crash_triage
 
         inspect_task = crash_triage(
@@ -272,7 +307,7 @@ def evaluate(
             ready_only=ready_only,
         )
 
-    elif task == "harness":
+    elif task is TaskName.harness:
         if target is None:
             typer.echo("Error: --target is required for 'harness' task", err=True)
             raise typer.Exit(1)
@@ -283,15 +318,8 @@ def evaluate(
             targets_dir=str(targets_root),
             target=target,
             fuzz_duration=fuzz_duration,
-            engine=engine,
+            engine=engine.value,
         )
-
-    else:
-        typer.echo(
-            f"Error: unknown task '{task}'. Choose 'patching', 'triage', or 'harness'.",
-            err=True,
-        )
-        raise typer.Exit(1)
 
     eval_kwargs: dict[str, object] = {"model": model, "limit": limit}
     if sample_id is not None:
@@ -312,11 +340,11 @@ def evaluate(
 @app.command()
 def build_target(
     target: str = typer.Argument(help="Parser target to build"),
-    sanitizer: str = typer.Option(
-        "address", help="Sanitizer: address, undefined, memory"
+    sanitizer: SanitizerType = typer.Option(
+        SanitizerType.address, help="Sanitizer: address, undefined, memory"
     ),
-    engine: str = typer.Option(
-        "libfuzzer", help="Fuzz engine: libfuzzer, afl, honggfuzz"
+    engine: FuzzEngine = typer.Option(
+        FuzzEngine.libfuzzer, help="Fuzz engine: libfuzzer, afl, honggfuzz"
     ),
     targets_root: Path = typer.Option(
         Path("../targets"), help="Targets root directory"
@@ -333,15 +361,17 @@ def build_target(
     config = SandboxConfig(
         target_name=target,
         target_dir=target_dir,
-        sanitizer=sanitizer,
-        engine=engine,
+        sanitizer=sanitizer.value,
+        engine=engine.value,
     )
 
     async def _run() -> bool:
         async with DockerSandbox(config) as sandbox:
             return await sandbox.build_target()
 
-    typer.echo(f"Building {target} (sanitizer={sanitizer}, engine={engine})...")
+    typer.echo(
+        f"Building {target} (sanitizer={sanitizer.value}, engine={engine.value})..."
+    )
     ok = asyncio.run(_run())
     if ok:
         typer.echo("Build succeeded.")
@@ -361,11 +391,11 @@ def verify(
     targets_root: Path = typer.Option(
         Path("../targets"), help="Targets root directory"
     ),
-    sanitizer: str = typer.Option(
-        "address", help="Sanitizer: address, undefined, memory"
+    sanitizer: SanitizerType = typer.Option(
+        SanitizerType.address, help="Sanitizer: address, undefined, memory"
     ),
-    engine: str = typer.Option(
-        "libfuzzer", help="Fuzz engine: libfuzzer, afl, honggfuzz"
+    engine: FuzzEngine = typer.Option(
+        FuzzEngine.libfuzzer, help="Fuzz engine: libfuzzer, afl, honggfuzz"
     ),
 ) -> None:
     """Verify a patch against a specific vulnerability."""
@@ -402,8 +432,8 @@ def verify(
     config = SandboxConfig(
         target_name=target,
         target_dir=target_dir,
-        sanitizer=sanitizer,
-        engine=engine,
+        sanitizer=sanitizer.value,
+        engine=engine.value,
     )
 
     async def _run():
@@ -413,8 +443,8 @@ def verify(
                 patch_diff=patch_diff,
                 triggering_input_path=triggering_input,
                 fuzz_target_binary=fuzz_binary,
-                sanitizer=sanitizer,
-                fuzzing_engine=engine,
+                sanitizer=sanitizer.value,
+                fuzzing_engine=engine.value,
             )
 
     typer.echo(f"Verifying patch for {vuln_id} ({target})...")
@@ -552,8 +582,8 @@ def enrich_dataset(
 @app.command()
 def fuzzing(
     target: str = typer.Option("libxml2", help="Parser target (e.g. 'libxml2')"),
-    engine: str = typer.Option(
-        "libfuzzer", help="Fuzz engine: libfuzzer, afl, honggfuzz"
+    engine: FuzzEngine = typer.Option(
+        FuzzEngine.libfuzzer, help="Fuzz engine: libfuzzer, afl, honggfuzz"
     ),
     max_rounds: int = typer.Option(3, help="Maximum fuzzing rounds for the agent"),
     round_duration: int = typer.Option(60, help="Default round duration in seconds"),
@@ -580,7 +610,7 @@ def fuzzing(
     inspect_task = live_fuzzing(
         targets_dir=str(targets_root),
         target=target,
-        engine=engine,
+        engine=engine.value,
         max_rounds=max_rounds,
         round_duration=round_duration,
     )
