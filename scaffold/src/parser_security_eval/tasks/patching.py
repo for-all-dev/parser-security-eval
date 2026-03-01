@@ -76,6 +76,10 @@ Workflow: write a diff -> try_patch -> compile_target -> run_crash_input -> iter
 If try_patch keeps failing, use read_source_file to inspect the actual file in the container.
 The source tree resets before each try_patch call, so you can retry freely.
 When you are satisfied, include your final working diff in a ```diff fenced block in your last message.
+
+IMPORTANT: Attempt a patch within the first 10 tool calls. Do not spend all your
+turns reading source files — read just enough to understand the crash site, then
+try a fix. You can always iterate if the first attempt is wrong.
 """
 
 
