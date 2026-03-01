@@ -1,12 +1,10 @@
 """Call graph extraction for C/C++ parser targets.
 
 Strategy:
-- Try ``cflow`` first if available on PATH.
-- Fall back to a grep/regex approach that finds function definitions and
-  call sites in .c/.cpp/.h files.
+- Use ``cflow`` (must be installed and available on PATH).
 
-In both cases the result is pruned to depth <= ``depth_limit`` hops from
-each entry point before being returned as a :class:`CallGraph`.
+The result is pruned to depth <= ``depth_limit`` hops from each entry
+point before being returned as a :class:`CallGraph`.
 """
 
 from __future__ import annotations
@@ -15,7 +13,6 @@ import logging
 import re
 import shutil
 import subprocess
-from collections import deque
 from pathlib import Path
 
 from pydantic import BaseModel
@@ -135,15 +132,23 @@ def _extract_via_cflow(
     source_dir: Path,
     entry_points: list[str],
     depth: int,
-) -> tuple[dict[str, FunctionNode], list[CallEdge]] | None:
-    """Try to run ``cflow`` and return parsed nodes/edges, or ``None`` on failure."""
+) -> tuple[dict[str, FunctionNode], list[CallEdge]]:
+    """Run ``cflow`` and return parsed nodes/edges.
+
+    Raises
+    ------
+    RuntimeError
+        If ``cflow`` is not found on PATH.
+    """
     if not shutil.which("cflow"):
-        logger.debug("cflow not found on PATH; falling back to grep extraction")
-        return None
+        raise RuntimeError(
+            "cflow not found on PATH. Install cflow (e.g. apt-get install cflow)"
+            " before running the pre-processing pipeline."
+        )
 
     c_files = list(source_dir.rglob("*.c")) + list(source_dir.rglob("*.cpp"))
     if not c_files:
-        return None
+        return {}, []
 
     all_nodes: dict[str, FunctionNode] = {}
     all_edges: list[CallEdge] = []
@@ -179,149 +184,7 @@ def _extract_via_cflow(
             if edge not in all_edges:
                 all_edges.append(edge)
 
-    return (all_nodes, all_edges) if all_nodes else None
-
-
-# ---------------------------------------------------------------------------
-# Grep/regex-based fallback
-# ---------------------------------------------------------------------------
-
-# Matches a C function definition (very approximate).
-# Catches patterns like:
-#   int xmlParseDocument(xmlDocPtr doc) {
-#   static void png_read_row(png_structrp png_ptr, ...) {
-_FUNC_DEF_RE = re.compile(
-    r"^(?:(?:static|inline|extern|const|unsigned|signed|long|short|void|int|char"
-    r"|float|double|size_t|ssize_t|uint\w*|int\w*)\s+)+"
-    r"(\w+)\s*\(([^)]*)\)\s*\{",
-    re.MULTILINE,
-)
-
-# Matches a call site: word followed by '('
-_CALL_SITE_RE = re.compile(r"\b(\w+)\s*\(")
-
-# Language keywords that look like function calls but are not
-_KEYWORDS = frozenset(
-    {
-        "if",
-        "for",
-        "while",
-        "switch",
-        "return",
-        "sizeof",
-        "typeof",
-        "alignof",
-        "do",
-        "else",
-        "case",
-        "default",
-        "goto",
-        "break",
-        "continue",
-    }
-)
-
-
-def _extract_via_grep(
-    source_dir: Path,
-    entry_points: list[str],
-    depth: int,
-) -> tuple[dict[str, FunctionNode], list[CallEdge]]:
-    """Regex-based extraction of function definitions and call sites.
-
-    This is an approximation: it does not handle macros, function pointers,
-    or forward declarations reliably.  It is good enough to give an LLM
-    useful structural context.
-    """
-    source_files = (
-        list(source_dir.rglob("*.c"))
-        + list(source_dir.rglob("*.cpp"))
-        + list(source_dir.rglob("*.h"))
-    )
-
-    # Map: function name -> FunctionNode
-    func_nodes: dict[str, FunctionNode] = {}
-    # Map: function name -> set of callee names
-    call_map: dict[str, set[str]] = {}
-
-    for src_file in source_files:
-        try:
-            text = src_file.read_text(errors="replace")
-        except OSError:
-            continue
-
-        rel_path = str(src_file.relative_to(source_dir))
-
-        for m in _FUNC_DEF_RE.finditer(text):
-            func_name = m.group(1)
-            params = m.group(2).strip()
-            if func_name in _KEYWORDS:
-                continue
-            line_no = text[: m.start()].count("\n") + 1
-            if func_name not in func_nodes:
-                func_nodes[func_name] = FunctionNode(
-                    name=func_name,
-                    signature=f"({params})",
-                    file=rel_path,
-                    line=line_no,
-                )
-
-            # Find calls within this function body.
-            # Approximate: find the brace block that starts at m.end()-1
-            body_start = m.end() - 1  # points at '{'
-            # Walk forward counting braces to find the closing '}'
-            depth_counter = 0
-            body_end = body_start
-            for i, ch in enumerate(text[body_start:], start=body_start):
-                if ch == "{":
-                    depth_counter += 1
-                elif ch == "}":
-                    depth_counter -= 1
-                    if depth_counter == 0:
-                        body_end = i
-                        break
-
-            body = text[body_start:body_end]
-            callees: set[str] = set()
-            for cm in _CALL_SITE_RE.finditer(body):
-                callee = cm.group(1)
-                if callee not in _KEYWORDS and callee != func_name:
-                    callees.add(callee)
-
-            if func_name not in call_map:
-                call_map[func_name] = set()
-            call_map[func_name].update(callees)
-
-    # BFS from each entry point, limited to *depth* hops
-    visited_funcs: set[str] = set()
-    edges: list[CallEdge] = []
-
-    queue: deque[tuple[str, int]] = deque()
-    for ep in entry_points:
-        queue.append((ep, 0))
-        visited_funcs.add(ep)
-        # Ensure entry point has a node even if not defined in source
-        if ep not in func_nodes:
-            func_nodes[ep] = FunctionNode(name=ep, signature="(?)", file="", line=None)
-
-    while queue:
-        current, current_depth = queue.popleft()
-        if current_depth >= depth:
-            continue
-        for callee in call_map.get(current, set()):
-            edge = CallEdge(caller=current, callee=callee)
-            if edge not in edges:
-                edges.append(edge)
-            if callee not in visited_funcs:
-                visited_funcs.add(callee)
-                queue.append((callee, current_depth + 1))
-
-    # Only keep nodes reachable from entry points
-    reachable_nodes = {
-        name: node for name, node in func_nodes.items() if name in visited_funcs
-    }
-
-    return reachable_nodes, edges
+    return all_nodes, all_edges
 
 
 # ---------------------------------------------------------------------------
@@ -335,9 +198,7 @@ def extract_callgraph(
     depth: int = 5,
     target_name: str = "",
 ) -> CallGraph:
-    """Extract a call graph from C/C++ source files.
-
-    Tries ``cflow`` first; falls back to a regex-based approach.
+    """Extract a call graph from C/C++ source files using ``cflow``.
 
     Parameters
     ----------
@@ -355,21 +216,19 @@ def extract_callgraph(
     -------
     CallGraph
         The extracted call graph, pruned to *depth* hops.
+
+    Raises
+    ------
+    RuntimeError
+        If ``cflow`` is not found on PATH.
+    ValueError
+        If *entry_points* is empty.
     """
     if not entry_points:
         raise ValueError("entry_points must not be empty")
 
-    result = _extract_via_cflow(source_dir, entry_points, depth)
-    if result is None:
-        logger.info(
-            "Using grep-based call graph extraction for %s", target_name or source_dir
-        )
-        nodes_dict, edges = _extract_via_grep(source_dir, entry_points, depth)
-    else:
-        nodes_dict, edges = result
-        logger.info(
-            "Used cflow for call graph extraction of %s", target_name or source_dir
-        )
+    nodes_dict, edges = _extract_via_cflow(source_dir, entry_points, depth)
+    logger.info("Used cflow for call graph extraction of %s", target_name or source_dir)
 
     return CallGraph(
         target=target_name or str(source_dir),
