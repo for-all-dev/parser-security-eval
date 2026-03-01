@@ -16,7 +16,7 @@
 
 FROM gcr.io/oss-fuzz-base/base-builder
 
-RUN apt-get update && apt-get install -y make autoconf automake libtool
+RUN apt-get update && apt-get install -y make autoconf automake libtool cflow
 
 # Full clone so we can checkout vulnerable commits.
 RUN git clone https://github.com/madler/zlib /src/zlib

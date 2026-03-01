@@ -19,7 +19,7 @@
 
 FROM gcr.io/oss-fuzz-base/base-builder
 
-RUN apt-get update && apt-get install -y make yasm cmake
+RUN apt-get update && apt-get install -y make yasm cmake cflow
 
 # Clone the libjpeg-turbo fuzz scripts and the main branch of the library
 # Full clone of libjpeg-turbo so we can checkout vulnerable commits.

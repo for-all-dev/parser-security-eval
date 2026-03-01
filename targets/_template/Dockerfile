@@ -6,6 +6,9 @@
 #
 FROM gcr.io/oss-fuzz-base/base-builder
 
+# Install cflow for call graph extraction in the pre-processing pipeline
+RUN apt-get update && apt-get install -y cflow
+
 # Install target-specific dependencies
 # RUN apt-get update && apt-get install -y <packages>
 

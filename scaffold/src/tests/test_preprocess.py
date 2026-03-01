@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import json
+import subprocess
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -48,11 +49,35 @@ void cleanup(void *ptr) {
 }
 """
 
+# Synthetic cflow output for _MINIMAL_C with entry point "parse_entry"
+_CFLOW_MINIMAL = """\
+parse_entry(data, size) <parser.c:8>:
+    helper(buf, len) <parser.c:3>:
+"""
+
+# Synthetic cflow output for the deep chain (a->b->c->d->e->f)
+_CFLOW_DEEP = """\
+a() <parser.c:6>:
+    b() <parser.c:5>:
+        c() <parser.c:4>:
+            d() <parser.c:3>:
+                e() <parser.c:2>:
+                    f() <parser.c:1>
+"""
+
 
 def _make_source_dir(tmp_path: Path, c_source: str = _MINIMAL_C) -> Path:
     """Write a minimal C file into *tmp_path* and return the directory."""
     (tmp_path / "parser.c").write_text(c_source)
     return tmp_path
+
+
+def _mock_cflow_result(stdout: str) -> MagicMock:
+    """Return a mock CompletedProcess whose stdout is *stdout*."""
+    result = MagicMock(spec=subprocess.CompletedProcess)
+    result.returncode = 0
+    result.stdout = stdout
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -63,14 +88,22 @@ def _make_source_dir(tmp_path: Path, c_source: str = _MINIMAL_C) -> Path:
 class TestExtractCallgraph:
     def test_finds_entry_point_node(self, tmp_path: Path) -> None:
         src = _make_source_dir(tmp_path)
-        cg = extract_callgraph(src, entry_points=["parse_entry"], depth=5)
+        with (
+            patch("shutil.which", return_value="/usr/bin/cflow"),
+            patch("subprocess.run", return_value=_mock_cflow_result(_CFLOW_MINIMAL)),
+        ):
+            cg = extract_callgraph(src, entry_points=["parse_entry"], depth=5)
         assert cg.target or cg.target == str(src)
         func_names = {n.name for n in cg.nodes}
         assert "parse_entry" in func_names
 
     def test_finds_callee_edge(self, tmp_path: Path) -> None:
         src = _make_source_dir(tmp_path)
-        cg = extract_callgraph(src, entry_points=["parse_entry"], depth=5)
+        with (
+            patch("shutil.which", return_value="/usr/bin/cflow"),
+            patch("subprocess.run", return_value=_mock_cflow_result(_CFLOW_MINIMAL)),
+        ):
+            cg = extract_callgraph(src, entry_points=["parse_entry"], depth=5)
         callee_names = {e.callee for e in cg.edges if e.caller == "parse_entry"}
         # helper is called from parse_entry
         assert "helper" in callee_names
@@ -86,7 +119,11 @@ int b(void) { return c(); }
 int a(void) { return b(); }
 """
         src = _make_source_dir(tmp_path, deep_c)
-        cg = extract_callgraph(src, entry_points=["a"], depth=3)
+        with (
+            patch("shutil.which", return_value="/usr/bin/cflow"),
+            patch("subprocess.run", return_value=_mock_cflow_result(_CFLOW_DEEP)),
+        ):
+            cg = extract_callgraph(src, entry_points=["a"], depth=3)
         # At depth=3 we should see: a->b, b->c, c->d but NOT d->e or e->f
         callers = {e.caller for e in cg.edges}
         assert "a" in callers
@@ -96,8 +133,9 @@ int a(void) { return b(); }
         assert "d" not in callers
 
     def test_empty_source_dir(self, tmp_path: Path) -> None:
-        # No C files — should still return a valid (possibly empty) CallGraph
-        cg = extract_callgraph(tmp_path, entry_points=["missing_fn"], depth=5)
+        # No C files — cflow not invoked; should return a valid empty CallGraph
+        with patch("shutil.which", return_value="/usr/bin/cflow"):
+            cg = extract_callgraph(tmp_path, entry_points=["missing_fn"], depth=5)
         assert isinstance(cg, CallGraph)
         assert cg.entry_points == ["missing_fn"]
 
@@ -105,14 +143,32 @@ int a(void) { return b(); }
         with pytest.raises(ValueError, match="entry_points must not be empty"):
             extract_callgraph(tmp_path, entry_points=[], depth=5)
 
+    def test_raises_when_cflow_missing(self, tmp_path: Path) -> None:
+        src = _make_source_dir(tmp_path)
+        with (
+            patch("shutil.which", return_value=None),
+            pytest.raises(RuntimeError, match="cflow not found on PATH"),
+        ):
+            extract_callgraph(src, entry_points=["parse_entry"], depth=5)
+
     def test_target_name_stored(self, tmp_path: Path) -> None:
         src = _make_source_dir(tmp_path)
-        cg = extract_callgraph(src, entry_points=["parse_entry"], target_name="mylib")
+        with (
+            patch("shutil.which", return_value="/usr/bin/cflow"),
+            patch("subprocess.run", return_value=_mock_cflow_result(_CFLOW_MINIMAL)),
+        ):
+            cg = extract_callgraph(
+                src, entry_points=["parse_entry"], target_name="mylib"
+            )
         assert cg.target == "mylib"
 
     def test_callgraph_serialises_roundtrip(self, tmp_path: Path) -> None:
         src = _make_source_dir(tmp_path)
-        cg = extract_callgraph(src, entry_points=["parse_entry"], depth=5)
+        with (
+            patch("shutil.which", return_value="/usr/bin/cflow"),
+            patch("subprocess.run", return_value=_mock_cflow_result(_CFLOW_MINIMAL)),
+        ):
+            cg = extract_callgraph(src, entry_points=["parse_entry"], depth=5)
         restored = CallGraph.model_validate_json(cg.model_dump_json())
         assert restored.entry_points == cg.entry_points
         assert len(restored.nodes) == len(cg.nodes)

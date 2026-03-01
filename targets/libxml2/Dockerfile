@@ -25,6 +25,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         make autoconf libtool pkg-config \
         zlib1g-dev liblzma-dev \
+        cflow \
         $EXTRA_PACKAGES
 # Build requires automake 1.16.3
 RUN curl -LO http://mirrors.kernel.org/ubuntu/pool/main/a/automake-1.16/automake_1.16.5-1.3_all.deb && \
