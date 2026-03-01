@@ -415,6 +415,43 @@ def verify(
 
 
 @app.command()
+def triage(
+    crashes_dir: Path = typer.Argument(help="Directory containing crash input files"),
+    target: str = typer.Option(
+        "unknown", help="Human-readable name for the fuzzing target"
+    ),
+    container: str | None = typer.Option(
+        None, help="Docker container ID to run CASR inside"
+    ),
+    binary_path: str | None = typer.Option(
+        None, help="Path to the sanitized binary for casr-san"
+    ),
+) -> None:
+    """Triage crash files using CASR (or stack-hash fallback).
+
+    Analyzes crash files in CRASHES_DIR, deduplicates them into clusters,
+    and prints a summary of exploitability classifications.
+    """
+    from parser_security_eval.triage.casr import CASRTriager
+
+    if not crashes_dir.exists():
+        typer.echo(f"Error: crashes directory not found: {crashes_dir}", err=True)
+        raise typer.Exit(1)
+
+    triager = CASRTriager(container_id=container)
+
+    result = asyncio.run(
+        triager.triage_crashes(
+            crashes_dir=crashes_dir,
+            target_name=target,
+            binary_path=binary_path,
+        )
+    )
+
+    typer.echo(result.summary())
+
+
+@app.command()
 def fetch_artifacts(
     benchmark_dir: Path = typer.Option(
         Path("../benchmark"), help="Benchmark directory with metadata.json"
