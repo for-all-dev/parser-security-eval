@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}{{ experiment.name | default('Experiment Results') }}{% endblock %} — Parser Security Eval</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <style>
+    /* ── Reset & base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           #0b0f1a;
+      --bg-nav:       #0d1224;
+      --bg-card:      #131929;
+      --bg-card-2:    #1a2035;
+      --border:       #252e45;
+      --border-light: #2e3a54;
+
+      --text:         #e2e8f0;
+      --text-muted:   #8a9bb8;
+      --text-dim:     #4e617a;
+
+      --accent:       #4f8ef7;   /* blue */
+      --accent-teal:  #2dd4bf;
+      --accent-green: #34d399;
+      --accent-red:   #f87171;
+      --accent-amber: #fbbf24;
+      --accent-purple:#a78bfa;
+
+      --radius:  6px;
+      --radius-lg: 10px;
+      --shadow:  0 4px 24px rgba(0,0,0,.5);
+      --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── Nav ─────────────────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--bg-nav);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex; align-items: center; gap: 2rem;
+      height: 56px;
+      backdrop-filter: blur(8px);
+    }
+
+    .nav-brand {
+      font-size: .85rem; font-weight: 600; letter-spacing: .05em;
+      color: var(--text-muted); text-decoration: none; text-transform: uppercase;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .nav-brand .dot { width: 8px; height: 8px; border-radius: 50%;
+                      background: var(--accent); display: inline-block; }
+
+    .nav-links { display: flex; gap: 0; margin-left: auto; }
+    .nav-links a {
+      color: var(--text-muted); text-decoration: none;
+      font-size: .88rem; padding: .4rem 1rem;
+      border-radius: var(--radius); transition: color .15s, background .15s;
+    }
+    .nav-links a:hover { color: var(--text); background: var(--bg-card-2); }
+    .nav-links a.active { color: var(--accent); font-weight: 500; }
+
+    /* ── Layout ──────────────────────────────────────────────── */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+    main { padding: 2.5rem 0 5rem; }
+
+    /* ── Hero ────────────────────────────────────────────────── */
+    .hero {
+      padding: 3.5rem 0 2.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2.5rem;
+    }
+    .hero-label {
+      font-size: .75rem; letter-spacing: .12em; text-transform: uppercase;
+      color: var(--accent); font-weight: 600; margin-bottom: .75rem;
+    }
+    .hero h1 {
+      font-size: 2.4rem; font-weight: 700; line-height: 1.15;
+      color: var(--text); margin-bottom: .75rem;
+    }
+    .hero p {
+      font-size: 1.05rem; color: var(--text-muted); max-width: 680px;
+      line-height: 1.7;
+    }
+    .hero-meta {
+      margin-top: 1.25rem; display: flex; flex-wrap: wrap; gap: .75rem;
+    }
+    .badge {
+      font-size: .78rem; padding: .25rem .7rem;
+      border-radius: 100px; font-weight: 500;
+      background: var(--bg-card-2); border: 1px solid var(--border-light);
+      color: var(--text-muted);
+    }
+    .badge.issue { color: var(--accent); border-color: var(--accent); }
+    .badge.example { color: var(--accent-amber); border-color: var(--accent-amber); }
+
+    /* ── Stats grid ──────────────────────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+    }
+    .stat-card .label {
+      font-size: .75rem; color: var(--text-dim);
+      text-transform: uppercase; letter-spacing: .08em; font-weight: 500;
+      margin-bottom: .4rem;
+    }
+    .stat-card .value {
+      font-size: 2rem; font-weight: 700; line-height: 1.1; color: var(--text);
+    }
+    .stat-card .sub { font-size: .82rem; color: var(--text-muted); margin-top: .25rem; }
+    .stat-card.accent-blue  { border-color: rgba(79,142,247,.35); }
+    .stat-card.accent-teal  { border-color: rgba(45,212,191,.35); }
+    .stat-card.accent-green { border-color: rgba(52,211,153,.35); }
+    .stat-card.accent-amber { border-color: rgba(251,191,36,.35); }
+    .stat-card.accent-blue  .value { color: var(--accent); }
+    .stat-card.accent-teal  .value { color: var(--accent-teal); }
+    .stat-card.accent-green .value { color: var(--accent-green); }
+    .stat-card.accent-amber .value { color: var(--accent-amber); }
+
+    /* ── Cards / sections ────────────────────────────────────── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .card-title {
+      font-size: 1rem; font-weight: 600; color: var(--text);
+      margin-bottom: 1.25rem; padding-bottom: .75rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .card-title .icon { font-size: 1rem; opacity: .7; }
+
+    .section-title {
+      font-size: 1.25rem; font-weight: 600; color: var(--text);
+      margin: 2.5rem 0 1rem;
+    }
+
+    /* ── Charts ──────────────────────────────────────────────── */
+    .chart-wrap {
+      position: relative; width: 100%;
+      background: var(--bg-card-2);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    .chart-wrap canvas { max-height: 340px; }
+    .chart-wrap.tall canvas { max-height: 420px; }
+    .chart-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    @media (max-width: 800px) { .chart-grid-2 { grid-template-columns: 1fr; } }
+
+    /* ── Table ───────────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; border-radius: var(--radius); }
+    table {
+      width: 100%; border-collapse: collapse; font-size: .875rem;
+    }
+    thead th {
+      padding: .6rem 1rem; text-align: left;
+      background: var(--bg-card-2);
+      color: var(--text-muted); font-size: .75rem;
+      text-transform: uppercase; letter-spacing: .07em; font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer; user-select: none; white-space: nowrap;
+    }
+    thead th:hover { color: var(--text); }
+    thead th::after { content: " ⇅"; opacity: .3; font-size: .7rem; }
+    thead th.sort-asc::after  { content: " ↑"; opacity: .8; color: var(--accent); }
+    thead th.sort-desc::after { content: " ↓"; opacity: .8; color: var(--accent); }
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background .1s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--bg-card-2); }
+    td { padding: .6rem 1rem; color: var(--text); }
+    td.mono { font-family: var(--font-mono); font-size: .82rem; color: var(--text-muted); }
+    td.num { text-align: right; font-family: var(--font-mono); font-size: .85rem; }
+    .pill {
+      display: inline-block; padding: .15rem .55rem;
+      border-radius: 100px; font-size: .72rem; font-weight: 500;
+    }
+    .pill-blue   { background: rgba(79,142,247,.15); color: var(--accent); }
+    .pill-teal   { background: rgba(45,212,191,.15); color: var(--accent-teal); }
+    .pill-amber  { background: rgba(251,191,36,.15); color: var(--accent-amber); }
+    .pill-dim    { background: rgba(138,155,184,.1); color: var(--text-muted); }
+    .pill-red    { background: rgba(248,113,113,.15); color: var(--accent-red); }
+    .pill-green  { background: rgba(52,211,153,.15); color: var(--accent-green); }
+
+    /* ── Prose (markdown content) ────────────────────────────── */
+    .prose { color: var(--text); line-height: 1.75; }
+    .prose h1 { font-size: 1.6rem; font-weight: 700; margin: 2rem 0 .75rem; color: var(--text); }
+    .prose h2 { font-size: 1.25rem; font-weight: 600; margin: 1.75rem 0 .6rem; color: var(--text); padding-bottom: .4rem; border-bottom: 1px solid var(--border); }
+    .prose h3 { font-size: 1.05rem; font-weight: 600; margin: 1.5rem 0 .5rem; color: var(--text); }
+    .prose p { margin-bottom: 1rem; }
+    .prose ul, .prose ol { margin: .75rem 0 1rem 1.5rem; }
+    .prose li { margin-bottom: .35rem; }
+    .prose blockquote {
+      border-left: 3px solid var(--accent);
+      margin: 1rem 0; padding: .5rem 1rem;
+      color: var(--text-muted); font-style: italic;
+      background: var(--bg-card-2); border-radius: 0 var(--radius) var(--radius) 0;
+    }
+    .prose strong { color: var(--text); }
+    .prose code {
+      font-family: var(--font-mono); font-size: .85em;
+      background: var(--bg-card-2); border: 1px solid var(--border);
+      padding: .1em .35em; border-radius: 3px; color: var(--accent-teal);
+    }
+    .prose pre {
+      background: var(--bg-card-2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1rem 1.25rem;
+      overflow-x: auto; margin: 1rem 0;
+    }
+    .prose pre code { background: none; border: none; padding: 0; font-size: .85rem; color: var(--text-muted); }
+    .prose table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: .88rem; }
+    .prose thead th { background: var(--bg-card-2); padding: .5rem .75rem; text-align: left; border-bottom: 1px solid var(--border); color: var(--text-muted); font-size: .8rem; letter-spacing: .05em; text-transform: uppercase; }
+    .prose tbody td { padding: .5rem .75rem; border-bottom: 1px solid var(--border); }
+    .prose tbody tr:last-child td { border-bottom: none; }
+    .prose tbody tr:hover { background: var(--bg-card-2); }
+
+    /* ── Example data banner ─────────────────────────────────── */
+    .example-banner {
+      background: rgba(251,191,36,.08);
+      border: 1px solid rgba(251,191,36,.3);
+      border-radius: var(--radius);
+      padding: .75rem 1rem;
+      font-size: .88rem; color: var(--accent-amber);
+      margin-bottom: 1.5rem;
+      display: flex; align-items: center; gap: .5rem;
+    }
+
+    /* ── Footer ──────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem 2rem;
+      text-align: center;
+      font-size: .8rem; color: var(--text-dim);
+    }
+
+    /* ── Tabs ────────────────────────────────────────────────── */
+    .tabs { display: flex; gap: .25rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+    .tab-btn {
+      background: var(--bg-card-2); border: 1px solid var(--border);
+      color: var(--text-muted); padding: .4rem 1rem;
+      border-radius: var(--radius); font-size: .85rem; cursor: pointer;
+      transition: all .15s; font-family: var(--font);
+    }
+    .tab-btn:hover, .tab-btn.active {
+      background: var(--accent); border-color: var(--accent);
+      color: white;
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="index.html">
+    <span class="dot"></span> Parser Security Eval
+  </a>
+  <div class="nav-links">
+    {% for page in pages %}
+    <a href="{{ page.href }}"
+       class="{{ 'active' if current_page == page.id else '' }}">{{ page.title }}</a>
+    {% endfor %}
+  </div>
+</nav>
+
+<main>
+  <div class="container">
+    {% if is_example %}
+    <div class="example-banner">
+      ⚠ Showing <strong>example data</strong>. Drop real experiment JSON/TOML into
+      <code>comms/site/data/</code> and run <code>uv run python build.py</code> to update.
+    </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    Parser Security Eval ·
+    {% if experiment.issue %}
+    <a href="https://github.com/for-all-dev/parser-security-eval/issues/{{ experiment.issue }}"
+       style="color:var(--accent);text-decoration:none">Issue #{{ experiment.issue }}</a> ·
+    {% endif %}
+    {% if experiment.date %}{{ experiment.date }} · {% endif %}
+    Built with parser-security-eval site generator
+  </div>
+</footer>
+
+<script>
+// Shared Chart.js defaults
+Chart.defaults.color = '#8a9bb8';
+Chart.defaults.borderColor = '#252e45';
+Chart.defaults.font.family = "system-ui, -apple-system, 'Segoe UI', sans-serif";
+Chart.defaults.font.size = 12;
+
+// Simple table sort
+document.querySelectorAll('thead th[data-col]').forEach(th => {
+  th.addEventListener('click', () => {
+    const table = th.closest('table');
+    const col = parseInt(th.dataset.col);
+    const asc = th.classList.contains('sort-asc') ? -1 : 1;
+    table.querySelectorAll('thead th').forEach(t => {
+      t.classList.remove('sort-asc', 'sort-desc');
+    });
+    th.classList.add(asc === 1 ? 'sort-asc' : 'sort-desc');
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    rows.sort((a, b) => {
+      const av = a.cells[col]?.dataset.val ?? a.cells[col]?.textContent ?? '';
+      const bv = b.cells[col]?.dataset.val ?? b.cells[col]?.textContent ?? '';
+      const an = parseFloat(av), bn = parseFloat(bv);
+      if (!isNaN(an) && !isNaN(bn)) return asc * (an - bn);
+      return asc * av.localeCompare(bv);
+    });
+    rows.forEach(r => tbody.appendChild(r));
+  });
+});
+
+// Tab switching
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const group = btn.dataset.group;
+    document.querySelectorAll(`.tab-btn[data-group="${group}"]`)
+            .forEach(b => b.classList.remove('active'));
+    document.querySelectorAll(`.tab-panel[data-group="${group}"]`)
+            .forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.target)?.classList.add('active');
+  });
+});
+</script>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,153 @@
+{% extends "base.html.j2" %}
+{% block title %}Overview{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-label">Experiment #{{ experiment.issue | default('') }}</div>
+  <h1>{{ experiment.name | default('Parser Security Eval Results') }}</h1>
+  {% if experiment.description %}
+  <p>{{ experiment.description }}</p>
+  {% endif %}
+  <div class="hero-meta">
+    {% if experiment.date %}<span class="badge">{{ experiment.date }}</span>{% endif %}
+    {% if experiment.issue %}<span class="badge issue"># {{ experiment.issue }}</span>{% endif %}
+    {% for t in (experiment.targets or []) %}<span class="badge">{{ t }}</span>{% endfor %}
+    {% if is_example %}<span class="badge example">example data</span>{% endif %}
+  </div>
+</div>
+
+<!-- Key stats -->
+{% if stats %}
+<div class="stats-grid">
+  <div class="stat-card accent-blue">
+    <div class="label">Total Runs</div>
+    <div class="value">{{ stats.total_runs }}</div>
+    <div class="sub">across {{ (stats.targets or [])|length }} targets</div>
+  </div>
+  <div class="stat-card accent-red">
+    <div class="label">Unique Crashes</div>
+    <div class="value">{{ stats.total_crashes }}</div>
+    <div class="sub">all AI conditions combined</div>
+  </div>
+  {% if stats.min_ttfc_minutes is not none %}
+  <div class="stat-card accent-teal">
+    <div class="label">Fastest First Crash</div>
+    <div class="value">{{ stats.min_ttfc_minutes }}<span style="font-size:1.1rem;color:var(--text-muted)"> min</span></div>
+    <div class="sub">best single run</div>
+  </div>
+  {% endif %}
+  {% if stats.best_config %}
+  <div class="stat-card accent-green">
+    <div class="label">Best Crash Rate</div>
+    <div class="value">{{ "%.2f"|format(stats.best_config.rate) }}<span style="font-size:.9rem;color:var(--text-muted)"> / cpu-hr</span></div>
+    <div class="sub">{{ stats.best_config.target }} · {{ stats.best_config.model.replace("claude-","").replace("-4-6","") }}</div>
+  </div>
+  {% endif %}
+  <div class="stat-card">
+    <div class="label">Models Tested</div>
+    <div class="value">{{ (stats.models or [])|length }}</div>
+    <div class="sub">{{ (stats.models or [])|join(', ') | truncate(40) }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Conditions</div>
+    <div class="value">{{ (stats.conditions or [])|length }}</div>
+    <div class="sub">incl. baselines</div>
+  </div>
+</div>
+
+<!-- Quick crash-rate chart -->
+{% if stats.crash_rate_chart %}
+<div class="card">
+  <div class="card-title"><span class="icon">📊</span> Crashes per CPU-Hour — Overview</div>
+  <div class="chart-wrap">
+    <canvas id="overviewChart"></canvas>
+  </div>
+</div>
+{% endif %}
+
+<!-- Cycle comparison -->
+{% if stats.cycle_chart %}
+<div class="card">
+  <div class="card-title"><span class="icon">⏱</span> Cycle Condition: 30-min vs 2-hr Continuous</div>
+  <p style="color:var(--text-muted);font-size:.88rem;margin-bottom:1rem">
+    Mean crashes/CPU-hour across all targets, per model.
+    The literature predicts 30-min cycles win; this chart shows by how much.
+  </p>
+  <div class="chart-wrap" style="max-width:560px">
+    <canvas id="cycleChart"></canvas>
+  </div>
+</div>
+{% endif %}
+{% endif %}
+
+<!-- Content pages -->
+{% for key, page in content.items() %}
+<div class="card">
+  <div class="card-title"><span class="icon">📄</span> {{ page.title }}</div>
+  <div class="prose">{{ page.html | safe }}</div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+{% if stats.crash_rate_chart %}
+(function() {
+  const data = {{ stats.crash_rate_chart | tojson }};
+  new Chart(document.getElementById('overviewChart'), {
+    type: 'bar',
+    data: data,
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(3)} crashes/cpu-hr`
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(37,46,69,.6)' } },
+        y: {
+          title: { display: true, text: 'Crashes / CPU-hour', color: '#8a9bb8' },
+          grid: { color: 'rgba(37,46,69,.6)' },
+          beginAtZero: true
+        }
+      }
+    }
+  });
+})();
+{% endif %}
+
+{% if stats.cycle_chart %}
+(function() {
+  const data = {{ stats.cycle_chart | tojson }};
+  new Chart(document.getElementById('cycleChart'), {
+    type: 'bar',
+    data: data,
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(3)} crashes/cpu-hr`
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(37,46,69,.6)' } },
+        y: {
+          title: { display: true, text: 'Crashes / CPU-hour', color: '#8a9bb8' },
+          grid: { color: 'rgba(37,46,69,.6)' },
+          beginAtZero: true
+        }
+      }
+    }
+  });
+})();
+{% endif %}
+</script>
+{% endblock %}

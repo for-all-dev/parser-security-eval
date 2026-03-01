@@ -1,0 +1,243 @@
+{% extends "base.html.j2" %}
+{% block title %}Coverage{% endblock %}
+
+{% block content %}
+<div class="hero" style="padding-top:2rem">
+  <div class="hero-label">Experiment #{{ experiment.issue | default('') }}</div>
+  <h1>Coverage &amp; Crash Timelines</h1>
+  <p>Coverage growth and cumulative crash discovery over time, per target.
+     Step functions in crash charts highlight the moment each new crash was found.</p>
+</div>
+
+{% if stats and stats.timeline_chart %}
+
+{% set targets = stats.targets or [] %}
+
+<!-- Target tabs -->
+<div class="tabs" id="targetTabs">
+  {% for target in targets %}
+  <button class="tab-btn {{ 'active' if loop.first else '' }}"
+          data-group="target"
+          data-target="panel-{{ target }}"
+          onclick="switchTarget('{{ target }}')">
+    {{ target }}
+  </button>
+  {% endfor %}
+</div>
+
+{% for target in targets %}
+{% set tc = stats.timeline_chart.get(target, {}) %}
+<div id="panel-{{ target }}" class="tab-panel {{ 'active' if loop.first else '' }}"
+     data-group="target">
+
+  <div class="chart-grid-2">
+    <!-- Coverage chart -->
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title"><span class="icon">📈</span> {{ target }} — Coverage % over Time</div>
+      <div class="chart-wrap tall">
+        <canvas id="cov-{{ target }}"></canvas>
+      </div>
+    </div>
+
+    <!-- Crash chart -->
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title"><span class="icon">💥</span> {{ target }} — Crashes over Time</div>
+      <div class="chart-wrap tall">
+        <canvas id="crash-{{ target }}"></canvas>
+      </div>
+    </div>
+  </div>
+
+  {% if stats.table_rows %}
+  <!-- Per-target mini-table -->
+  <div class="card" style="margin-top:1.5rem">
+    <div class="card-title"><span class="icon">📋</span> {{ target }} — Run Summary</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Condition</th>
+            <th>Crashes</th>
+            <th>Coverage %</th>
+            <th>Time→1st (min)</th>
+            <th>Compile #</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in stats.table_rows if row.target == target %}
+          <tr>
+            <td style="font-size:.82rem">
+              {% if row.model == '—' %}
+                <span class="pill pill-dim">baseline</span>
+              {% else %}{{ row.model }}{% endif %}
+            </td>
+            <td>
+              {% if row.condition == '30min-cycles' %}
+                <span class="pill pill-teal">30-min cycles</span>
+              {% elif row.condition == '2hr-continuous' %}
+                <span class="pill pill-amber">2-hr cont.</span>
+              {% elif row.condition == 'oss-fuzz-baseline' %}
+                <span class="pill pill-dim">OSS-Fuzz</span>
+              {% else %}
+                <span class="pill pill-dim">{{ row.condition }}</span>
+              {% endif %}
+            </td>
+            <td class="num">
+              {% if row.crashes > 0 %}
+                <span style="color:var(--accent-red);font-weight:600">{{ row.crashes }}</span>
+              {% else %}<span style="color:var(--text-dim)">0</span>{% endif %}
+            </td>
+            <td class="num">
+              {% if row.coverage_pct != '' %}{{ "%.1f"|format(row.coverage_pct) }}%{% else %}—{% endif %}
+            </td>
+            <td class="num">{{ row.ttfc_minutes }}</td>
+            <td class="num">
+              {% if row.compile_attempts != '' %}{{ row.compile_attempts }}{% else %}—{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endfor %}
+
+<!-- Time-to-first-crash comparison -->
+{% set ttfc_rows = [] %}
+{% for row in (stats.table_rows or []) if row.ttfc_minutes != '—' %}
+  {% if ttfc_rows.append(row) %}{% endif %}
+{% endfor %}
+{% if ttfc_rows %}
+<div class="card" style="margin-top:1.5rem">
+  <div class="card-title"><span class="icon">⚡</span> Time to First Crash — All Configurations</div>
+  <p style="color:var(--text-muted);font-size:.88rem;margin-bottom:1rem">
+    Lower is better. Configurations that found no crash are omitted.
+  </p>
+  <div class="chart-wrap">
+    <canvas id="ttfcChart"></canvas>
+  </div>
+</div>
+{% endif %}
+
+{% else %}
+<div class="card">
+  <p style="color:var(--text-muted)">No timeline data available. Add runs with
+     <code>timeline</code> arrays to your experiment JSON/TOML files.</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+const lineOpts = (yLabel) => ({
+  responsive: true,
+  plugins: { legend: { position: 'top' } },
+  scales: {
+    x: {
+      type: 'linear',
+      title: { display: true, text: 'Time (minutes)', color: '#8a9bb8' },
+      grid: { color: 'rgba(37,46,69,.6)' }
+    },
+    y: {
+      title: { display: true, text: yLabel, color: '#8a9bb8' },
+      grid: { color: 'rgba(37,46,69,.6)' },
+      beginAtZero: true
+    }
+  }
+});
+
+{% if stats and stats.timeline_chart %}
+{% for target, tc in stats.timeline_chart.items() %}
+
+// {{ target }} coverage chart
+(function() {
+  const datasets = {{ tc.coverage.datasets | tojson }};
+  const ctx = document.getElementById('cov-{{ target }}');
+  if (ctx) new Chart(ctx, {
+    type: 'line',
+    data: { datasets },
+    options: lineOpts('Coverage (%)')
+  });
+})();
+
+// {{ target }} crash chart
+(function() {
+  const datasets = {{ tc.crashes.datasets | tojson }};
+  const ctx = document.getElementById('crash-{{ target }}');
+  if (ctx) new Chart(ctx, {
+    type: 'line',
+    data: { datasets },
+    options: {
+      ...lineOpts('Unique crashes'),
+      scales: {
+        ...lineOpts('Unique crashes').scales,
+        y: {
+          ...lineOpts('Unique crashes').scales.y,
+          ticks: { stepSize: 1 }
+        }
+      }
+    }
+  });
+})();
+
+{% endfor %}
+{% endif %}
+
+// Time-to-first-crash horizontal bar chart
+{% set ttfc_rows = [] %}
+{% for row in (stats.table_rows or []) if row.ttfc_minutes != '—' %}
+  {% if ttfc_rows.append(row) %}{% endif %}
+{% endfor %}
+{% if ttfc_rows %}
+(function() {
+  const labels = {{ ttfc_rows | map(attribute='id') | list | tojson }};
+  const data = {{ ttfc_rows | map(attribute='ttfc_minutes') | list | tojson }};
+  const colors = {{ ttfc_rows | map(attribute='condition') | list | tojson }}.map(c => {
+    if (c === '30min-cycles')   return 'rgba(59,130,246,.8)';
+    if (c === '2hr-continuous') return 'rgba(251,146,60,.8)';
+    return 'rgba(148,163,184,.5)';
+  });
+  const ctx = document.getElementById('ttfcChart');
+  if (ctx) new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Minutes to first crash',
+        data,
+        backgroundColor: colors,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x} min` } }
+      },
+      scales: {
+        x: {
+          title: { display: true, text: 'Minutes', color: '#8a9bb8' },
+          grid: { color: 'rgba(37,46,69,.6)' }, beginAtZero: true
+        },
+        y: { grid: { display: false } }
+      }
+    }
+  });
+})();
+{% endif %}
+
+function switchTarget(target) {
+  document.querySelectorAll('.tab-panel[data-group="target"]')
+          .forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn[data-group="target"]')
+          .forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + target)?.classList.add('active');
+  document.querySelector(`.tab-btn[data-target="panel-${target}"]`)?.classList.add('active');
+}
+</script>
+{% endblock %}
