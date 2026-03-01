@@ -53,26 +53,10 @@ def main() -> None:
             st.warning(f"No .eval files found in `{LOG_DIR}`.")
             selected_paths: list[str] = []
         else:
-            # Truncate long filenames with ellipsis; full name shown in help tooltip.
-            st.markdown(
-                """
-                <style>
-                [data-testid="stCheckbox"] label div p {
-                    white-space: nowrap !important;
-                    overflow: hidden !important;
-                    text-overflow: ellipsis !important;
-                }
-                </style>
-                """,
-                unsafe_allow_html=True,
-            )
             selected_paths = []
-            with st.container(height=200):
-                for p in eval_files:
-                    if st.checkbox(
-                        p.name, value=True, key=f"log_{p.name}", help=p.name
-                    ):
-                        selected_paths.append(str(p))
+            for p in eval_files:
+                if st.checkbox(p.name, value=True, key=f"log_{p.name}", help=p.name):
+                    selected_paths.append(str(p))
 
         st.divider()
         page = st.radio(
