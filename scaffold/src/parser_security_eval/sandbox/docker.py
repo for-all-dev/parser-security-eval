@@ -213,7 +213,12 @@ class DockerSandbox:
         duration_seconds: int = 300,
         corpus_dir: str = "/out/corpus",
     ) -> tuple[int, str]:
-        """Run the fuzzer for a fixed duration. Returns (exit_code, output_log)."""
+        """Run the fuzzer for a fixed duration. Returns (exit_code, output_log).
+
+        Note: For richer result collection (stats parsing, OOM/timeout detection,
+        coverage artifact collection), prefer the higher-level
+        ``FuzzingCampaign`` API in ``parser_security_eval.sandbox.campaign``.
+        """
         engine = self.config.engine
 
         # Ensure crash and corpus dirs exist.
