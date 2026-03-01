@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
+from parser_security_eval.scoring.coverage_agg import AggregateCoverage
 from parser_security_eval.swarm.diversity import AgentConfig, DiversityConfig
 
 
@@ -51,6 +52,11 @@ class SwarmResult(BaseModel):
     # Aggregate (computed from agent_results)
     total_unique_crashes: int
     total_coverage_union: float  # branch% union across all agents
+
+    # Rich coverage aggregation — populated when per-agent coverage profiles are
+    # available (requires llvm-cov instrumentation).  ``None`` when the swarm ran
+    # without coverage instrumentation or profdata collection.
+    aggregate_coverage: AggregateCoverage | None = None
 
     def marginal_crash_curve(self) -> list[int]:
         """Return [crashes_at_1_agent, crashes_at_2_agents, ...] for N agents.
