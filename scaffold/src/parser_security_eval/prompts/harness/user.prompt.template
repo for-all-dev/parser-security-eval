@@ -1,0 +1,25 @@
+Write a fuzz harness for the following parser target.
+
+## Target: {{ target_name }}
+- Format type: {{ format_type }}
+- Language: {{ language }}
+
+## Build script
+```bash
+{{ build_sh }}
+```
+
+{{ existing_harnesses_section }}
+
+Write a complete C/C++ file implementing:
+```c
+int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size);
+```
+
+The harness will be compiled with:
+- $CC / $CXX with sanitizer flags ($CFLAGS / $CXXFLAGS)
+- Linked against $LIB_FUZZING_ENGINE
+- Source available at /src/{{ target_name }}
+
+Focus on maximizing code coverage and triggering edge cases in the parser.
+Output ONLY the complete C/C++ source file, no explanations.

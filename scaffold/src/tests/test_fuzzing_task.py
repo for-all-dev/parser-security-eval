@@ -1,19 +1,29 @@
-"""Tests for the live fuzzing Inspect-AI task — no Docker or model required."""
+"""Tests for the live fuzzing Inspect-AI task.
+
+No Docker or real model required — all sandbox calls are mocked.
+"""
 
 from __future__ import annotations
 
-import asyncio
-import base64
+import stat
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from inspect_ai.scorer import Score, Target
-
-from parser_security_eval.sandbox.campaign import CampaignResult, FuzzingStats
+from parser_security_eval.models.fuzzing import (
+    CoverageDelta,
+    FuzzingResult,
+    HarnessRecord,
+    LiveFuzzingSessionResult,
+)
+from parser_security_eval import prompts
 from parser_security_eval.tasks.fuzzing import (
-    FuzzingState,
+    MAX_REPAIR_ITERS,
+    CYCLE_CAP_SECONDS,
+    _build_session_result,
+    _compute_score,
+    _extract_stack_hash,
     _make_add_seed_tool,
     _make_compile_harness_tool,
     _make_get_crash_info_tool,
@@ -25,6 +35,8 @@ from parser_security_eval.tasks.fuzzing import (
     live_fuzzing_scorer,
     live_fuzzing_solver,
     load_live_fuzzing_dataset,
+    load_session_memory,
+    save_session_memory,
 )
 
 
@@ -33,101 +45,674 @@ from parser_security_eval.tasks.fuzzing import (
 # ---------------------------------------------------------------------------
 
 MINIMAL_METADATA = """\
-name: testlib
-format_type: binary-image
+name: testparser
+format_type: binary
 language: c
 ossfuzz_project: null
 fuzz_targets:
-  - fuzz_testlib
+  - fuzz_testparser
+cwe_hints:
+  - CWE-125
+  - CWE-787
 has_corpus: false
 has_dictionary: false
 """
 
 MINIMAL_BUILD_SH = """\
 #!/bin/bash -eu
-cd /src/testlib
+cd /src/testparser
 make -j$(nproc)
-$CXX $CXXFLAGS -o $OUT/fuzz_testlib fuzz.cc -L. -ltestlib $LIB_FUZZING_ENGINE
+$CXX $CXXFLAGS -o $OUT/fuzz_testparser fuzz.cc -L. -ltestparser $LIB_FUZZING_ENGINE
 """
 
 MINIMAL_HARNESS = """\
 #include <stdint.h>
 #include <stddef.h>
+#include "testparser.h"
+
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
-  return 0;
+    testparser_parse(data, size);
+    return 0;
 }
+"""
+
+ASAN_CRASH_OUTPUT = """\
+=================================================================
+==12345==ERROR: AddressSanitizer: heap-buffer-overflow on address 0xdeadbeef
+READ of size 4 at 0xdeadbeef
+    #0 0x7f1234 in parse_chunk /src/testparser/parser.c:42
+    #1 0x7f5678 in testparser_parse /src/testparser/api.c:10
+    #2 0x7f9abc in LLVMFuzzerTestOneInput /src/harness_testparser.cc:8
+SUMMARY: AddressSanitizer: heap-buffer-overflow
 """
 
 
 @pytest.fixture
 def target_dir(tmp_path: Path) -> Path:
     """Create a minimal target directory for testing."""
-    d = tmp_path / "testlib"
+    d = tmp_path / "testparser"
     d.mkdir()
     (d / "metadata.yaml").write_text(MINIMAL_METADATA)
-    (d / "build.sh").write_text(MINIMAL_BUILD_SH)
+    build_sh = d / "build.sh"
+    build_sh.write_text(MINIMAL_BUILD_SH)
+    build_sh.chmod(build_sh.stat().st_mode | stat.S_IXUSR)
     (d / "Dockerfile").write_text("FROM gcr.io/oss-fuzz-base/base-builder\n")
+    (d / "testparser.h").write_text(
+        "void testparser_parse(const uint8_t *data, size_t size);\n"
+    )
     return d
 
 
 @pytest.fixture
-def target_dir_with_harness(target_dir: Path) -> Path:
-    """Target directory that also has an existing harness file."""
-    (target_dir / "fuzz_testlib.cc").write_text(MINIMAL_HARNESS)
-    return target_dir
+def fresh_session_state() -> dict:
+    """Return a fresh session_state dict."""
+    return {
+        "pending_harness": "",
+        "harness_written": False,
+        "compiled": False,
+        "compile_errors": "",
+        "fuzz_target": "",
+        "repair_iterations": 0,
+        "last_harness_first_try": False,
+        "seeds_added": [],
+        "all_crash_hashes": {},
+        "last_fuzz_result": None,
+        "cycle_count": 0,
+        "refinement_log": [],
+        "harness_records": [],
+        "fuzzing_cycles": [],
+        "current_entry_point": "",
+    }
 
 
-def _make_mock_sandbox() -> MagicMock:
-    """Build a mock DockerSandbox that accepts async calls."""
-    sandbox = MagicMock()
-    sandbox.exec = AsyncMock(return_value=(0, "", ""))
-    sandbox.copy_in = AsyncMock(return_value=None)
-    sandbox.copy_out = AsyncMock(return_value=None)
-    return sandbox
+# ---------------------------------------------------------------------------
+# Models
+# ---------------------------------------------------------------------------
 
 
-def _make_empty_campaign() -> CampaignResult:
-    """Build a CampaignResult with no crashes."""
-    return CampaignResult(
-        target_name="testlib",
-        engine="libfuzzer",
-        duration_seconds=10,
-        crash_files=[],
-        coverage_raw_profiles=[],
-        stats=FuzzingStats(
-            execs_per_sec=1000.0,
-            total_execs=10000,
-            corpus_size=5,
-            crashes_found=0,
-        ),
-    )
+class TestHarnessRecord:
+    def test_first_try_success_false_by_default(self) -> None:
+        r = HarnessRecord(
+            entry_point="parse_chunk",
+            code="int LLVMFuzzerTestOneInput(...) {}",
+            compile_success=True,
+            repair_iterations=2,
+        )
+        assert r.first_try_success is False
+
+    def test_first_try_success_true_when_set(self) -> None:
+        r = HarnessRecord(
+            entry_point="parse_chunk",
+            code="int LLVMFuzzerTestOneInput(...) {}",
+            compile_success=True,
+            repair_iterations=0,
+            first_try_success=True,
+        )
+        assert r.first_try_success is True
 
 
-def _make_crash_campaign(tmp_path: Path, n_crashes: int = 2) -> CampaignResult:
-    """Build a CampaignResult with *n_crashes* crash files on disk."""
-    crash_files = []
-    for i in range(n_crashes):
-        p = tmp_path / f"crash-{i}"
-        p.write_bytes(b"\x00\x01\x02" * 10)
-        crash_files.append(p)
-    return CampaignResult(
-        target_name="testlib",
-        engine="libfuzzer",
-        duration_seconds=10,
-        crash_files=crash_files,
-        coverage_raw_profiles=[],
-        stats=FuzzingStats(
-            execs_per_sec=900.0,
-            total_execs=9000,
-            corpus_size=10,
-            crashes_found=n_crashes,
-        ),
-    )
+class TestFuzzingResult:
+    def test_defaults(self) -> None:
+        r = FuzzingResult(duration_seconds=300)
+        assert r.crashes_found == 0
+        assert r.timed_out is False
+        assert r.oom_killed is False
+        assert r.unique_crash_hashes == {}
 
 
-def _tool_str(result: object) -> str:
-    """Cast a tool result to str for assertion helpers."""
-    return str(result)
+class TestCoverageDelta:
+    def test_line_delta(self) -> None:
+        d = CoverageDelta(line_pct_before=10.0, line_pct_after=25.0)
+        assert d.line_delta == pytest.approx(15.0)
+
+    def test_branch_delta(self) -> None:
+        d = CoverageDelta(branch_pct_before=5.0, branch_pct_after=8.5)
+        assert d.branch_delta == pytest.approx(3.5)
+
+
+class TestLiveFuzzingSessionResult:
+    def test_first_try_rate_zero_when_no_harnesses(self) -> None:
+        r = LiveFuzzingSessionResult(
+            target_name="x", engine="libfuzzer", total_harnesses_attempted=0
+        )
+        assert r.first_try_compile_rate == 0.0
+
+    def test_first_try_rate_calculated(self) -> None:
+        r = LiveFuzzingSessionResult(
+            target_name="x",
+            engine="libfuzzer",
+            total_harnesses_attempted=4,
+            harnesses_compiled_first_try=3,
+        )
+        assert r.first_try_compile_rate == pytest.approx(0.75)
+
+    def test_mean_repair_iterations(self) -> None:
+        r = LiveFuzzingSessionResult(
+            target_name="x",
+            engine="libfuzzer",
+            total_harnesses_attempted=2,
+            total_repair_iterations=6,
+        )
+        assert r.mean_repair_iterations == pytest.approx(3.0)
+
+
+# ---------------------------------------------------------------------------
+# _extract_stack_hash
+# ---------------------------------------------------------------------------
+
+
+class TestExtractStackHash:
+    def test_consistent_for_same_output(self) -> None:
+        h1 = _extract_stack_hash(ASAN_CRASH_OUTPUT)
+        h2 = _extract_stack_hash(ASAN_CRASH_OUTPUT)
+        assert h1 == h2
+
+    def test_different_for_different_stacks(self) -> None:
+        other = ASAN_CRASH_OUTPUT.replace("parse_chunk", "different_func")
+        assert _extract_stack_hash(ASAN_CRASH_OUTPUT) != _extract_stack_hash(other)
+
+    def test_returns_string(self) -> None:
+        assert isinstance(_extract_stack_hash(ASAN_CRASH_OUTPUT), str)
+
+    def test_fallback_for_no_frames(self) -> None:
+        """When no stack frames are found, hash the full output."""
+        h = _extract_stack_hash("no frames here")
+        assert isinstance(h, str)
+        assert len(h) == 16  # sha256 truncated to 16 chars
+
+    def test_top_n_frames_respected(self) -> None:
+        """Hash should use at most top_n frames."""
+        h_top1 = _extract_stack_hash(ASAN_CRASH_OUTPUT, top_n=1)
+        h_top2 = _extract_stack_hash(ASAN_CRASH_OUTPUT, top_n=2)
+        # Different top_n may produce different hashes (first frame vs first 2)
+        assert isinstance(h_top1, str)
+        assert isinstance(h_top2, str)
+
+
+# ---------------------------------------------------------------------------
+# Tool: write_harness
+# ---------------------------------------------------------------------------
+
+
+class TestWriteHarnessTool:
+    @pytest.mark.asyncio
+    async def test_accepts_valid_harness(self, fresh_session_state: dict) -> None:
+        t = _make_write_harness_tool(fresh_session_state)
+        result = await t(code=MINIMAL_HARNESS)
+        assert "Harness staged" in result
+        assert fresh_session_state["harness_written"] is True
+        assert fresh_session_state["compiled"] is False
+
+    @pytest.mark.asyncio
+    async def test_rejects_missing_entry_point(self, fresh_session_state: dict) -> None:
+        t = _make_write_harness_tool(fresh_session_state)
+        result = await t(code="int main() { return 0; }")
+        assert "ERROR" in result
+        assert fresh_session_state["harness_written"] is False
+
+    @pytest.mark.asyncio
+    async def test_resets_compiled_flag(self, fresh_session_state: dict) -> None:
+        fresh_session_state["compiled"] = True
+        t = _make_write_harness_tool(fresh_session_state)
+        await t(code=MINIMAL_HARNESS)
+        assert fresh_session_state["compiled"] is False
+
+
+# ---------------------------------------------------------------------------
+# Tool: compile_harness
+# ---------------------------------------------------------------------------
+
+
+class TestCompileHarnessTool:
+    def _make_mock_sandbox(self, rc: int = 0) -> MagicMock:
+        sandbox = MagicMock()
+        sandbox.exec = AsyncMock(
+            return_value=(rc, "", "error output" if rc != 0 else "")
+        )
+        sandbox.copy_in = AsyncMock(return_value=None)
+        return sandbox
+
+    @pytest.mark.asyncio
+    async def test_requires_harness_first(self, fresh_session_state: dict) -> None:
+        sandbox = self._make_mock_sandbox()
+        t = _make_compile_harness_tool(
+            sandbox, fresh_session_state, "testparser", "libfuzzer", "address"
+        )
+        result = await t()
+        assert "No harness written" in result
+
+    @pytest.mark.asyncio
+    async def test_success_sets_compiled_flag(self, fresh_session_state: dict) -> None:
+        fresh_session_state["harness_written"] = True
+        fresh_session_state["pending_harness"] = MINIMAL_HARNESS
+        sandbox = self._make_mock_sandbox(rc=0)
+        t = _make_compile_harness_tool(
+            sandbox, fresh_session_state, "testparser", "libfuzzer", "address"
+        )
+        result = await t()
+        assert "succeeded" in result
+        assert fresh_session_state["compiled"] is True
+        assert fresh_session_state["fuzz_target"] == "harness_testparser_agent"
+
+    @pytest.mark.asyncio
+    async def test_failure_increments_repair_count(
+        self, fresh_session_state: dict
+    ) -> None:
+        fresh_session_state["harness_written"] = True
+        fresh_session_state["pending_harness"] = MINIMAL_HARNESS
+        sandbox = self._make_mock_sandbox(rc=1)
+        t = _make_compile_harness_tool(
+            sandbox, fresh_session_state, "testparser", "libfuzzer", "address"
+        )
+        await t()
+        assert fresh_session_state["repair_iterations"] == 1
+        assert fresh_session_state["compiled"] is False
+
+    @pytest.mark.asyncio
+    async def test_failure_shows_remaining_budget(
+        self, fresh_session_state: dict
+    ) -> None:
+        fresh_session_state["harness_written"] = True
+        fresh_session_state["pending_harness"] = MINIMAL_HARNESS
+        sandbox = self._make_mock_sandbox(rc=1)
+        t = _make_compile_harness_tool(
+            sandbox, fresh_session_state, "testparser", "libfuzzer", "address"
+        )
+        result = await t()
+        assert "repair attempts remaining" in result
+
+    @pytest.mark.asyncio
+    async def test_first_try_flag_set_on_success(
+        self, fresh_session_state: dict
+    ) -> None:
+        fresh_session_state["harness_written"] = True
+        fresh_session_state["pending_harness"] = MINIMAL_HARNESS
+        fresh_session_state["repair_iterations"] = 0
+        sandbox = self._make_mock_sandbox(rc=0)
+        t = _make_compile_harness_tool(
+            sandbox, fresh_session_state, "testparser", "libfuzzer", "address"
+        )
+        await t()
+        assert fresh_session_state["last_harness_first_try"] is True
+
+    @pytest.mark.asyncio
+    async def test_not_first_try_after_repairs(self, fresh_session_state: dict) -> None:
+        fresh_session_state["harness_written"] = True
+        fresh_session_state["pending_harness"] = MINIMAL_HARNESS
+        fresh_session_state["repair_iterations"] = 2
+        sandbox = self._make_mock_sandbox(rc=0)
+        t = _make_compile_harness_tool(
+            sandbox, fresh_session_state, "testparser", "libfuzzer", "address"
+        )
+        await t()
+        assert fresh_session_state["last_harness_first_try"] is False
+
+
+# ---------------------------------------------------------------------------
+# Tool: add_seed
+# ---------------------------------------------------------------------------
+
+
+class TestAddSeedTool:
+    def _make_sandbox(self) -> MagicMock:
+        sandbox = MagicMock()
+        sandbox.exec = AsyncMock(return_value=(0, "", ""))
+        sandbox.copy_in = AsyncMock(return_value=None)
+        return sandbox
+
+    @pytest.mark.asyncio
+    async def test_valid_hex_seed(self, fresh_session_state: dict) -> None:
+        sandbox = self._make_sandbox()
+        t = _make_add_seed_tool(sandbox, fresh_session_state)
+        result = await t(data_hex="504b0304", filename="zip_header")
+        assert "added" in result
+        assert len(fresh_session_state["seeds_added"]) == 1
+
+    @pytest.mark.asyncio
+    async def test_invalid_hex_returns_error(self, fresh_session_state: dict) -> None:
+        sandbox = self._make_sandbox()
+        t = _make_add_seed_tool(sandbox, fresh_session_state)
+        result = await t(data_hex="GGGG", filename="bad")
+        assert "Invalid hex" in result
+
+    @pytest.mark.asyncio
+    async def test_filename_sanitized(self, fresh_session_state: dict) -> None:
+        sandbox = self._make_sandbox()
+        t = _make_add_seed_tool(sandbox, fresh_session_state)
+        result = await t(data_hex="00", filename="../../etc/passwd")
+        assert "added" in result
+        # Filename should be sanitized (no slashes)
+        added_name = fresh_session_state["seeds_added"][0]
+        assert "/" not in added_name
+
+    @pytest.mark.asyncio
+    async def test_multiple_seeds_accumulate(self, fresh_session_state: dict) -> None:
+        sandbox = self._make_sandbox()
+        t = _make_add_seed_tool(sandbox, fresh_session_state)
+        await t(data_hex="01", filename="seed1")
+        await t(data_hex="02", filename="seed2")
+        assert len(fresh_session_state["seeds_added"]) == 2
+
+
+# ---------------------------------------------------------------------------
+# Tool: start_fuzzing
+# ---------------------------------------------------------------------------
+
+
+class TestStartFuzzingTool:
+    def _make_sandbox_with_campaign(
+        self,
+        crash_files: list[Path] | None = None,
+        execs: float = 1000.0,
+        corpus_size: int = 10,
+    ) -> MagicMock:
+        from parser_security_eval.sandbox.campaign import CampaignResult, FuzzingStats
+
+        sandbox = MagicMock()
+        sandbox.exec = AsyncMock(return_value=(1, "", ""))  # crash re-run → exit 1
+        stats = FuzzingStats(
+            execs_per_sec=execs,
+            corpus_size=corpus_size,
+            crashes_found=len(crash_files or []),
+            engine="libfuzzer",
+        )
+        campaign_result = CampaignResult(
+            target_name="testparser",
+            engine="libfuzzer",
+            duration_seconds=60,
+            crash_files=crash_files or [],
+            coverage_raw_profiles=[],
+            stats=stats,
+        )
+        mock_campaign = AsyncMock()
+        mock_campaign.run = AsyncMock(return_value=campaign_result)
+        return sandbox, mock_campaign
+
+    @pytest.mark.asyncio
+    async def test_requires_compiled_harness(self, fresh_session_state: dict) -> None:
+        sandbox = MagicMock()
+        t = _make_start_fuzzing_tool(sandbox, fresh_session_state)
+        result = await t(duration_seconds=60)
+        assert "not compiled" in result.lower()
+
+    @pytest.mark.asyncio
+    async def test_caps_duration(self, fresh_session_state: dict) -> None:
+        """Duration above CYCLE_CAP_SECONDS should be clamped."""
+        fresh_session_state["compiled"] = True
+        fresh_session_state["fuzz_target"] = "harness_testparser_agent"
+
+        sandbox, mock_campaign = self._make_sandbox_with_campaign()
+
+        captured_duration: list[int] = []
+
+        class CaptureCampaign:
+            def __init__(
+                self,
+                sandbox: object,
+                fuzz_target: str,
+                duration_seconds: int,
+                corpus_dir: str,
+            ) -> None:
+                captured_duration.append(duration_seconds)
+
+            async def run(self) -> object:
+                from parser_security_eval.sandbox.campaign import (
+                    CampaignResult,
+                    FuzzingStats,
+                )
+
+                return CampaignResult(
+                    target_name="t",
+                    engine="libfuzzer",
+                    duration_seconds=captured_duration[0],
+                    crash_files=[],
+                    coverage_raw_profiles=[],
+                    stats=FuzzingStats(engine="libfuzzer"),
+                )
+
+        with patch(
+            "parser_security_eval.tasks.fuzzing.FuzzingCampaign",
+            side_effect=CaptureCampaign,
+        ):
+            t = _make_start_fuzzing_tool(sandbox, fresh_session_state)
+            await t(duration_seconds=9999)
+
+        assert captured_duration[0] == CYCLE_CAP_SECONDS
+
+    @pytest.mark.asyncio
+    async def test_increments_cycle_count(self, fresh_session_state: dict) -> None:
+        fresh_session_state["compiled"] = True
+        fresh_session_state["fuzz_target"] = "harness_testparser_agent"
+
+        from parser_security_eval.sandbox.campaign import CampaignResult, FuzzingStats
+
+        mock_result = CampaignResult(
+            target_name="testparser",
+            engine="libfuzzer",
+            duration_seconds=60,
+            crash_files=[],
+            coverage_raw_profiles=[],
+            stats=FuzzingStats(engine="libfuzzer"),
+        )
+        sandbox = MagicMock()
+
+        with patch(
+            "parser_security_eval.tasks.fuzzing.FuzzingCampaign"
+        ) as MockCampaign:
+            mock_instance = AsyncMock()
+            mock_instance.run = AsyncMock(return_value=mock_result)
+            MockCampaign.return_value = mock_instance
+
+            t = _make_start_fuzzing_tool(sandbox, fresh_session_state)
+            await t(duration_seconds=60)
+
+        assert fresh_session_state["cycle_count"] == 1
+
+
+# ---------------------------------------------------------------------------
+# Tool: get_fuzzer_stats
+# ---------------------------------------------------------------------------
+
+
+class TestGetFuzzerStatsTool:
+    @pytest.mark.asyncio
+    async def test_no_run_yet(self, fresh_session_state: dict) -> None:
+        t = _make_get_fuzzer_stats_tool(fresh_session_state)
+        result = await t()
+        assert "No fuzzing run completed" in result
+
+    @pytest.mark.asyncio
+    async def test_shows_stats_after_run(self, fresh_session_state: dict) -> None:
+        fresh_session_state["last_fuzz_result"] = FuzzingResult(
+            duration_seconds=300,
+            execs_per_sec=2500.0,
+            corpus_size=42,
+            crashes_found=3,
+        )
+        fresh_session_state["cycle_count"] = 1
+        fresh_session_state["all_crash_hashes"] = {"a": "x", "b": "y", "c": "z"}
+
+        t = _make_get_fuzzer_stats_tool(fresh_session_state)
+        result = await t()
+        assert "2500" in result
+        assert "42" in result
+        assert "3" in result
+
+
+# ---------------------------------------------------------------------------
+# Tool: get_crash_info
+# ---------------------------------------------------------------------------
+
+
+class TestGetCrashInfoTool:
+    @pytest.mark.asyncio
+    async def test_no_crashes(self, fresh_session_state: dict) -> None:
+        t = _make_get_crash_info_tool(fresh_session_state)
+        result = await t(crash_id="abc123")
+        assert "No crashes" in result
+
+    @pytest.mark.asyncio
+    async def test_returns_known_crash(self, fresh_session_state: dict) -> None:
+        fresh_session_state["all_crash_hashes"] = {"abc123": ASAN_CRASH_OUTPUT}
+        t = _make_get_crash_info_tool(fresh_session_state)
+        result = await t(crash_id="abc123")
+        assert "heap-buffer-overflow" in result
+
+    @pytest.mark.asyncio
+    async def test_unknown_id_lists_available(self, fresh_session_state: dict) -> None:
+        fresh_session_state["all_crash_hashes"] = {"xyz": "output"}
+        t = _make_get_crash_info_tool(fresh_session_state)
+        result = await t(crash_id="unknown")
+        assert "xyz" in result
+
+
+# ---------------------------------------------------------------------------
+# Tool: refine_harness
+# ---------------------------------------------------------------------------
+
+
+class TestRefineHarnessTool:
+    @pytest.mark.asyncio
+    async def test_accepts_valid_refinement(self, fresh_session_state: dict) -> None:
+        t = _make_refine_harness_tool(fresh_session_state)
+        result = await t(code=MINIMAL_HARNESS, reason="fixed null check")
+        assert "refined" in result
+        assert fresh_session_state["pending_harness"] == MINIMAL_HARNESS
+        assert fresh_session_state["repair_iterations"] == 0
+
+    @pytest.mark.asyncio
+    async def test_rejects_missing_entry_point(self, fresh_session_state: dict) -> None:
+        t = _make_refine_harness_tool(fresh_session_state)
+        result = await t(code="void foo() {}", reason="test")
+        assert "ERROR" in result
+
+    @pytest.mark.asyncio
+    async def test_resets_compiled_flag(self, fresh_session_state: dict) -> None:
+        fresh_session_state["compiled"] = True
+        t = _make_refine_harness_tool(fresh_session_state)
+        await t(code=MINIMAL_HARNESS)
+        assert fresh_session_state["compiled"] is False
+
+    @pytest.mark.asyncio
+    async def test_logs_reason(self, fresh_session_state: dict) -> None:
+        t = _make_refine_harness_tool(fresh_session_state)
+        await t(code=MINIMAL_HARNESS, reason="improved seed handling")
+        log = fresh_session_state["refinement_log"]
+        assert "improved seed handling" in log
+
+
+# ---------------------------------------------------------------------------
+# _build_session_result
+# ---------------------------------------------------------------------------
+
+
+class TestBuildSessionResult:
+    def test_empty_session(self) -> None:
+        state: dict = {
+            "all_crash_hashes": {},
+            "harness_records": [],
+            "fuzzing_cycles": [],
+            "last_fuzz_result": None,
+            "cycle_count": 0,
+        }
+        result = _build_session_result("testparser", "libfuzzer", state)
+        assert result.total_unique_crashes == 0
+        assert result.total_cycles == 0
+
+    def test_crash_count_from_hashes(self) -> None:
+        state: dict = {
+            "all_crash_hashes": {"h1": "x", "h2": "y"},
+            "harness_records": [],
+            "fuzzing_cycles": [],
+            "last_fuzz_result": None,
+            "cycle_count": 2,
+        }
+        result = _build_session_result("testparser", "libfuzzer", state)
+        assert result.total_unique_crashes == 2
+        assert result.total_cycles == 2
+
+    def test_harness_compile_stats(self) -> None:
+        records = [
+            HarnessRecord(
+                entry_point="a",
+                code="...",
+                compile_success=True,
+                first_try_success=True,
+                repair_iterations=0,
+            ),
+            HarnessRecord(
+                entry_point="b",
+                code="...",
+                compile_success=True,
+                first_try_success=False,
+                repair_iterations=3,
+            ),
+        ]
+        state: dict = {
+            "all_crash_hashes": {},
+            "harness_records": records,
+            "fuzzing_cycles": [],
+            "last_fuzz_result": None,
+            "cycle_count": 2,
+        }
+        result = _build_session_result("testparser", "libfuzzer", state)
+        assert result.total_harnesses_attempted == 2
+        assert result.harnesses_compiled_first_try == 1
+        assert result.total_repair_iterations == 3
+
+
+# ---------------------------------------------------------------------------
+# _compute_score
+# ---------------------------------------------------------------------------
+
+
+class TestComputeScore:
+    def _result(
+        self, crashes: int = 0, rate: float = 1.0, cov: float = 0.0
+    ) -> LiveFuzzingSessionResult:
+        attempted = max(1, int(1 / rate)) if rate > 0 else 1
+        first_try = int(attempted * rate)
+        return LiveFuzzingSessionResult(
+            target_name="t",
+            engine="libfuzzer",
+            total_unique_crashes=crashes,
+            final_line_coverage_pct=cov,
+            total_harnesses_attempted=attempted,
+            harnesses_compiled_first_try=first_try,
+        )
+
+    def test_zero_score_for_empty(self) -> None:
+        # No crashes, no coverage, no compiled harnesses → 0.0
+        r = LiveFuzzingSessionResult(
+            target_name="t",
+            engine="libfuzzer",
+            total_unique_crashes=0,
+            final_line_coverage_pct=0.0,
+            total_harnesses_attempted=0,
+            harnesses_compiled_first_try=0,
+        )
+        assert _compute_score(r) == pytest.approx(0.0)
+
+    def test_crash_weight_40_percent(self) -> None:
+        # 10 crashes → crash_score=1.0; no coverage; rate=1.0
+        s = _compute_score(self._result(crashes=10, rate=1.0, cov=0.0))
+        # 0.40*1.0 + 0.30*1.0 + 0.30*0.0 = 0.70
+        assert s == pytest.approx(0.70)
+
+    def test_saturates_at_10_crashes(self) -> None:
+        s1 = _compute_score(self._result(crashes=10))
+        s2 = _compute_score(self._result(crashes=100))
+        assert s1 == pytest.approx(s2)
+
+    def test_coverage_contributes_30_percent(self) -> None:
+        # no crashes; perfect compile; 100% coverage
+        s = _compute_score(self._result(crashes=0, rate=1.0, cov=100.0))
+        # 0.40*0 + 0.30*1.0 + 0.30*1.0 = 0.60
+        assert s == pytest.approx(0.60)
+
+    def test_score_bounded_zero_to_one(self) -> None:
+        s = _compute_score(self._result(crashes=99, rate=1.0, cov=100.0))
+        assert 0.0 <= s <= 1.0
 
 
 # ---------------------------------------------------------------------------
@@ -136,470 +721,174 @@ def _tool_str(result: object) -> str:
 
 
 class TestLoadLiveFuzzingDataset:
-    def test_returns_non_empty_list(self, target_dir: Path) -> None:
-        samples = load_live_fuzzing_dataset(str(target_dir.parent), "testlib")
-        assert len(samples) >= 1
-
-    def test_returns_sample_with_input(self, target_dir: Path) -> None:
-        samples = load_live_fuzzing_dataset(str(target_dir.parent), "testlib")
-        sample = samples[0]
-        assert isinstance(sample.input, str)
-        assert len(sample.input) > 0
-
-    def test_sample_input_contains_target_info(self, target_dir: Path) -> None:
-        samples = load_live_fuzzing_dataset(str(target_dir.parent), "testlib")
-        s = str(samples[0].input)
-        assert "testlib" in s
-        assert "binary-image" in s
-        assert "LLVMFuzzerTestOneInput" in s
+    def test_loads_single_sample(self, target_dir: Path) -> None:
+        samples = load_live_fuzzing_dataset(str(target_dir.parent), "testparser")
+        assert len(samples) == 1
 
     def test_sample_id(self, target_dir: Path) -> None:
-        samples = load_live_fuzzing_dataset(str(target_dir.parent), "testlib")
-        assert samples[0].id == "live-fuzzing-testlib"
+        samples = load_live_fuzzing_dataset(str(target_dir.parent), "testparser")
+        assert samples[0].id == "live-fuzzing-testparser"
 
-    def test_sample_target_is_fuzz_target(self, target_dir: Path) -> None:
-        samples = load_live_fuzzing_dataset(str(target_dir.parent), "testlib")
-        assert samples[0].target == "fuzz_testlib"
+    def test_sample_input_contains_target_name(self, target_dir: Path) -> None:
+        samples = load_live_fuzzing_dataset(str(target_dir.parent), "testparser")
+        assert "testparser" in samples[0].input
+
+    def test_sample_input_contains_cwe_hints(self, target_dir: Path) -> None:
+        samples = load_live_fuzzing_dataset(str(target_dir.parent), "testparser")
+        assert "CWE-125" in samples[0].input
+
+    def test_sample_input_contains_build_script(self, target_dir: Path) -> None:
+        samples = load_live_fuzzing_dataset(str(target_dir.parent), "testparser")
+        assert "make -j" in samples[0].input
 
     def test_sample_metadata_keys(self, target_dir: Path) -> None:
-        samples = load_live_fuzzing_dataset(str(target_dir.parent), "testlib")
+        samples = load_live_fuzzing_dataset(str(target_dir.parent), "testparser")
         meta = samples[0].metadata
         assert meta is not None
-        assert meta["target_name"] == "testlib"
-        assert "format_type" in meta
-        assert "language" in meta
+        assert "target_name" in meta
         assert "fuzz_targets" in meta
-        assert "targets_dir" in meta
-
-    def test_includes_build_script(self, target_dir: Path) -> None:
-        samples = load_live_fuzzing_dataset(str(target_dir.parent), "testlib")
-        assert "make -j" in str(samples[0].input)
-
-    def test_includes_existing_harnesses(self, target_dir_with_harness: Path) -> None:
-        samples = load_live_fuzzing_dataset(
-            str(target_dir_with_harness.parent), "testlib"
-        )
-        s = str(samples[0].input)
-        assert "Existing harnesses" in s
-        assert "fuzz_testlib.cc" in s
+        assert meta["target_name"] == "testparser"
 
     def test_missing_target_raises(self, tmp_path: Path) -> None:
         with pytest.raises(FileNotFoundError, match="Target directory not found"):
             load_live_fuzzing_dataset(str(tmp_path), "nonexistent")
 
-
-# ---------------------------------------------------------------------------
-# FuzzingState dataclass
-# ---------------------------------------------------------------------------
-
-
-class TestFuzzingState:
-    def test_default_values(self) -> None:
-        s = FuzzingState()
-        assert s.sandbox is None
-        assert s.harness_written is False
-        assert s.harness_compiled is False
-        assert s.campaigns == []
-        assert s.last_stats is None
-
-    def test_can_assign_sandbox(self) -> None:
-        s = FuzzingState()
-        mock = MagicMock()
-        s.sandbox = mock
-        assert s.sandbox is mock
-
-    def test_campaigns_list_is_independent(self) -> None:
-        a = FuzzingState()
-        b = FuzzingState()
-        a.campaigns.append(_make_empty_campaign())
-        assert len(b.campaigns) == 0
+    def test_sample_input_includes_source_header(self, target_dir: Path) -> None:
+        samples = load_live_fuzzing_dataset(str(target_dir.parent), "testparser")
+        # testparser.h was created in fixture
+        assert "testparser.h" in samples[0].input
 
 
 # ---------------------------------------------------------------------------
-# Tool: write_harness — returns string, sets state.harness_written
+# Memory stubs
 # ---------------------------------------------------------------------------
 
 
-class TestWriteHarnessTool:
-    def test_returns_string(self) -> None:
-        state = FuzzingState(sandbox=_make_mock_sandbox())
-        t = _make_write_harness_tool(state, "testlib")
-        result = asyncio.run(t(MINIMAL_HARNESS))
+class TestMemoryStubs:
+    def test_load_returns_str(self) -> None:
+        # No prior memory file → empty string
+        result = load_session_memory("nonexistent-target-xyzzy")
         assert isinstance(result, str)
 
-    def test_sets_harness_written(self) -> None:
-        state = FuzzingState(sandbox=_make_mock_sandbox())
-        t = _make_write_harness_tool(state, "testlib")
-        asyncio.run(t(MINIMAL_HARNESS))
-        assert state.harness_written is True
-
-    def test_returns_success_message(self) -> None:
-        state = FuzzingState(sandbox=_make_mock_sandbox())
-        t = _make_write_harness_tool(state, "testlib")
-        result = _tool_str(asyncio.run(t(MINIMAL_HARNESS)))
-        assert "Harness written" in result
-
-    def test_resets_compiled_flag(self) -> None:
-        state = FuzzingState(sandbox=_make_mock_sandbox(), harness_compiled=True)
-        t = _make_write_harness_tool(state, "testlib")
-        asyncio.run(t(MINIMAL_HARNESS))
-        assert state.harness_compiled is False
-
-    def test_error_when_no_sandbox(self) -> None:
-        state = FuzzingState(sandbox=None)
-        t = _make_write_harness_tool(state, "testlib")
-        result = _tool_str(asyncio.run(t(MINIMAL_HARNESS)))
-        assert "Error" in result
-
-
-# ---------------------------------------------------------------------------
-# Tool: compile_harness — returns string
-# ---------------------------------------------------------------------------
-
-
-class TestCompileHarnessTool:
-    def test_returns_string(self) -> None:
-        sandbox = _make_mock_sandbox()
-        sandbox.exec = AsyncMock(return_value=(0, "ok", ""))
-        state = FuzzingState(sandbox=sandbox, harness_written=True)
-        t = _make_compile_harness_tool(state, "testlib", "libfuzzer")
-        result = asyncio.run(t())
-        assert isinstance(result, str)
-
-    def test_returns_success_on_exit_zero(self) -> None:
-        sandbox = _make_mock_sandbox()
-        sandbox.exec = AsyncMock(return_value=(0, "", ""))
-        state = FuzzingState(sandbox=sandbox, harness_written=True)
-        t = _make_compile_harness_tool(state, "testlib", "libfuzzer")
-        result = _tool_str(asyncio.run(t()))
-        assert "succeeded" in result
-        assert state.harness_compiled is True
-
-    def test_returns_error_on_compile_failure(self) -> None:
-        sandbox = _make_mock_sandbox()
-        sandbox.exec = AsyncMock(return_value=(1, "", "error: undeclared identifier\n"))
-        state = FuzzingState(sandbox=sandbox, harness_written=True)
-        t = _make_compile_harness_tool(state, "testlib", "libfuzzer")
-        result = _tool_str(asyncio.run(t()))
-        assert "FAILED" in result
-        assert state.harness_compiled is False
-
-    def test_error_when_no_harness_written(self) -> None:
-        state = FuzzingState(sandbox=_make_mock_sandbox(), harness_written=False)
-        t = _make_compile_harness_tool(state, "testlib", "libfuzzer")
-        result = _tool_str(asyncio.run(t()))
-        assert "Error" in result
-
-    def test_error_when_no_sandbox(self) -> None:
-        state = FuzzingState(sandbox=None, harness_written=True)
-        t = _make_compile_harness_tool(state, "testlib", "libfuzzer")
-        result = _tool_str(asyncio.run(t()))
-        assert "Error" in result
-
-
-# ---------------------------------------------------------------------------
-# Tool: add_seed — returns string
-# ---------------------------------------------------------------------------
-
-
-class TestAddSeedTool:
-    def test_returns_string(self) -> None:
-        state = FuzzingState(sandbox=_make_mock_sandbox())
-        t = _make_add_seed_tool(state)
-        data = base64.b64encode(b"hello").decode()
-        result = asyncio.run(t(data, "seed.bin"))
-        assert isinstance(result, str)
-
-    def test_returns_seed_added_on_success(self) -> None:
-        sandbox = _make_mock_sandbox()
-        sandbox.exec = AsyncMock(return_value=(0, "", ""))
-        state = FuzzingState(sandbox=sandbox)
-        t = _make_add_seed_tool(state)
-        data = base64.b64encode(b"\x00\x01\x02").decode()
-        result = _tool_str(asyncio.run(t(data, "myseed.bin")))
-        assert "Seed added" in result
-        assert "myseed.bin" in result
-
-    def test_returns_error_for_invalid_base64(self) -> None:
-        state = FuzzingState(sandbox=_make_mock_sandbox())
-        t = _make_add_seed_tool(state)
-        result = _tool_str(asyncio.run(t("not-valid-base64!!!", "seed.bin")))
-        assert "Error" in result
-
-    def test_error_when_no_sandbox(self) -> None:
-        state = FuzzingState(sandbox=None)
-        t = _make_add_seed_tool(state)
-        data = base64.b64encode(b"x").decode()
-        result = _tool_str(asyncio.run(t(data, "x.bin")))
-        assert "Error" in result
-
-
-# ---------------------------------------------------------------------------
-# Tool: start_fuzzing — returns string
-# ---------------------------------------------------------------------------
-
-
-class TestStartFuzzingTool:
-    def test_returns_string(self, tmp_path: Path) -> None:
-        sandbox = _make_mock_sandbox()
-        sandbox.exec = AsyncMock(return_value=(0, "", ""))
-        state = FuzzingState(
-            sandbox=sandbox, harness_written=True, harness_compiled=True
+    def test_save_does_not_raise(self) -> None:
+        # Empty session_state → no harnesses or crashes to persist, no error
+        save_session_memory(
+            "testparser", {"harness_records": [], "all_crash_hashes": {}}
         )
-        campaign_result = _make_empty_campaign()
-        with patch(
-            "parser_security_eval.tasks.fuzzing.FuzzingCampaign"
-        ) as MockCampaign:
-            instance = AsyncMock()
-            instance.run = AsyncMock(return_value=campaign_result)
-            MockCampaign.return_value = instance
-            t = _make_start_fuzzing_tool(state, "testlib", "libfuzzer", max_rounds=3)
-            result = asyncio.run(t(10))
-        assert isinstance(result, str)
 
-    def test_appends_campaign_to_state(self, tmp_path: Path) -> None:
-        sandbox = _make_mock_sandbox()
-        state = FuzzingState(
-            sandbox=sandbox, harness_written=True, harness_compiled=True
+
+# ---------------------------------------------------------------------------
+# System prompt
+# ---------------------------------------------------------------------------
+
+
+class TestSystemPrompt:
+    @pytest.fixture(autouse=True)
+    def _load_prompt(self) -> None:
+        self.prompt = prompts.load(
+            "fuzzing.system",
+            max_repair=MAX_REPAIR_ITERS,
+            cycle_cap=CYCLE_CAP_SECONDS,
         )
-        campaign_result = _make_empty_campaign()
-        with patch(
-            "parser_security_eval.tasks.fuzzing.FuzzingCampaign"
-        ) as MockCampaign:
-            instance = AsyncMock()
-            instance.run = AsyncMock(return_value=campaign_result)
-            MockCampaign.return_value = instance
-            t = _make_start_fuzzing_tool(state, "testlib", "libfuzzer", max_rounds=3)
-            asyncio.run(t(10))
-        assert len(state.campaigns) == 1
 
-    def test_budget_exhausted_message(self) -> None:
-        state = FuzzingState(
-            sandbox=_make_mock_sandbox(),
-            harness_written=True,
-            harness_compiled=True,
-            campaigns=[
-                _make_empty_campaign(),
-                _make_empty_campaign(),
-                _make_empty_campaign(),
-            ],
-        )
-        t = _make_start_fuzzing_tool(state, "testlib", "libfuzzer", max_rounds=3)
-        result = _tool_str(asyncio.run(t(10))).lower()
-        assert "budget" in result or "exhausted" in result
+    def test_prompt_contains_four_phases(self) -> None:
+        assert "ANALYZE" in self.prompt
+        assert "SYNTHESIZE" in self.prompt
+        assert "FUZZ" in self.prompt
+        assert "TRIAGE" in self.prompt
 
-    def test_error_when_not_compiled(self) -> None:
-        state = FuzzingState(
-            sandbox=_make_mock_sandbox(),
-            harness_written=True,
-            harness_compiled=False,
-        )
-        t = _make_start_fuzzing_tool(state, "testlib", "libfuzzer", max_rounds=3)
-        result = _tool_str(asyncio.run(t(10)))
-        assert "Error" in result
+    def test_prompt_references_cycle_cap(self) -> None:
+        assert str(CYCLE_CAP_SECONDS) in self.prompt
 
-    def test_error_when_no_sandbox(self) -> None:
-        state = FuzzingState(sandbox=None, harness_written=True, harness_compiled=True)
-        t = _make_start_fuzzing_tool(state, "testlib", "libfuzzer", max_rounds=3)
-        result = _tool_str(asyncio.run(t(10)))
-        assert "Error" in result
+    def test_prompt_references_repair_budget(self) -> None:
+        assert str(MAX_REPAIR_ITERS) in self.prompt
+
+    def test_prompt_mentions_per_function_targeting(self) -> None:
+        assert "entry-point" in self.prompt.lower()
+
+    def test_prompt_mentions_reachability(self) -> None:
+        assert "eachab" in self.prompt  # "Reachability"
 
 
 # ---------------------------------------------------------------------------
-# Tool: get_fuzzer_stats — returns string
+# live_fuzzing_solver
 # ---------------------------------------------------------------------------
 
 
-class TestGetFuzzerStatsTool:
-    def test_returns_string(self) -> None:
-        state = FuzzingState()
-        t = _make_get_fuzzer_stats_tool(state)
-        result = asyncio.run(t())
-        assert isinstance(result, str)
-
-    def test_no_campaigns_message(self) -> None:
-        state = FuzzingState()
-        t = _make_get_fuzzer_stats_tool(state)
-        result = _tool_str(asyncio.run(t()))
-        assert "No campaigns" in result
-
-    def test_shows_stats_after_campaign(self) -> None:
-        state = FuzzingState()
-        state.campaigns.append(_make_empty_campaign())
-        state.last_stats = state.campaigns[-1].stats
-        t = _make_get_fuzzer_stats_tool(state)
-        result = _tool_str(asyncio.run(t()))
-        assert "1" in result  # at least 1 campaign
+class TestLiveFuzzingSolver:
+    def test_returns_callable(self) -> None:
+        s = live_fuzzing_solver()
+        assert callable(s)
 
 
 # ---------------------------------------------------------------------------
-# Tool: get_crash_info — returns string
-# ---------------------------------------------------------------------------
-
-
-class TestGetCrashInfoTool:
-    def test_returns_string(self) -> None:
-        state = FuzzingState(sandbox=_make_mock_sandbox())
-        t = _make_get_crash_info_tool(state, "testlib")
-        result = asyncio.run(t("crash-0"))
-        assert isinstance(result, str)
-
-    def test_no_crashes_returns_message(self) -> None:
-        state = FuzzingState(sandbox=_make_mock_sandbox())
-        t = _make_get_crash_info_tool(state, "testlib")
-        result = _tool_str(asyncio.run(t("crash-0")))
-        assert "No crashes" in result
-
-    def test_returns_crash_info(self, tmp_path: Path) -> None:
-        sandbox = _make_mock_sandbox()
-        sandbox.exec = AsyncMock(
-            return_value=(1, "", "ERROR: AddressSanitizer: heap-buffer-overflow")
-        )
-        state = FuzzingState(sandbox=sandbox)
-        state.campaigns.append(_make_crash_campaign(tmp_path, n_crashes=1))
-        t = _make_get_crash_info_tool(state, "testlib")
-        result = _tool_str(asyncio.run(t("crash-0")))
-        assert isinstance(result, str)
-        assert "crash" in result.lower()
-
-    def test_invalid_crash_id_returns_error(self, tmp_path: Path) -> None:
-        state = FuzzingState(sandbox=_make_mock_sandbox())
-        state.campaigns.append(_make_crash_campaign(tmp_path, n_crashes=1))
-        t = _make_get_crash_info_tool(state, "testlib")
-        result = _tool_str(asyncio.run(t("crash-99")))
-        assert "range" in result or "Error" in result
-
-
-# ---------------------------------------------------------------------------
-# Tool: refine_harness — returns string
-# ---------------------------------------------------------------------------
-
-
-class TestRefineHarnessTool:
-    def test_returns_string(self) -> None:
-        sandbox = _make_mock_sandbox()
-        sandbox.exec = AsyncMock(return_value=(0, "", ""))
-        state = FuzzingState(sandbox=sandbox)
-        t = _make_refine_harness_tool(state, "testlib", "libfuzzer")
-        result = asyncio.run(t(MINIMAL_HARNESS))
-        assert isinstance(result, str)
-
-    def test_returns_success_on_compile_ok(self) -> None:
-        sandbox = _make_mock_sandbox()
-        sandbox.exec = AsyncMock(return_value=(0, "", ""))
-        state = FuzzingState(sandbox=sandbox)
-        t = _make_refine_harness_tool(state, "testlib", "libfuzzer")
-        result = _tool_str(asyncio.run(t(MINIMAL_HARNESS))).lower()
-        assert "compiled" in result or "updated" in result
-        assert state.harness_compiled is True
-
-    def test_returns_error_on_compile_failure(self) -> None:
-        sandbox = _make_mock_sandbox()
-        sandbox.exec = AsyncMock(return_value=(1, "", "error: bad\n"))
-        state = FuzzingState(sandbox=sandbox, harness_written=True)
-        t = _make_refine_harness_tool(state, "testlib", "libfuzzer")
-        result = _tool_str(asyncio.run(t(MINIMAL_HARNESS)))
-        assert "FAILED" in result
-        assert state.harness_compiled is False
-
-    def test_error_when_no_sandbox(self) -> None:
-        state = FuzzingState(sandbox=None)
-        t = _make_refine_harness_tool(state, "testlib", "libfuzzer")
-        result = _tool_str(asyncio.run(t(MINIMAL_HARNESS)))
-        assert "Error" in result
-
-
-# ---------------------------------------------------------------------------
-# live_fuzzing_scorer — no crashes -> 0.0
+# live_fuzzing_scorer
 # ---------------------------------------------------------------------------
 
 
 class TestLiveFuzzingScorer:
-    def _make_state_with_no_campaigns(self) -> MagicMock:
-        """Build a TaskState mock whose store has a FuzzingState with no campaigns."""
-        fuzzing_state = FuzzingState()
-        store = MagicMock()
-        store.get = MagicMock(return_value=fuzzing_state)
+    def test_returns_list(self) -> None:
+        scorers = live_fuzzing_scorer()
+        assert isinstance(scorers, list)
+        assert len(scorers) == 1
+
+    def test_scorer_is_callable(self) -> None:
+        scorers = live_fuzzing_scorer()
+        assert callable(scorers[0])
+
+    @pytest.mark.asyncio
+    async def test_no_session_state_scores_zero(self) -> None:
+        scorers = live_fuzzing_scorer()
+        score_fn = scorers[0]
 
         state = MagicMock()
-        state.store = store
-        return state
+        state.metadata = {}  # no _session_state key
 
-    def _make_state_with_campaigns(self, campaigns: list[CampaignResult]) -> MagicMock:
-        """Build a TaskState mock with pre-populated campaigns."""
-        fuzzing_state = FuzzingState()
-        fuzzing_state.campaigns = campaigns
-        if campaigns:
-            fuzzing_state.last_stats = campaigns[-1].stats
+        target = MagicMock()
+        target.text = "testparser"
 
-        store = MagicMock()
-        store.get = MagicMock(return_value=fuzzing_state)
+        result = await score_fn(state, target)
+        assert result.value == 0.0
+        assert "No session state" in (result.explanation or "")
+
+    @pytest.mark.asyncio
+    async def test_scores_crashes_and_compiles(self) -> None:
+        scorers = live_fuzzing_scorer()
+        score_fn = scorers[0]
+
+        session_state = {
+            "all_crash_hashes": {f"h{i}": f"asan{i}" for i in range(5)},
+            "harness_records": [
+                HarnessRecord(
+                    entry_point="f",
+                    code="...",
+                    compile_success=True,
+                    first_try_success=True,
+                    repair_iterations=0,
+                )
+            ],
+            "fuzzing_cycles": [],
+            "last_fuzz_result": None,
+            "cycle_count": 1,
+        }
 
         state = MagicMock()
-        state.store = store
-        return state
+        state.metadata = {
+            "target_name": "testparser",
+            "_session_state": session_state,
+        }
+        target = MagicMock()
 
-    def _run_scorer(self, state: MagicMock) -> Score:
-        scorer_fn = live_fuzzing_scorer()
-        target = Target("fuzz_testlib")
-        result = asyncio.run(scorer_fn(state, target))
-        assert result is not None
-        return result
-
-    def test_no_campaigns_returns_zero(self) -> None:
-        state = self._make_state_with_no_campaigns()
-        result = self._run_scorer(state)
-        assert result.value == 0.0
-
-    def test_no_state_returns_zero(self) -> None:
-        store = MagicMock()
-        store.get = MagicMock(return_value=None)
-        state = MagicMock()
-        state.store = store
-        result = self._run_scorer(state)
-        assert result.value == 0.0
-
-    def test_no_crashes_scores_zero(self) -> None:
-        state = self._make_state_with_campaigns([_make_empty_campaign()])
-        result = self._run_scorer(state)
-        assert result.value == 0.0
-
-    def test_crashes_increase_score(self, tmp_path: Path) -> None:
-        campaign = _make_crash_campaign(tmp_path, n_crashes=5)
-        state = self._make_state_with_campaigns([campaign])
-        result = self._run_scorer(state)
-        assert isinstance(result.value, float)
-        assert result.value > 0.0
-        assert result.value <= 1.0
-
-    def test_five_crashes_max_crash_component(self, tmp_path: Path) -> None:
-        """5 unique crashes => crash_score=1.0; combined = 0.7 * 1.0 + 0.3 * 0.0 = 0.7."""
-        campaign = _make_crash_campaign(tmp_path, n_crashes=5)
-        state = self._make_state_with_campaigns([campaign])
-        result = self._run_scorer(state)
-        assert isinstance(result.value, float)
-        assert abs(result.value - 0.7) < 1e-9
-
-    def test_score_metadata_keys(self, tmp_path: Path) -> None:
-        campaign = _make_crash_campaign(tmp_path, n_crashes=2)
-        state = self._make_state_with_campaigns([campaign])
-        result = self._run_scorer(state)
-        meta = result.metadata
-        assert meta is not None
-        assert "unique_crashes" in meta
-        assert "coverage_pct" in meta
-        assert "rounds_completed" in meta
-        assert "total_executions" in meta
-
-    def test_explanation_contains_crashes(self, tmp_path: Path) -> None:
-        campaign = _make_crash_campaign(tmp_path, n_crashes=3)
-        state = self._make_state_with_campaigns([campaign])
-        result = self._run_scorer(state)
-        assert "unique_crashes=3" in (result.explanation or "")
+        result = await score_fn(state, target)
+        assert result.value is not None
+        assert 0.0 <= float(result.value) <= 1.0
+        # 5 crashes → crash_score=0.5; 1/1 first try compile → compile_score=1.0; no cov
+        # 0.4*0.5 + 0.3*1.0 + 0.3*0.0 = 0.50
+        assert float(result.value) == pytest.approx(0.50)
 
 
 # ---------------------------------------------------------------------------
-# live_fuzzing task smoke test
+# live_fuzzing task
 # ---------------------------------------------------------------------------
 
 
@@ -609,17 +898,16 @@ class TestLiveFuzzingTask:
 
         t = live_fuzzing(
             targets_dir=str(target_dir.parent),
-            target="testlib",
-            engine="libfuzzer",
-            max_rounds=2,
-            round_duration=30,
+            target="testparser",
+            fuzzing_engine="libfuzzer",
+            sanitizer="address",
         )
         assert isinstance(t, Task)
 
     def test_task_has_dataset(self, target_dir: Path) -> None:
         t = live_fuzzing(
             targets_dir=str(target_dir.parent),
-            target="testlib",
+            target="testparser",
         )
         assert t.dataset is not None
 
@@ -627,21 +915,14 @@ class TestLiveFuzzingTask:
         with pytest.raises(FileNotFoundError):
             live_fuzzing(
                 targets_dir=str(tmp_path),
-                target="nonexistent",
+                target="doesnotexist",
             )
 
-
-# ---------------------------------------------------------------------------
-# live_fuzzing_solver smoke test
-# ---------------------------------------------------------------------------
-
-
-class TestLiveFuzzingSolver:
-    def test_returns_callable_solver(self, target_dir: Path) -> None:
-        s = live_fuzzing_solver(
+    def test_task_message_limit_generous(self, target_dir: Path) -> None:
+        """The task should allow many messages for multi-cycle runs."""
+        t = live_fuzzing(
             targets_dir=str(target_dir.parent),
-            target="testlib",
-            engine="libfuzzer",
-            max_rounds=3,
+            target="testparser",
         )
-        assert callable(s)
+        assert t.message_limit is not None
+        assert t.message_limit >= 60

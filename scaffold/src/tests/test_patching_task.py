@@ -433,6 +433,93 @@ class TestLoadPatchingDataset:
 
 
 # ---------------------------------------------------------------------------
+# load_patching_dataset — seed / shuffle behaviour
+# ---------------------------------------------------------------------------
+
+
+def make_multi_benchmark(tmp_path: Path, n: int = 6) -> Path:
+    """Create a benchmark with n vulnerability records across different targets."""
+    records = []
+    for i in range(n):
+        target = "libpng" if i % 2 == 0 else "libxml2"
+        vuln_id = f"OSS-FUZZ-{10000 + i}"
+        record_dir = tmp_path / target / vuln_id
+        record_dir.mkdir(parents=True, exist_ok=True)
+        (record_dir / "crash_report.txt").write_text(f"ASAN: heap-buffer-overflow #{i}")
+        records.append(
+            {
+                "id": vuln_id,
+                "target": target,
+                "severity": "high",
+                "difficulty": "medium",
+                "crash_type": "heap-buffer-overflow",
+                "sanitizer": "address",
+                "affected_file": "foo.c",
+                "affected_function": None,
+                "cwe": None,
+                "root_cause": None,
+                "crash_input_path": None,
+                "crash_report_path": f"{target}/{vuln_id}/crash_report.txt",
+                "reference_patch_path": None,
+                "vulnerable_source_ref": None,
+                "tags": [],
+                "lines_changed_in_fix": None,
+                "ossfuzz_project": None,
+            }
+        )
+
+    metadata = {
+        "version": "0.1.0",
+        "total_vulnerabilities": n,
+        "targets": ["libpng", "libxml2"],
+        "records": records,
+    }
+    (tmp_path / "metadata.json").write_text(json.dumps(metadata))
+    return tmp_path
+
+
+class TestLoadPatchingDatasetSeed:
+    def test_same_seed_produces_same_order(self, tmp_path: Path) -> None:
+        bdir = make_multi_benchmark(tmp_path, n=6)
+        ids_a = [s.id for s in load_patching_dataset(str(bdir), seed=42)]
+        ids_b = [s.id for s in load_patching_dataset(str(bdir), seed=42)]
+        assert ids_a == ids_b
+
+    def test_different_seeds_produce_different_orders(self, tmp_path: Path) -> None:
+        bdir = make_multi_benchmark(tmp_path, n=6)
+        ids_seed1 = [s.id for s in load_patching_dataset(str(bdir), seed=1)]
+        ids_seed2 = [s.id for s in load_patching_dataset(str(bdir), seed=99)]
+        # With 6 elements it is astronomically unlikely both seeds produce
+        # identical permutations; treat as a definitive mismatch.
+        assert ids_seed1 != ids_seed2
+
+    def test_seed_without_limit_returns_all_samples(self, tmp_path: Path) -> None:
+        bdir = make_multi_benchmark(tmp_path, n=6)
+        samples = load_patching_dataset(str(bdir), seed=7)
+        assert len(samples) == 6
+
+    def test_seed_with_target_filter_applied_before_shuffle(
+        self, tmp_path: Path
+    ) -> None:
+        """Filter by target must happen before seed-shuffle so IDs are stable."""
+        bdir = make_multi_benchmark(tmp_path, n=6)
+        # Only libpng records (i=0,2,4 → ids 10000, 10002, 10004)
+        samples_a = load_patching_dataset(str(bdir), target="libpng", seed=42)
+        samples_b = load_patching_dataset(str(bdir), target="libpng", seed=42)
+        assert [s.id for s in samples_a] == [s.id for s in samples_b]
+        # All returned samples must be libpng
+        assert all(s.metadata["target"] == "libpng" for s in samples_a)
+        assert len(samples_a) == 3  # 3 libpng records out of 6
+
+    def test_no_seed_preserves_original_order(self, tmp_path: Path) -> None:
+        """Without a seed, records come out in metadata.json insertion order."""
+        bdir = make_multi_benchmark(tmp_path, n=6)
+        samples = load_patching_dataset(str(bdir))
+        expected_ids = [f"OSS-FUZZ-{10000 + i}" for i in range(6)]
+        assert [s.id for s in samples] == expected_ids
+
+
+# ---------------------------------------------------------------------------
 # patching_solver
 # ---------------------------------------------------------------------------
 
