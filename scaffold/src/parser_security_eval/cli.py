@@ -28,6 +28,9 @@ app = typer.Typer(
     name="parser-security-eval", help="Parser security evaluation framework."
 )
 
+memory_app = typer.Typer(name="memory", help="Inspect per-target agent memory.")
+app.add_typer(memory_app, name="memory")
+
 logger = logging.getLogger(__name__)
 
 _DEFAULT_CACHE = Path.home() / ".cache" / "parser-security-eval"
@@ -581,3 +584,23 @@ def fuzzing(
                     f"{k}={v.value:.3f}" for k, v in score.metrics.items()
                 )
                 typer.echo(f"  {score.name}: {metrics_str}")
+
+
+@memory_app.command("show")
+def memory_show(
+    target: str = typer.Argument(help="Parser target name (e.g. 'libxml2')"),
+    targets_root: Path = typer.Option(
+        Path("../targets"), help="Targets root directory"
+    ),
+    max_tokens: int = typer.Option(2000, help="Token budget for the context block"),
+) -> None:
+    """Print the agent memory context (as would be sent to an LLM) for a target.
+
+    Example:
+        parser-security-eval memory show libxml2
+    """
+    from parser_security_eval.memory.store import load_memory, memory_to_context
+
+    memory = load_memory(target, targets_dir=targets_root)
+    ctx = memory_to_context(memory, max_tokens=max_tokens)
+    typer.echo(ctx)
