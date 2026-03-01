@@ -1,0 +1,17 @@
+{
+  "experiment": "patching-model-sweep",
+  "task": "patching",
+  "total_runs": 4,
+  "completed": 0,
+  "failed": 0,
+  "pending": 3,
+  "runs": [
+    {
+      "run_id": "b63b3c2b69e4",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libpng",
+      "repetition": 0,
+      "status": "running"
+    }
+  ]
+}

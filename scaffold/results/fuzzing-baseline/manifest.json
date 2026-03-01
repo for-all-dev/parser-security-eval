@@ -1,0 +1,253 @@
+{
+  "experiment_name": "fuzzing-baseline",
+  "config": {
+    "name": "fuzzing-baseline",
+    "description": "Baseline fuzzing runs across targets with varying durations",
+    "task": "fuzzing",
+    "output_dir": "results/fuzzing-baseline",
+    "defaults": {
+      "benchmark_dir": "../benchmark",
+      "targets_root": "../targets",
+      "ready_only": false,
+      "seed": null,
+      "limit": null,
+      "engine": "libfuzzer",
+      "fuzz_duration": 300,
+      "max_rounds": 3,
+      "round_duration": 60
+    },
+    "grid": {
+      "model": [
+        "anthropic/claude-sonnet-4-6"
+      ],
+      "target": [
+        "libpng",
+        "libjpeg-turbo",
+        "libxml2",
+        "zlib"
+      ],
+      "extra": {
+        "fuzz_duration": [
+          60,
+          120,
+          300
+        ]
+      }
+    },
+    "repetitions": 1
+  },
+  "runs": {
+    "9f34d716a054": {
+      "run_id": "9f34d716a054",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libpng",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 60
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline/logs/2026-03-01T20-51-47+00-00_live-fuzzing_KmyctEjiDSBGCWLVUZFBrq.eval",
+      "started_at": "2026-03-01T20:51:47.464857Z",
+      "completed_at": "2026-03-01T20:52:03.534872Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 0.0,
+        "error": null
+      }
+    },
+    "493ced1c3a93": {
+      "run_id": "493ced1c3a93",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libpng",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 120
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline/logs/2026-03-01T20-52-03+00-00_live-fuzzing_XYHC7MzPCFsrZV33mHGYwx.eval",
+      "started_at": "2026-03-01T20:52:03.536388Z",
+      "completed_at": "2026-03-01T20:52:54.464303Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 0.0,
+        "error": null
+      }
+    },
+    "1741d545cc30": {
+      "run_id": "1741d545cc30",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libpng",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 300
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline/logs/2026-03-01T20-52-54+00-00_live-fuzzing_kNdMH9DQYeXXxywBeJA6gS.eval",
+      "started_at": "2026-03-01T20:52:54.468659Z",
+      "completed_at": "2026-03-01T20:53:31.004105Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 0.0,
+        "error": null
+      }
+    },
+    "a6fb2e3acae2": {
+      "run_id": "a6fb2e3acae2",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libjpeg-turbo",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 60
+      },
+      "status": "running",
+      "eval_log_path": null,
+      "started_at": "2026-03-01T20:53:31.006555Z",
+      "completed_at": null,
+      "error": null,
+      "result": null
+    },
+    "7ef8e06251b8": {
+      "run_id": "7ef8e06251b8",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libjpeg-turbo",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 120
+      },
+      "status": "pending",
+      "eval_log_path": null,
+      "started_at": null,
+      "completed_at": null,
+      "error": null,
+      "result": null
+    },
+    "9524ce3c69fb": {
+      "run_id": "9524ce3c69fb",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libjpeg-turbo",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 300
+      },
+      "status": "pending",
+      "eval_log_path": null,
+      "started_at": null,
+      "completed_at": null,
+      "error": null,
+      "result": null
+    },
+    "51f3dc849fe3": {
+      "run_id": "51f3dc849fe3",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libxml2",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 60
+      },
+      "status": "pending",
+      "eval_log_path": null,
+      "started_at": null,
+      "completed_at": null,
+      "error": null,
+      "result": null
+    },
+    "e5b3b47bf7ae": {
+      "run_id": "e5b3b47bf7ae",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libxml2",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 120
+      },
+      "status": "pending",
+      "eval_log_path": null,
+      "started_at": null,
+      "completed_at": null,
+      "error": null,
+      "result": null
+    },
+    "a296500b35fd": {
+      "run_id": "a296500b35fd",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libxml2",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 300
+      },
+      "status": "pending",
+      "eval_log_path": null,
+      "started_at": null,
+      "completed_at": null,
+      "error": null,
+      "result": null
+    },
+    "6f5db6fbe49c": {
+      "run_id": "6f5db6fbe49c",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "zlib",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 60
+      },
+      "status": "pending",
+      "eval_log_path": null,
+      "started_at": null,
+      "completed_at": null,
+      "error": null,
+      "result": null
+    },
+    "a1ddd56e7aa7": {
+      "run_id": "a1ddd56e7aa7",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "zlib",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 120
+      },
+      "status": "pending",
+      "eval_log_path": null,
+      "started_at": null,
+      "completed_at": null,
+      "error": null,
+      "result": null
+    },
+    "b83402acf072": {
+      "run_id": "b83402acf072",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "zlib",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 300
+      },
+      "status": "pending",
+      "eval_log_path": null,
+      "started_at": null,
+      "completed_at": null,
+      "error": null,
+      "result": null
+    }
+  },
+  "created_at": "2026-03-01T20:51:46.142057Z",
+  "updated_at": "2026-03-01T20:53:31.006561Z"
+}
