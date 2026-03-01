@@ -81,8 +81,9 @@
           {% else %}
           {% set kw_count = 0 %}
           {% endif %}
-          <th data-col="{{ kw_count + 4 }}">Duration (min)</th>
-          <th data-col="{{ kw_count + 5 }}">Log</th>
+          <th data-col="{{ kw_count + 4 }}">Score</th>
+          <th data-col="{{ kw_count + 5 }}">Duration (s)</th>
+          <th data-col="{{ kw_count + 6 }}">Log</th>
         </tr>
       </thead>
       <tbody>
@@ -108,8 +109,15 @@
           {% for kw_key, kw_val in row.kwargs.items() %}
           <td class="num">{{ kw_val }}</td>
           {% endfor %}
-          <td class="num" data-val="{{ row.duration_min if row.duration_min is not none else 9999 }}">
-            {% if row.duration_min is not none %}{{ row.duration_min }}{% else %}<span style="color:var(--text-dim)">—</span>{% endif %}
+          <td class="num" data-val="{{ row.score if row.score is not none else -1 }}">
+            {% if row.score is not none %}
+              <span style="color:{% if row.score >= 0.7 %}var(--accent-green){% elif row.score >= 0.4 %}var(--text){% else %}var(--accent-red){% endif %}">
+                {{ "%.3f"|format(row.score) }}
+              </span>
+            {% else %}<span style="color:var(--text-dim)">—</span>{% endif %}
+          </td>
+          <td class="num" data-val="{{ row.total_time_s if row.total_time_s is not none else 9999 }}">
+            {% if row.total_time_s is not none %}{{ row.total_time_s }}{% else %}<span style="color:var(--text-dim)">—</span>{% endif %}
           </td>
           <td style="text-align:center">
             {% if row.eval_log %}
@@ -137,7 +145,7 @@
 <div class="card">
   <p style="color:var(--text-muted)">
     No data available yet. Point <code>--data-dir</code> at the experiment
-    <code>output_dir</code> containing <code>manifest.json</code>.
+    <code>output_dir</code> containing <code>results.json</code>.
   </p>
 </div>
 {% endif %}
