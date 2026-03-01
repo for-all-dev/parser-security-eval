@@ -772,7 +772,9 @@ class TestMemoryStubs:
 
     def test_save_does_not_raise(self) -> None:
         # Empty session_state → no harnesses or crashes to persist, no error
-        save_session_memory("testparser", {"harness_records": [], "all_crash_hashes": {}})
+        save_session_memory(
+            "testparser", {"harness_records": [], "all_crash_hashes": {}}
+        )
 
 
 # ---------------------------------------------------------------------------
