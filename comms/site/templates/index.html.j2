@@ -4,84 +4,150 @@
 {% block content %}
 <!-- Hero -->
 <div class="hero">
-  <div class="hero-label">Experiment #{{ experiment.issue | default('') }}</div>
-  <h1>{{ experiment.name | default('Parser Security Eval Results') }}</h1>
-  {% if experiment.description %}
+  {% if experiment.task %}
+  <div class="hero-label">{{ experiment.task | upper }} EXPERIMENT</div>
+  {% endif %}
+  <h1>{{ experiment.name or experiment.id or 'Experiment Results' }}</h1>
+  {% if experiment.description and experiment.description != experiment.name %}
   <p>{{ experiment.description }}</p>
   {% endif %}
   <div class="hero-meta">
-    {% if experiment.date %}<span class="badge">{{ experiment.date }}</span>{% endif %}
-    {% if experiment.issue %}<span class="badge issue"># {{ experiment.issue }}</span>{% endif %}
-    {% for t in (experiment.targets or []) %}<span class="badge">{{ t }}</span>{% endfor %}
+    {% if experiment.id %}<span class="badge">{{ experiment.id }}</span>{% endif %}
+    {% if experiment.task %}<span class="badge">{{ experiment.task }}</span>{% endif %}
+    {% if stats.engine %}<span class="badge">{{ stats.engine }}</span>{% endif %}
+    {% if experiment.created_at %}<span class="badge">started {{ experiment.created_at[:10] }}</span>{% endif %}
     {% if is_example %}<span class="badge example">example data</span>{% endif %}
   </div>
 </div>
 
-<!-- Key stats -->
+<!-- Stat cards -->
 {% if stats %}
 <div class="stats-grid">
   <div class="stat-card accent-blue">
     <div class="label">Total Runs</div>
     <div class="value">{{ stats.total_runs }}</div>
-    <div class="sub">across {{ (stats.targets or [])|length }} targets</div>
+    <div class="sub">
+      {{ (stats.grid_models or []) | length }} model(s) ×
+      {{ (stats.grid_targets or []) | length }} target(s)
+    </div>
   </div>
-  <div class="stat-card accent-red">
-    <div class="label">Unique Crashes</div>
-    <div class="value">{{ stats.total_crashes }}</div>
-    <div class="sub">all AI conditions combined</div>
-  </div>
-  {% if stats.min_ttfc_minutes is not none %}
-  <div class="stat-card accent-teal">
-    <div class="label">Fastest First Crash</div>
-    <div class="value">{{ stats.min_ttfc_minutes }}<span style="font-size:1.1rem;color:var(--text-muted)"> min</span></div>
-    <div class="sub">best single run</div>
-  </div>
-  {% endif %}
-  {% if stats.best_config %}
+
   <div class="stat-card accent-green">
-    <div class="label">Best Crash Rate</div>
-    <div class="value">{{ "%.2f"|format(stats.best_config.rate) }}<span style="font-size:.9rem;color:var(--text-muted)"> / cpu-hr</span></div>
-    <div class="sub">{{ stats.best_config.target }} · {{ stats.best_config.model.replace("claude-","").replace("-4-6","") }}</div>
+    <div class="label">Completed</div>
+    <div class="value">{{ stats.completed }}</div>
+    <div class="sub">
+      {% if stats.total_runs > 0 %}
+        {{ (stats.completed / stats.total_runs * 100) | round(0) | int }}% of runs
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="stat-card accent-red">
+    <div class="label">Failed</div>
+    <div class="value">{{ stats.failed }}</div>
+    <div class="sub">{{ stats.running }} running · {{ stats.pending }} pending</div>
+  </div>
+
+  {% if stats.mean_duration_min is defined %}
+  <div class="stat-card accent-teal">
+    <div class="label">Mean Run Time</div>
+    <div class="value">{{ stats.mean_duration_min }}<span style="font-size:1rem;color:var(--text-muted)"> min</span></div>
+    <div class="sub">range {{ stats.min_duration_min }}–{{ stats.max_duration_min }} min</div>
   </div>
   {% endif %}
+
+  {% if stats.max_rounds %}
   <div class="stat-card">
-    <div class="label">Models Tested</div>
-    <div class="value">{{ (stats.models or [])|length }}</div>
-    <div class="sub">{{ (stats.models or [])|join(', ') | truncate(40) }}</div>
+    <div class="label">Rounds / Run</div>
+    <div class="value">{{ stats.max_rounds }}</div>
+    <div class="sub">{{ stats.round_duration }}s per round</div>
   </div>
-  <div class="stat-card">
-    <div class="label">Conditions</div>
-    <div class="value">{{ (stats.conditions or [])|length }}</div>
-    <div class="sub">incl. baselines</div>
+  {% endif %}
+
+  {% if stats.best_model %}
+  <div class="stat-card accent-amber">
+    <div class="label">Best Model</div>
+    <div class="value" style="font-size:1.4rem">{{ stats.best_model }}</div>
+    <div class="sub">score {{ stats.best_score }}</div>
   </div>
+  {% endif %}
 </div>
 
-<!-- Quick crash-rate chart -->
-{% if stats.crash_rate_chart %}
+<!-- Status donut + matrix -->
+{% if stats.status_donut or stats.status_matrix %}
+<div class="chart-grid-2" style="margin-bottom:1.5rem">
+
+  {% if stats.status_donut %}
+  <div class="card" style="margin-bottom:0">
+    <div class="card-title"><span class="icon">🔵</span> Run Status</div>
+    <div class="chart-wrap" style="max-height:280px">
+      <canvas id="statusDonut"></canvas>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if stats.status_matrix %}
+  {% set mx = stats.status_matrix %}
+  <div class="card" style="margin-bottom:0">
+    <div class="card-title"><span class="icon">⊞</span> Model × Target Grid</div>
+    <div style="overflow-x:auto">
+      <table style="min-width:0;font-size:.82rem">
+        <thead>
+          <tr>
+            <th style="text-align:left;padding:.4rem .75rem;background:var(--bg-card-2);color:var(--text-dim);font-size:.72rem;text-transform:uppercase;letter-spacing:.07em">Model</th>
+            {% for t in mx.targets %}
+            <th style="text-align:center;padding:.4rem .75rem;background:var(--bg-card-2);color:var(--text-dim);font-size:.72rem;text-transform:uppercase;letter-spacing:.07em">{{ t }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for model_short in mx.models %}
+          <tr>
+            <td style="padding:.5rem .75rem;font-size:.82rem;white-space:nowrap;color:var(--text-muted)">{{ model_short }}</td>
+            {% for target in mx.targets %}
+            {% set cell = mx.cells | selectattr("model_short","equalto",model_short) | selectattr("target","equalto",target) | first | default(none) %}
+            {% if cell %}
+              {% set status = cell.status %}
+              {% if status == 'completed' %}{% set bg = 'rgba(52,211,153,0.15)' %}{% set color = '#34d399' %}{% set icon = '✓' %}
+              {% elif status == 'failed' %}{% set bg = 'rgba(248,113,113,0.15)' %}{% set color = '#f87171' %}{% set icon = '✗' %}
+              {% elif status == 'running' %}{% set bg = 'rgba(251,191,36,0.12)' %}{% set color = '#fbbf24' %}{% set icon = '⟳' %}
+              {% else %}{% set bg = 'rgba(148,163,184,0.06)' %}{% set color = '#4e617a' %}{% set icon = '·' %}{% endif %}
+              <td title="{{ cell.error or status }}{% if cell.duration_min %} ({{ cell.duration_min }} min){% endif %}"
+                  style="text-align:center;padding:.5rem .75rem;background:{{ bg }};color:{{ color }};font-weight:600;cursor:default">
+                {{ icon }}{% if cell.duration_min and status == 'completed' %}<br><span style="font-size:.68rem;font-weight:400;color:var(--text-dim)">{{ cell.duration_min }}m</span>{% endif %}
+              </td>
+            {% else %}
+              <td style="text-align:center;padding:.5rem .75rem;color:var(--text-dim)">—</td>
+            {% endif %}
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.75rem;color:var(--text-dim);margin-top:.75rem">
+      ✓ completed &nbsp;✗ failed &nbsp;⟳ running &nbsp;· pending
+      &nbsp;—&nbsp;Hover for error details.
+    </p>
+  </div>
+  {% endif %}
+
+</div>
+{% endif %}
+
+<!-- Duration chart (completed runs) -->
+{% if stats.duration_chart %}
 <div class="card">
-  <div class="card-title"><span class="icon">📊</span> Crashes per CPU-Hour — Overview</div>
+  <div class="card-title"><span class="icon">⏱</span> Run Durations (completed)</div>
   <div class="chart-wrap">
-    <canvas id="overviewChart"></canvas>
+    <canvas id="durationChart"></canvas>
   </div>
 </div>
 {% endif %}
 
-<!-- Cycle comparison -->
-{% if stats.cycle_chart %}
-<div class="card">
-  <div class="card-title"><span class="icon">⏱</span> Cycle Condition: 30-min vs 2-hr Continuous</div>
-  <p style="color:var(--text-muted);font-size:.88rem;margin-bottom:1rem">
-    Mean crashes/CPU-hour across all targets, per model.
-    The literature predicts 30-min cycles win; this chart shows by how much.
-  </p>
-  <div class="chart-wrap" style="max-width:560px">
-    <canvas id="cycleChart"></canvas>
-  </div>
-</div>
-{% endif %}
-{% endif %}
+{% endif %}{# end if stats #}
 
-<!-- Content pages -->
+<!-- Content prose -->
 {% for key, page in content.items() %}
 <div class="card">
   <div class="card-title"><span class="icon">📄</span> {{ page.title }}</div>
@@ -92,58 +158,41 @@
 
 {% block scripts %}
 <script>
-{% if stats.crash_rate_chart %}
+{% if stats.status_donut %}
 (function() {
-  const data = {{ stats.crash_rate_chart | tojson }};
-  new Chart(document.getElementById('overviewChart'), {
-    type: 'bar',
+  const data = {{ stats.status_donut | tojson }};
+  new Chart(document.getElementById('statusDonut'), {
+    type: 'doughnut',
     data: data,
     options: {
       responsive: true,
+      cutout: '65%',
       plugins: {
-        legend: { position: 'top' },
-        tooltip: {
-          callbacks: {
-            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(3)} crashes/cpu-hr`
-          }
-        }
-      },
-      scales: {
-        x: { grid: { color: 'rgba(37,46,69,.6)' } },
-        y: {
-          title: { display: true, text: 'Crashes / CPU-hour', color: '#8a9bb8' },
-          grid: { color: 'rgba(37,46,69,.6)' },
-          beginAtZero: true
-        }
+        legend: { position: 'bottom' },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed}` } }
       }
     }
   });
 })();
 {% endif %}
 
-{% if stats.cycle_chart %}
+{% if stats.duration_chart %}
 (function() {
-  const data = {{ stats.cycle_chart | tojson }};
-  new Chart(document.getElementById('cycleChart'), {
+  const data = {{ stats.duration_chart | tojson }};
+  new Chart(document.getElementById('durationChart'), {
     type: 'bar',
     data: data,
     options: {
+      indexAxis: 'y',
       responsive: true,
-      plugins: {
-        legend: { position: 'top' },
-        tooltip: {
-          callbacks: {
-            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(3)} crashes/cpu-hr`
-          }
-        }
-      },
+      plugins: { legend: { display: false } },
       scales: {
-        x: { grid: { color: 'rgba(37,46,69,.6)' } },
-        y: {
-          title: { display: true, text: 'Crashes / CPU-hour', color: '#8a9bb8' },
+        x: {
+          title: { display: true, text: 'Minutes', color: '#8a9bb8' },
           grid: { color: 'rgba(37,46,69,.6)' },
           beginAtZero: true
-        }
+        },
+        y: { grid: { display: false }, ticks: { font: { size: 11 } } }
       }
     }
   });

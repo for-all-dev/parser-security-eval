@@ -1,0 +1,251 @@
+{
+  "_example": true,
+  "experiment_name": "fuzzing-baseline",
+  "config": {
+    "name": "fuzzing-baseline",
+    "description": "Baseline fuzzing runs: single-agent live fuzzing on Tier 1 parser targets (issue #53)",
+    "task": "fuzzing",
+    "output_dir": "results/fuzzing-baseline",
+    "repetitions": 1,
+    "defaults": {
+      "benchmark_dir": "../benchmark",
+      "targets_root": "../targets",
+      "ready_only": false,
+      "seed": null,
+      "limit": null,
+      "engine": "libfuzzer",
+      "fuzz_duration": 7200,
+      "max_rounds": 4,
+      "round_duration": 1800
+    },
+    "grid": {
+      "model": [
+        "anthropic/claude-sonnet-4-6",
+        "anthropic/claude-opus-4-6",
+        "openai/gpt-4o"
+      ],
+      "target": ["libpng", "libjpeg-turbo", "libxml2", "zlib"],
+      "extra": {}
+    }
+  },
+  "runs": {
+    "a3f81c9d0e72": {
+      "run_id": "a3f81c9d0e72",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libpng",
+      "repetition": 0,
+      "task_kwargs": {
+        "engine": "libfuzzer",
+        "fuzz_duration": 7200,
+        "max_rounds": 4,
+        "round_duration": 1800,
+        "targets_root": "../targets"
+      },
+      "status": "completed",
+      "eval_log_path": "results/fuzzing-baseline/a3f81c9d0e72.eval",
+      "started_at": "2026-03-01T22:00:00+00:00",
+      "completed_at": "2026-03-02T00:18:00+00:00",
+      "error": null
+    },
+    "b7e24a5f1c83": {
+      "run_id": "b7e24a5f1c83",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libjpeg-turbo",
+      "repetition": 0,
+      "task_kwargs": {
+        "engine": "libfuzzer",
+        "fuzz_duration": 7200,
+        "max_rounds": 4,
+        "round_duration": 1800,
+        "targets_root": "../targets"
+      },
+      "status": "completed",
+      "eval_log_path": "results/fuzzing-baseline/b7e24a5f1c83.eval",
+      "started_at": "2026-03-01T22:05:00+00:00",
+      "completed_at": "2026-03-02T00:22:00+00:00",
+      "error": null
+    },
+    "c9d35b6e2f94": {
+      "run_id": "c9d35b6e2f94",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libxml2",
+      "repetition": 0,
+      "task_kwargs": {
+        "engine": "libfuzzer",
+        "fuzz_duration": 7200,
+        "max_rounds": 4,
+        "round_duration": 1800,
+        "targets_root": "../targets"
+      },
+      "status": "completed",
+      "eval_log_path": "results/fuzzing-baseline/c9d35b6e2f94.eval",
+      "started_at": "2026-03-01T22:10:00+00:00",
+      "completed_at": "2026-03-02T00:31:00+00:00",
+      "error": null
+    },
+    "d1a46c7f3g05": {
+      "run_id": "d1a46c7f3g05",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "zlib",
+      "repetition": 0,
+      "task_kwargs": {
+        "engine": "libfuzzer",
+        "fuzz_duration": 7200,
+        "max_rounds": 4,
+        "round_duration": 1800,
+        "targets_root": "../targets"
+      },
+      "status": "completed",
+      "eval_log_path": "results/fuzzing-baseline/d1a46c7f3g05.eval",
+      "started_at": "2026-03-01T22:15:00+00:00",
+      "completed_at": "2026-03-02T00:19:00+00:00",
+      "error": null
+    },
+    "e2b57d8a4h16": {
+      "run_id": "e2b57d8a4h16",
+      "model": "anthropic/claude-opus-4-6",
+      "target": "libpng",
+      "repetition": 0,
+      "task_kwargs": {
+        "engine": "libfuzzer",
+        "fuzz_duration": 7200,
+        "max_rounds": 4,
+        "round_duration": 1800,
+        "targets_root": "../targets"
+      },
+      "status": "completed",
+      "eval_log_path": "results/fuzzing-baseline/e2b57d8a4h16.eval",
+      "started_at": "2026-03-01T22:20:00+00:00",
+      "completed_at": "2026-03-02T00:41:00+00:00",
+      "error": null
+    },
+    "f3c68e9b5i27": {
+      "run_id": "f3c68e9b5i27",
+      "model": "anthropic/claude-opus-4-6",
+      "target": "libjpeg-turbo",
+      "repetition": 0,
+      "task_kwargs": {
+        "engine": "libfuzzer",
+        "fuzz_duration": 7200,
+        "max_rounds": 4,
+        "round_duration": 1800,
+        "targets_root": "../targets"
+      },
+      "status": "completed",
+      "eval_log_path": "results/fuzzing-baseline/f3c68e9b5i27.eval",
+      "started_at": "2026-03-01T22:25:00+00:00",
+      "completed_at": "2026-03-02T00:44:00+00:00",
+      "error": null
+    },
+    "g4d79f0c6j38": {
+      "run_id": "g4d79f0c6j38",
+      "model": "anthropic/claude-opus-4-6",
+      "target": "libxml2",
+      "repetition": 0,
+      "task_kwargs": {
+        "engine": "libfuzzer",
+        "fuzz_duration": 7200,
+        "max_rounds": 4,
+        "round_duration": 1800,
+        "targets_root": "../targets"
+      },
+      "status": "failed",
+      "eval_log_path": null,
+      "started_at": "2026-03-01T22:30:00+00:00",
+      "completed_at": null,
+      "error": "DockerError: container exited with status 137 (OOM); target build failed at round 2"
+    },
+    "h5e80g1d7k49": {
+      "run_id": "h5e80g1d7k49",
+      "model": "anthropic/claude-opus-4-6",
+      "target": "zlib",
+      "repetition": 0,
+      "task_kwargs": {
+        "engine": "libfuzzer",
+        "fuzz_duration": 7200,
+        "max_rounds": 4,
+        "round_duration": 1800,
+        "targets_root": "../targets"
+      },
+      "status": "running",
+      "eval_log_path": null,
+      "started_at": "2026-03-02T01:10:00+00:00",
+      "completed_at": null,
+      "error": null
+    },
+    "i6f91h2e8l50": {
+      "run_id": "i6f91h2e8l50",
+      "model": "openai/gpt-4o",
+      "target": "libpng",
+      "repetition": 0,
+      "task_kwargs": {
+        "engine": "libfuzzer",
+        "fuzz_duration": 7200,
+        "max_rounds": 4,
+        "round_duration": 1800,
+        "targets_root": "../targets"
+      },
+      "status": "completed",
+      "eval_log_path": "results/fuzzing-baseline/i6f91h2e8l50.eval",
+      "started_at": "2026-03-01T22:35:00+00:00",
+      "completed_at": "2026-03-02T00:58:00+00:00",
+      "error": null
+    },
+    "j7g02i3f9m61": {
+      "run_id": "j7g02i3f9m61",
+      "model": "openai/gpt-4o",
+      "target": "libjpeg-turbo",
+      "repetition": 0,
+      "task_kwargs": {
+        "engine": "libfuzzer",
+        "fuzz_duration": 7200,
+        "max_rounds": 4,
+        "round_duration": 1800,
+        "targets_root": "../targets"
+      },
+      "status": "failed",
+      "eval_log_path": null,
+      "started_at": "2026-03-01T22:40:00+00:00",
+      "completed_at": null,
+      "error": "HarnessError: harness failed to compile after 5 attempts; last error: undefined reference to 'tjDecompress3'"
+    },
+    "k8h13j4g0n72": {
+      "run_id": "k8h13j4g0n72",
+      "model": "openai/gpt-4o",
+      "target": "libxml2",
+      "repetition": 0,
+      "task_kwargs": {
+        "engine": "libfuzzer",
+        "fuzz_duration": 7200,
+        "max_rounds": 4,
+        "round_duration": 1800,
+        "targets_root": "../targets"
+      },
+      "status": "pending",
+      "eval_log_path": null,
+      "started_at": null,
+      "completed_at": null,
+      "error": null
+    },
+    "l9i24k5h1o83": {
+      "run_id": "l9i24k5h1o83",
+      "model": "openai/gpt-4o",
+      "target": "zlib",
+      "repetition": 0,
+      "task_kwargs": {
+        "engine": "libfuzzer",
+        "fuzz_duration": 7200,
+        "max_rounds": 4,
+        "round_duration": 1800,
+        "targets_root": "../targets"
+      },
+      "status": "pending",
+      "eval_log_path": null,
+      "started_at": null,
+      "completed_at": null,
+      "error": null
+    }
+  },
+  "created_at": "2026-03-01T21:58:00+00:00",
+  "updated_at": "2026-03-02T01:15:00+00:00"
+}

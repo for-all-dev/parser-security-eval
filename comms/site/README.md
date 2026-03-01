@@ -6,55 +6,72 @@ Static site generator for experiment results from [issue #53](https://github.com
 
 ```sh
 cd comms/site
-uv run python build.py          # builds to dist/
+uv run python build.py          # builds to dist/ from data/
 open dist/index.html            # view locally
 ```
 
-## Adding real experiment data
+## Using real experiment data
 
-Drop one or more `.json` or `.toml` files into `comms/site/data/`. The build
-script merges them all in sorted filename order:
+The builder reads from `comms/site/data/`. Point it at your actual results with
+`--data-dir`, or copy/symlink the framework output files there:
 
-- `experiment` keys are merged (later files win)
-- `runs` arrays are concatenated
+```sh
+# Option A: point directly at the output directory
+uv run python build.py --data-dir ../../scaffold/results/fuzzing-baseline
 
-See [`data/schema.md`](data/schema.md) for the full data format.
+# Option B: copy the files in
+cp ../../scaffold/results/fuzzing-baseline/manifest.json data/
+uv run python build.py
+```
 
-`data/example.json` ships with mock data so you can preview the site before
-real results are in. It is auto-detected as example data (via the `notes`
-field) and a banner is shown. To suppress the banner, remove or clear the
-`notes` field from your real data.
+### Generating the analysis JSON
+
+The Breakdowns page (CWE, difficulty, target charts) needs the analysis output:
+
+```sh
+cd scaffold
+uv run parser-security-eval experiment analyze results/fuzzing-baseline \
+    --json ../comms/site/data/analysis.json
+
+cd ../comms/site
+uv run python build.py
+```
+
+## Data formats
+
+Two file types are accepted (auto-detected by structure). See [`data/schema.md`](data/schema.md) for details.
+
+| File | Source | Populates |
+|------|--------|-----------|
+| `manifest.json` | Written by `experiment run` to `<output_dir>/manifest.json` | Overview (status grid, run durations), Results (run table) |
+| `analysis.json` | Written by `experiment analyze --json` | Results (leaderboard, pipeline stages, token usage), Breakdowns (CWE, difficulty, target charts) |
+
+Files starting with `_` are ignored. Both files can coexist.
+
+## Output pages
+
+| Page | Contents |
+|------|----------|
+| `dist/index.html` | Hero, stat cards (runs / status / timing), model×target status grid, run duration chart, content prose |
+| `dist/results.html` | Full run table; leaderboard + pipeline + token charts (when analysis available) |
+| `dist/breakdowns.html` | Target, CWE, and difficulty score breakdowns (when analysis available); empty-state with instructions otherwise |
+
+All pages are self-contained. Charts use Chart.js from CDN (internet required to render).
 
 ## Adding prose content
 
-Add `.md` files to `comms/site/content/`. Use YAML frontmatter to set the
-title and display order:
+Drop `.md` files into `comms/site/content/` with YAML frontmatter:
 
 ```markdown
 ---
-title: My Analysis
+title: Post-Experiment Analysis
 order: 4
 ---
 
-# My Analysis
-
-Regular Markdown content here...
+Written analysis goes here...
 ```
 
 Content pages appear on the Overview page in order.
-
-## Output
-
-The generator writes three HTML files to `comms/site/dist/`:
-
-| File | Contents |
-|------|----------|
-| `index.html` | Hero, key stats, overview charts, content prose |
-| `results.html` | Crash-rate bar charts, cycle comparison, full data table |
-| `coverage.html` | Per-target coverage timelines, time-to-first-crash chart |
-
-All pages are self-contained (no server required). Charts use Chart.js loaded
-from a CDN, so a network connection is needed to render them.
 
 ## CLI options
 
@@ -64,7 +81,7 @@ uv run python build.py --help
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--data-dir` | `data/` | JSON/TOML data directory |
+| `--data-dir` | `data/` | Directory with manifest.json / analysis.json |
 | `--content-dir` | `content/` | Markdown content directory |
 | `--output-dir` | `dist/` | Output directory |
 | `--templates-dir` | `templates/` | Jinja2 templates directory |

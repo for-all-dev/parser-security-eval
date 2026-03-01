@@ -1,0 +1,217 @@
+{% extends "base.html.j2" %}
+{% block title %}Breakdowns{% endblock %}
+
+{% block content %}
+<div class="hero" style="padding-top:2rem">
+  {% if experiment.task %}
+  <div class="hero-label">{{ experiment.task | upper }}</div>
+  {% endif %}
+  <h1>Breakdowns</h1>
+  <p>Per-target, per-CWE, and per-difficulty score breakdowns from
+     <code>experiment analyze --json</code> output.
+     Run that command and place the result in <code>data/</code> to populate these charts.</p>
+</div>
+
+{% if stats.target_chart or stats.cwe_chart or stats.difficulty_chart %}
+
+{% if stats.target_chart %}
+<div class="card">
+  <div class="card-title"><span class="icon">🎯</span> Score by Target</div>
+  <p style="color:var(--text-muted);font-size:.88rem;margin-bottom:1rem">
+    Mean score per model per parser target. Shows which targets are harder for each model.
+  </p>
+  <div class="chart-wrap">
+    <canvas id="targetChart"></canvas>
+  </div>
+  {% if stats.target_breakdown %}
+  <div class="table-wrap" style="margin-top:1.25rem">
+    <table>
+      <thead>
+        <tr>
+          <th data-col="0">Model</th>
+          <th data-col="1">Target</th>
+          <th data-col="2">Mean Score</th>
+          <th data-col="3">Samples</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in stats.target_breakdown | sort(attribute='mean_score', reverse=True) %}
+        <tr>
+          <td style="font-size:.82rem">{{ row.model }}</td>
+          <td><span class="pill pill-blue">{{ row.target }}</span></td>
+          <td class="num" data-val="{{ row.mean_score }}">
+            <span style="font-weight:{{ '600' if row.mean_score > 0.7 else '400' }};
+                         color:{{ 'var(--accent-green)' if row.mean_score > 0.7 else ('var(--text)' if row.mean_score > 0.4 else 'var(--accent-red)') }}">
+              {{ "%.3f"|format(row.mean_score) }}
+            </span>
+          </td>
+          <td class="num">{{ row.n_samples }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if stats.cwe_chart %}
+<div class="card">
+  <div class="card-title"><span class="icon">🔒</span> Score by CWE</div>
+  <p style="color:var(--text-muted);font-size:.88rem;margin-bottom:1rem">
+    Mean score per model per CWE category. Reveals which vulnerability classes
+    are most/least tractable for each model.
+  </p>
+  <div class="chart-wrap">
+    <canvas id="cweChart"></canvas>
+  </div>
+  {% if stats.cwe_breakdown %}
+  <div class="table-wrap" style="margin-top:1.25rem">
+    <table>
+      <thead>
+        <tr>
+          <th data-col="0">Model</th>
+          <th data-col="1">CWE</th>
+          <th data-col="2">Mean Score</th>
+          <th data-col="3">Samples</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in stats.cwe_breakdown | sort(attribute='mean_score', reverse=True) %}
+        <tr>
+          <td style="font-size:.82rem">{{ row.model }}</td>
+          <td><span class="pill pill-teal">{{ row.cwe }}</span></td>
+          <td class="num" data-val="{{ row.mean_score }}">
+            <span style="font-weight:{{ '600' if row.mean_score > 0.7 else '400' }};
+                         color:{{ 'var(--accent-green)' if row.mean_score > 0.7 else ('var(--text)' if row.mean_score > 0.4 else 'var(--accent-red)') }}">
+              {{ "%.3f"|format(row.mean_score) }}
+            </span>
+          </td>
+          <td class="num">{{ row.n_samples }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if stats.difficulty_chart %}
+<div class="card">
+  <div class="card-title"><span class="icon">📈</span> Score by Difficulty</div>
+  <p style="color:var(--text-muted);font-size:.88rem;margin-bottom:1rem">
+    Score curve across difficulty levels. A steeper drop from easy → hard
+    indicates more sensitivity to problem complexity.
+  </p>
+  <div class="chart-wrap" style="max-width:680px">
+    <canvas id="difficultyChart"></canvas>
+  </div>
+  {% if stats.difficulty_breakdown %}
+  <div class="table-wrap" style="margin-top:1.25rem">
+    <table>
+      <thead>
+        <tr>
+          <th data-col="0">Model</th>
+          <th data-col="1">Difficulty</th>
+          <th data-col="2">Mean Score</th>
+          <th data-col="3">Samples</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in stats.difficulty_breakdown %}
+        <tr>
+          <td style="font-size:.82rem">{{ row.model }}</td>
+          <td>
+            {% if row.difficulty == 'easy' %}<span class="pill pill-green">{{ row.difficulty }}</span>
+            {% elif row.difficulty == 'hard' or row.difficulty == 'very_hard' %}<span class="pill pill-red">{{ row.difficulty }}</span>
+            {% else %}<span class="pill pill-amber">{{ row.difficulty }}</span>{% endif %}
+          </td>
+          <td class="num" data-val="{{ row.mean_score }}">{{ "%.3f"|format(row.mean_score) }}</td>
+          <td class="num">{{ row.n_samples }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<!-- No analysis data yet -->
+<div class="card">
+  <div style="text-align:center;padding:3rem 1rem;color:var(--text-muted)">
+    <div style="font-size:2.5rem;margin-bottom:1rem">📊</div>
+    <p style="font-size:1rem;margin-bottom:.75rem">No analysis data available yet.</p>
+    <p style="font-size:.88rem">
+      Once your runs finish, generate analysis output and drop it in <code>data/</code>:
+    </p>
+    <pre style="display:inline-block;text-align:left;margin:1rem auto;padding:.75rem 1.25rem;background:var(--bg-card-2);border:1px solid var(--border);border-radius:var(--radius);font-size:.83rem;color:var(--text-muted)">uv run parser-security-eval experiment analyze \
+  results/{{ experiment.id or 'your-experiment' }} \
+  --json comms/site/data/analysis.json
+
+# then rebuild the site:
+cd comms/site && uv run python build.py</pre>
+    <p style="font-size:.82rem;margin-top:.75rem;color:var(--text-dim)">
+      See <code>data/schema.md</code> for the expected JSON format.
+    </p>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+const barOpts = {
+  responsive: true,
+  plugins: { legend: { position: 'top' } },
+  scales: {
+    x: { grid: { color: 'rgba(37,46,69,.6)' } },
+    y: {
+      title: { display: true, text: 'Mean score (0–1)', color: '#8a9bb8' },
+      grid: { color: 'rgba(37,46,69,.6)' },
+      beginAtZero: true,
+      max: 1.0
+    }
+  }
+};
+
+{% if stats.target_chart %}
+(function() {
+  const data = {{ stats.target_chart | tojson }};
+  new Chart(document.getElementById('targetChart'), { type: 'bar', data, options: barOpts });
+})();
+{% endif %}
+
+{% if stats.cwe_chart %}
+(function() {
+  const data = {{ stats.cwe_chart | tojson }};
+  new Chart(document.getElementById('cweChart'), { type: 'bar', data, options: barOpts });
+})();
+{% endif %}
+
+{% if stats.difficulty_chart %}
+(function() {
+  const data = {{ stats.difficulty_chart | tojson }};
+  new Chart(document.getElementById('difficultyChart'), {
+    type: 'line',
+    data,
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'top' } },
+      scales: {
+        x: { grid: { color: 'rgba(37,46,69,.6)' } },
+        y: {
+          title: { display: true, text: 'Mean score (0–1)', color: '#8a9bb8' },
+          grid: { color: 'rgba(37,46,69,.6)' },
+          beginAtZero: true,
+          max: 1.0
+        }
+      }
+    }
+  });
+})();
+{% endif %}
+</script>
+{% endblock %}

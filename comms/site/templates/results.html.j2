@@ -3,175 +3,129 @@
 
 {% block content %}
 <div class="hero" style="padding-top:2rem">
-  <div class="hero-label">Experiment #{{ experiment.issue | default('') }}</div>
+  {% if experiment.task %}
+  <div class="hero-label">{{ experiment.task | upper }}</div>
+  {% endif %}
   <h1>Results</h1>
-  <p>Crash rates, harness quality, and full run-level data across all configurations.</p>
+  <p>All runs with status, timing, and configuration. Analysis charts appear below when
+     <code>analysis.json</code> data is available.</p>
 </div>
 
-{% if stats %}
+<!-- ── Analysis section (only when analysis JSON loaded) ─────────────────── -->
+{% if stats.leaderboard %}
 
-<!-- Crashes / CPU-hour bar chart -->
-{% if stats.crash_rate_chart %}
 <div class="card">
-  <div class="card-title"><span class="icon">📊</span> Crashes per CPU-Hour by Target</div>
-  <p style="color:var(--text-muted);font-size:.88rem;margin-bottom:1rem">
-    Each group is a target library. Bars show the mean crash discovery rate across
-    replicates for each model × cycle-condition combination.
-  </p>
-  <div class="chart-wrap tall">
-    <canvas id="crashRateChart"></canvas>
-  </div>
-</div>
-{% endif %}
-
-<!-- Cycle comparison chart -->
-{% if stats.cycle_chart %}
-<div class="card">
-  <div class="card-title"><span class="icon">⏱</span> 30-min Cycles vs 2-hr Continuous</div>
-  <p style="color:var(--text-muted);font-size:.88rem;margin-bottom:1rem">
-    Mean crashes/CPU-hour averaged across all targets. This is the primary
-    hypothesis test from the literature (PBFuzz, HGFuzzer, RandLuzz).
-  </p>
+  <div class="card-title"><span class="icon">🏆</span> Model Leaderboard</div>
   <div class="chart-grid-2">
     <div class="chart-wrap">
-      <canvas id="cycleCompChart"></canvas>
+      <canvas id="leaderboardChart"></canvas>
     </div>
-    <div style="display:flex;flex-direction:column;justify-content:center;padding:1rem;gap:1rem">
-      <div class="stat-card accent-blue" style="margin:0">
-        <div class="label">30-min Cycles</div>
-        {% set cycle_30 = [] %}
-        {% for ds in (stats.cycle_chart.datasets or []) %}
-          {% if '30-min' in ds.label %}
-            {% for v in ds.data %}{% if cycle_30.append(v) %}{% endif %}{% endfor %}
-          {% endif %}
-        {% endfor %}
-        <div class="value">
-          {% if cycle_30 %}{{ "%.2f"|format(cycle_30|sum / cycle_30|length) }}{% else %}—{% endif %}
-        </div>
-        <div class="sub">mean crashes/cpu-hr</div>
+    <div style="display:flex;flex-direction:column;gap:1rem;justify-content:center">
+      {% for entry in stats.leaderboard %}
+      <div class="stat-card{% if loop.first %} accent-green{% endif %}" style="margin:0">
+        <div class="label">{{ loop.index }}. {{ entry.model }}</div>
+        <div class="value">{{ "%.3f"|format(entry.mean_score) }}</div>
+        <div class="sub">{{ entry.n_samples }} samples · {{ "%.0f"|format(entry.mean_total_time) }}s/sample</div>
       </div>
-      <div class="stat-card accent-amber" style="margin:0">
-        <div class="label">2-hr Continuous</div>
-        {% set cycle_2h = [] %}
-        {% for ds in (stats.cycle_chart.datasets or []) %}
-          {% if 'continuous' in ds.label %}
-            {% for v in ds.data %}{% if cycle_2h.append(v) %}{% endif %}{% endfor %}
-          {% endif %}
-        {% endfor %}
-        <div class="value">
-          {% if cycle_2h %}{{ "%.2f"|format(cycle_2h|sum / cycle_2h|length) }}{% else %}—{% endif %}
-        </div>
-        <div class="sub">mean crashes/cpu-hr</div>
-      </div>
+      {% endfor %}
     </div>
   </div>
 </div>
-{% endif %}
 
-<!-- Harness quality -->
-{% if stats.compile_chart %}
+{% if stats.pipeline_chart %}
 <div class="card">
-  <div class="card-title"><span class="icon">🔧</span> Harness Quality: Compile Attempts per Model</div>
+  <div class="card-title"><span class="icon">🔀</span> Patching Pipeline Stages</div>
   <p style="color:var(--text-muted);font-size:.88rem;margin-bottom:1rem">
-    Mean number of compilation iterations needed before the agent produced a
-    working harness. Fewer is better.
+    Success rate at each stage of the patch pipeline.
+    A patch must clear all four stages to count as fully successful.
   </p>
-  <div class="chart-wrap" style="max-width:480px">
-    <canvas id="compileChart"></canvas>
+  <div class="chart-wrap">
+    <canvas id="pipelineChart"></canvas>
   </div>
 </div>
 {% endif %}
 
-<!-- Full data table -->
-{% if stats.table_rows %}
+{% if stats.token_chart %}
 <div class="card">
-  <div class="card-title"><span class="icon">📋</span> All Runs — Raw Data</div>
+  <div class="card-title"><span class="icon">🪙</span> Token Usage</div>
+  <div class="chart-wrap" style="max-width:560px">
+    <canvas id="tokenChart"></canvas>
+  </div>
+</div>
+{% endif %}
+
+{% endif %}{# end if stats.leaderboard #}
+
+<!-- ── Run table (always shown when manifest available) ──────────────────── -->
+{% if stats.runs_table %}
+<div class="card">
+  <div class="card-title"><span class="icon">📋</span> All Runs</div>
   <p style="color:var(--text-muted);font-size:.82rem;margin-bottom:1rem">
-    Click any column header to sort. Crash rate = unique crashes / CPU-hours.
+    Click any column header to sort.
+    <code>task_kwargs</code> columns show the per-run configuration passed to the fuzzer/eval.
   </p>
+
   <div class="table-wrap">
     <table>
       <thead>
         <tr>
-          <th data-col="0">ID</th>
-          <th data-col="1">Target</th>
-          <th data-col="2">Model</th>
-          <th data-col="3">Engine</th>
-          <th data-col="4">Condition</th>
-          <th data-col="5">Rep</th>
-          <th data-col="6">Crashes</th>
-          <th data-col="7">CPU-hr</th>
-          <th data-col="8">Rate ↕</th>
-          <th data-col="9">Coverage %</th>
-          <th data-col="10">Compile #</th>
-          <th data-col="11">Time→1st (min)</th>
+          <th data-col="0">Run ID</th>
+          <th data-col="1">Model</th>
+          <th data-col="2">Target</th>
+          <th data-col="3">Status</th>
+          {% if stats.runs_table and stats.runs_table[0].kwargs %}
+          {% for kw_key in stats.runs_table[0].kwargs.keys() %}
+          <th data-col="{{ loop.index + 3 }}">{{ kw_key }}</th>
+          {% endfor %}
+          {% set kw_count = stats.runs_table[0].kwargs | length %}
+          {% else %}
+          {% set kw_count = 0 %}
+          {% endif %}
+          <th data-col="{{ kw_count + 4 }}">Duration (min)</th>
+          <th data-col="{{ kw_count + 5 }}">Log</th>
         </tr>
       </thead>
       <tbody>
-        {% for row in stats.table_rows %}
+        {% for row in stats.runs_table %}
         <tr>
-          <td class="mono">{{ row.id }}</td>
+          <td class="mono">{{ row.run_id }}</td>
+          <td style="font-size:.82rem;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+              title="{{ row.model }}">
+            <span style="color:var(--text-muted);font-size:.72rem">{{ row.model.split('/')[0] + '/' if '/' in row.model else '' }}</span>{{ row.model_short }}
+          </td>
+          <td><span class="pill pill-blue">{{ row.target }}</span></td>
           <td>
-            <span class="pill pill-blue">{{ row.target }}</span>
-          </td>
-          <td style="font-size:.82rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-            {% if row.model == '—' %}
-              <span class="pill pill-dim">baseline</span>
+            {% if row.status == 'completed' %}
+              <span class="pill pill-green">completed</span>
+            {% elif row.status == 'failed' %}
+              <span class="pill pill-red" title="{{ row.error }}">failed</span>
+            {% elif row.status == 'running' %}
+              <span class="pill pill-amber">running</span>
             {% else %}
-              {{ row.model }}
+              <span class="pill pill-dim">{{ row.status }}</span>
             {% endif %}
           </td>
-          <td><span class="pill pill-dim">{{ row.engine }}</span></td>
-          <td>
-            {% if row.condition == '30min-cycles' %}
-              <span class="pill pill-teal">30-min cycles</span>
-            {% elif row.condition == '2hr-continuous' %}
-              <span class="pill pill-amber">2-hr cont.</span>
-            {% elif row.condition == 'oss-fuzz-baseline' %}
-              <span class="pill pill-dim">OSS-Fuzz</span>
-            {% else %}
-              <span class="pill pill-dim">{{ row.condition }}</span>
-            {% endif %}
+          {% for kw_key, kw_val in row.kwargs.items() %}
+          <td class="num">{{ kw_val }}</td>
+          {% endfor %}
+          <td class="num" data-val="{{ row.duration_min if row.duration_min is not none else 9999 }}">
+            {% if row.duration_min is not none %}{{ row.duration_min }}{% else %}<span style="color:var(--text-dim)">—</span>{% endif %}
           </td>
-          <td class="num">{{ row.replicate }}</td>
-          <td class="num" data-val="{{ row.crashes }}">
-            {% if row.crashes > 0 %}
-              <span style="color:var(--accent-red);font-weight:600">{{ row.crashes }}</span>
-            {% else %}
-              <span style="color:var(--text-dim)">0</span>
-            {% endif %}
-          </td>
-          <td class="num">{{ row.cpu_hours }}</td>
-          <td class="num" data-val="{{ row.rate }}">
-            <span style="font-weight:{% if row.rate > 1.0 %}600{% else %}400{% endif %};
-                         color:{% if row.rate > 1.5 %}var(--accent-green){% elif row.rate > 0 %}var(--text){% else %}var(--text-dim){% endif %}">
-              {{ row.rate }}
-            </span>
-          </td>
-          <td class="num">
-            {% if row.coverage_pct != '' %}
-              {{ "%.1f"|format(row.coverage_pct) }}%
-            {% else %}—{% endif %}
-          </td>
-          <td class="num" data-val="{{ row.compile_attempts if row.compile_attempts != '' else 999 }}">
-            {% if row.compile_attempts != '' %}
-              {% if row.compile_attempts == 1 %}
-                <span style="color:var(--accent-green)">{{ row.compile_attempts }}</span>
-              {% elif row.compile_attempts >= 4 %}
-                <span style="color:var(--accent-amber)">{{ row.compile_attempts }}</span>
-              {% else %}
-                {{ row.compile_attempts }}
-              {% endif %}
-            {% else %}—{% endif %}
-          </td>
-          <td class="num" data-val="{{ '9999' if row.ttfc_minutes == '—' else row.ttfc_minutes }}">
-            {% if row.ttfc_minutes != '—' %}
-              {{ row.ttfc_minutes }}
+          <td style="text-align:center">
+            {% if row.eval_log %}
+              <span style="color:var(--accent-green)" title="eval log present">✓</span>
             {% else %}
               <span style="color:var(--text-dim)">—</span>
             {% endif %}
           </td>
         </tr>
+        {% if row.error %}
+        <tr style="background:rgba(248,113,113,0.04)">
+          <td colspan="20" style="padding:.4rem 1rem .6rem 2.5rem;font-size:.78rem;color:var(--accent-red);font-family:var(--font-mono)">
+            ↳ {{ row.error }}
+          </td>
+        </tr>
+        {% endif %}
         {% endfor %}
       </tbody>
     </table>
@@ -179,94 +133,66 @@
 </div>
 {% endif %}
 
-{% else %}
+{% if not stats.runs_table and not stats.leaderboard %}
 <div class="card">
-  <p style="color:var(--text-muted)">No data available. Add experiment JSON/TOML files to <code>data/</code>.</p>
+  <p style="color:var(--text-muted)">
+    No data available yet. Point <code>--data-dir</code> at the experiment
+    <code>output_dir</code> containing <code>manifest.json</code>.
+  </p>
 </div>
 {% endif %}
 {% endblock %}
 
 {% block scripts %}
 <script>
-const chartOpts = {
+const barOpts = (yLabel) => ({
   responsive: true,
   plugins: { legend: { position: 'top' } },
   scales: {
     x: { grid: { color: 'rgba(37,46,69,.6)' } },
-    y: { grid: { color: 'rgba(37,46,69,.6)' }, beginAtZero: true }
+    y: {
+      title: { display: true, text: yLabel, color: '#8a9bb8' },
+      grid: { color: 'rgba(37,46,69,.6)' },
+      beginAtZero: true
+    }
   }
-};
+});
 
-{% if stats.crash_rate_chart %}
+{% if stats.leaderboard_chart %}
 (function() {
-  const data = {{ stats.crash_rate_chart | tojson }};
-  new Chart(document.getElementById('crashRateChart'), {
+  const data = {{ stats.leaderboard_chart | tojson }};
+  new Chart(document.getElementById('leaderboardChart'), {
     type: 'bar',
     data: data,
     options: {
-      ...chartOpts,
-      plugins: {
-        ...chartOpts.plugins,
-        tooltip: {
-          callbacks: {
-            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(3)} crashes/cpu-hr`
-          }
-        }
-      },
-      scales: {
-        ...chartOpts.scales,
-        y: { ...chartOpts.scales.y,
-             title: { display: true, text: 'Crashes / CPU-hour', color: '#8a9bb8' } }
-      }
+      ...barOpts('Mean score (0–1)'),
+      scales: { ...barOpts('Mean score (0–1)').scales, y: { ...barOpts('Mean score (0–1)').scales.y, max: 1.0 } }
     }
   });
 })();
 {% endif %}
 
-{% if stats.cycle_chart %}
+{% if stats.pipeline_chart %}
 (function() {
-  const data = {{ stats.cycle_chart | tojson }};
-  new Chart(document.getElementById('cycleCompChart'), {
+  const data = {{ stats.pipeline_chart | tojson }};
+  new Chart(document.getElementById('pipelineChart'), {
     type: 'bar',
     data: data,
     options: {
-      ...chartOpts,
-      plugins: {
-        ...chartOpts.plugins,
-        tooltip: {
-          callbacks: {
-            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(3)} crashes/cpu-hr`
-          }
-        }
-      },
-      scales: {
-        ...chartOpts.scales,
-        y: { ...chartOpts.scales.y,
-             title: { display: true, text: 'Crashes / CPU-hour', color: '#8a9bb8' } }
-      }
+      ...barOpts('Success rate (%)'),
+      scales: { ...barOpts('Success rate (%)').scales, y: { ...barOpts('Success rate (%)').scales.y, max: 100 } }
     }
   });
 })();
 {% endif %}
 
-{% if stats.compile_chart %}
+{% if stats.token_chart %}
 (function() {
-  const data = {{ stats.compile_chart | tojson }};
-  new Chart(document.getElementById('compileChart'), {
+  const data = {{ stats.token_chart | tojson }};
+  new Chart(document.getElementById('tokenChart'), {
     type: 'bar',
     data: data,
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: {
-          grid: { color: 'rgba(37,46,69,.6)' }, beginAtZero: true,
-          title: { display: true, text: 'Mean compile attempts', color: '#8a9bb8' }
-        },
-        y: { grid: { display: false } }
-      }
-    }
+    options: barOpts('Tokens')
   });
 })();
 {% endif %}
