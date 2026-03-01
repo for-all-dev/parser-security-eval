@@ -31,6 +31,11 @@ app = typer.Typer(
 memory_app = typer.Typer(name="memory", help="Inspect per-target agent memory.")
 app.add_typer(memory_app, name="memory")
 
+# Register swarm sub-commands
+from parser_security_eval.swarm.cli import app as swarm_app  # noqa: E402
+
+app.add_typer(swarm_app, name="swarm")
+
 logger = logging.getLogger(__name__)
 
 _DEFAULT_CACHE = Path.home() / ".cache" / "parser-security-eval"
