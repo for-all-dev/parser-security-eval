@@ -1,0 +1,208 @@
+{% extends "base.html.j2" %}
+{% block title %}Results{% endblock %}
+
+{% block content %}
+<div class="hero" style="padding-top:2rem">
+  {% if experiment.task %}
+  <div class="hero-label">{{ experiment.task | upper }}</div>
+  {% endif %}
+  <h1>Results</h1>
+  <p>All runs with status, timing, and configuration. Analysis charts appear below when
+     <code>analysis.json</code> data is available.</p>
+</div>
+
+<!-- ── Analysis section (only when analysis JSON loaded) ─────────────────── -->
+{% if stats.leaderboard %}
+
+<div class="card">
+  <div class="card-title"><span class="icon">🏆</span> Model Leaderboard</div>
+  <div class="chart-grid-2">
+    <div class="chart-wrap">
+      <canvas id="leaderboardChart"></canvas>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:1rem;justify-content:center">
+      {% for entry in stats.leaderboard %}
+      <div class="stat-card{% if loop.first %} accent-green{% endif %}" style="margin:0">
+        <div class="label">{{ loop.index }}. {{ entry.model }}</div>
+        <div class="value">{{ "%.3f"|format(entry.mean_score) }}</div>
+        <div class="sub">{{ entry.n_samples }} samples · {{ "%.0f"|format(entry.mean_total_time) }}s/sample</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% if stats.pipeline_chart %}
+<div class="card">
+  <div class="card-title"><span class="icon">🔀</span> Patching Pipeline Stages</div>
+  <p style="color:var(--text-muted);font-size:.88rem;margin-bottom:1rem">
+    Success rate at each stage of the patch pipeline.
+    A patch must clear all four stages to count as fully successful.
+  </p>
+  <div class="chart-wrap">
+    <canvas id="pipelineChart"></canvas>
+  </div>
+</div>
+{% endif %}
+
+{% if stats.token_chart %}
+<div class="card">
+  <div class="card-title"><span class="icon">🪙</span> Token Usage</div>
+  <div class="chart-wrap" style="max-width:560px">
+    <canvas id="tokenChart"></canvas>
+  </div>
+</div>
+{% endif %}
+
+{% endif %}{# end if stats.leaderboard #}
+
+<!-- ── Run table (always shown when manifest available) ──────────────────── -->
+{% if stats.runs_table %}
+<div class="card">
+  <div class="card-title"><span class="icon">📋</span> All Runs</div>
+  <p style="color:var(--text-muted);font-size:.82rem;margin-bottom:1rem">
+    Click any column header to sort.
+    <code>task_kwargs</code> columns show the per-run configuration passed to the fuzzer/eval.
+  </p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th data-col="0">Run ID</th>
+          <th data-col="1">Model</th>
+          <th data-col="2">Target</th>
+          <th data-col="3">Status</th>
+          {% if stats.runs_table and stats.runs_table[0].kwargs %}
+          {% for kw_key in stats.runs_table[0].kwargs.keys() %}
+          <th data-col="{{ loop.index + 3 }}">{{ kw_key }}</th>
+          {% endfor %}
+          {% set kw_count = stats.runs_table[0].kwargs | length %}
+          {% else %}
+          {% set kw_count = 0 %}
+          {% endif %}
+          <th data-col="{{ kw_count + 4 }}">Score</th>
+          <th data-col="{{ kw_count + 5 }}">Duration (s)</th>
+          <th data-col="{{ kw_count + 6 }}">Log</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in stats.runs_table %}
+        <tr>
+          <td class="mono">{{ row.run_id }}</td>
+          <td style="font-size:.82rem;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+              title="{{ row.model }}">
+            <span style="color:var(--text-muted);font-size:.72rem">{{ row.model.split('/')[0] + '/' if '/' in row.model else '' }}</span>{{ row.model_short }}
+          </td>
+          <td><span class="pill pill-blue">{{ row.target }}</span></td>
+          <td>
+            {% if row.status == 'completed' %}
+              <span class="pill pill-green">completed</span>
+            {% elif row.status == 'failed' %}
+              <span class="pill pill-red" title="{{ row.error }}">failed</span>
+            {% elif row.status == 'running' %}
+              <span class="pill pill-amber">running</span>
+            {% else %}
+              <span class="pill pill-dim">{{ row.status }}</span>
+            {% endif %}
+          </td>
+          {% for kw_key, kw_val in row.kwargs.items() %}
+          <td class="num">{{ kw_val }}</td>
+          {% endfor %}
+          <td class="num" data-val="{{ row.score if row.score is not none else -1 }}">
+            {% if row.score is not none %}
+              <span style="color:{% if row.score >= 0.7 %}var(--accent-green){% elif row.score >= 0.4 %}var(--text){% else %}var(--accent-red){% endif %}">
+                {{ "%.3f"|format(row.score) }}
+              </span>
+            {% else %}<span style="color:var(--text-dim)">—</span>{% endif %}
+          </td>
+          <td class="num" data-val="{{ row.total_time_s if row.total_time_s is not none else 9999 }}">
+            {% if row.total_time_s is not none %}{{ row.total_time_s }}{% else %}<span style="color:var(--text-dim)">—</span>{% endif %}
+          </td>
+          <td style="text-align:center">
+            {% if row.eval_log %}
+              <span style="color:var(--accent-green)" title="eval log present">✓</span>
+            {% else %}
+              <span style="color:var(--text-dim)">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% if row.error %}
+        <tr style="background:rgba(248,113,113,0.04)">
+          <td colspan="20" style="padding:.4rem 1rem .6rem 2.5rem;font-size:.78rem;color:var(--accent-red);font-family:var(--font-mono)">
+            ↳ {{ row.error }}
+          </td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if not stats.runs_table and not stats.leaderboard %}
+<div class="card">
+  <p style="color:var(--text-muted)">
+    No data available yet. Point <code>--data-dir</code> at the experiment
+    <code>output_dir</code> containing <code>results.json</code>.
+  </p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+const barOpts = (yLabel) => ({
+  responsive: true,
+  plugins: { legend: { position: 'top' } },
+  scales: {
+    x: { grid: { color: 'rgba(37,46,69,.6)' } },
+    y: {
+      title: { display: true, text: yLabel, color: '#8a9bb8' },
+      grid: { color: 'rgba(37,46,69,.6)' },
+      beginAtZero: true
+    }
+  }
+});
+
+{% if stats.leaderboard_chart %}
+(function() {
+  const data = {{ stats.leaderboard_chart | tojson }};
+  new Chart(document.getElementById('leaderboardChart'), {
+    type: 'bar',
+    data: data,
+    options: {
+      ...barOpts('Mean score (0–1)'),
+      scales: { ...barOpts('Mean score (0–1)').scales, y: { ...barOpts('Mean score (0–1)').scales.y, max: 1.0 } }
+    }
+  });
+})();
+{% endif %}
+
+{% if stats.pipeline_chart %}
+(function() {
+  const data = {{ stats.pipeline_chart | tojson }};
+  new Chart(document.getElementById('pipelineChart'), {
+    type: 'bar',
+    data: data,
+    options: {
+      ...barOpts('Success rate (%)'),
+      scales: { ...barOpts('Success rate (%)').scales, y: { ...barOpts('Success rate (%)').scales.y, max: 100 } }
+    }
+  });
+})();
+{% endif %}
+
+{% if stats.token_chart %}
+(function() {
+  const data = {{ stats.token_chart | tojson }};
+  new Chart(document.getElementById('tokenChart'), {
+    type: 'bar',
+    data: data,
+    options: barOpts('Tokens')
+  });
+})();
+{% endif %}
+</script>
+{% endblock %}
