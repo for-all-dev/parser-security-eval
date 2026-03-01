@@ -256,7 +256,10 @@ class TrajTurn(BaseModel):
     tool_time: float  # seconds for the tool execution
 
 
-_TOOL_SUCCESS_RE = re.compile(r"applied|success|eliminated", re.IGNORECASE)
+_TOOL_SUCCESS_RE = re.compile(
+    r"^(patch applied|compilation succeeded|crash eliminated|no crash|tests pass)",
+    re.IGNORECASE,
+)
 # Reuse diff-extraction pattern from views — inline here to avoid circular import
 _TRAJ_CODE_RE = re.compile(r"```(?:diff)?\s*\n(.*?)```", re.DOTALL)
 _TRAJ_DIFF_HDR_RE = re.compile(r"((?:diff --git|---|\+\+\+).*)", re.MULTILINE)
