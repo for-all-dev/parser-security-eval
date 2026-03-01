@@ -231,9 +231,21 @@ def evaluate(
     sample_id: str | None = typer.Option(
         None, help="Run only the sample with this ID (passed to inspect_eval)"
     ),
+    seed: int | None = typer.Option(
+        None,
+        help="Random seed for sample shuffling (patching task only). Requires --limit to have effect.",
+    ),
 ) -> None:
     """Run an Inspect-AI evaluation task."""
+    import warnings
+
     from inspect_ai import eval as inspect_eval
+
+    if seed is not None and limit is None:
+        warnings.warn(
+            "--seed has no effect without --limit: the full dataset will be used.",
+            stacklevel=1,
+        )
 
     if task == "patching":
         from parser_security_eval.tasks.patching import vulnerability_patching
@@ -244,6 +256,7 @@ def evaluate(
             targets_root=str(targets_root),
             fuzzing_engine=engine,
             ready_only=ready_only,
+            seed=seed,
         )
 
     elif task == "triage":

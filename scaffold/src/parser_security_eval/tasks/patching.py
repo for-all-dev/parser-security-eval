@@ -12,6 +12,7 @@ The agent must:
 """
 
 import json
+import random
 import re
 import tempfile
 from pathlib import Path
@@ -327,12 +328,24 @@ def _make_run_crash_tool(
 
 
 def load_patching_dataset(
-    benchmark_dir: str, target: str | None = None, ready_only: bool = False
+    benchmark_dir: str,
+    target: str | None = None,
+    ready_only: bool = False,
+    seed: int | None = None,
 ) -> list[Sample]:
     """Load vulnerability records as Inspect-AI samples.
 
     Reads benchmark_dir/metadata.json, filters by target if given,
     and constructs one Sample per VulnerabilityRecord.
+
+    Pipeline order:
+      1. Filter by target (if provided)
+      2. Filter by ready_only (if True)
+      3. Shuffle with seed (if provided) — before any limit is applied
+         Note: inspect_eval(limit=N) selects the first N samples from
+         Task(dataset=...) in list order, so we must shuffle here rather
+         than relying on inspect_ai's sample_shuffle parameter, in order
+         to guarantee that --limit picks from the shuffled order.
     """
     bdir = Path(benchmark_dir)
     metadata_path = bdir / "metadata.json"
@@ -355,6 +368,9 @@ def load_patching_dataset(
             and r.reference_patch_path
             and r.vulnerable_source_paths
         ]
+
+    if seed is not None:
+        random.Random(seed).shuffle(records)
 
     samples: list[Sample] = []
     for record in records:
@@ -565,6 +581,7 @@ def vulnerability_patching(
     targets_root: str = "targets",
     fuzzing_engine: str = "libfuzzer",
     ready_only: bool = False,
+    seed: int | None = None,
 ) -> Task:
     """Inspect-AI task: patch parser vulnerabilities given crash reports.
 
@@ -573,7 +590,9 @@ def vulnerability_patching(
         inspect eval tasks/patching.py -T benchmark_dir=benchmark -T target=libpng
         inspect eval tasks/patching.py -T benchmark_dir=benchmark -T fuzzing_engine=afl
     """
-    samples = load_patching_dataset(benchmark_dir, target, ready_only=ready_only)
+    samples = load_patching_dataset(
+        benchmark_dir, target, ready_only=ready_only, seed=seed
+    )
     if not samples:
         filter_msg = f" for target '{target}'" if target else ""
         raise ValueError(
