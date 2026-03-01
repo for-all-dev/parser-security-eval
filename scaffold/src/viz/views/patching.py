@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-import plotly.graph_objects as go
+from pathlib import Path
+
 import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
 
 from viz.loader import LogData, TaskType
@@ -24,8 +26,8 @@ def render(logs: dict[str, LogData]) -> None:
         )
         return
 
-    for path, log in patch_logs.items():  # noqa: B007 — path used in subheader
-        fname = path.split("/")[-1]
+    for path, log in patch_logs.items():
+        fname = Path(path).stem
         st.subheader(fname)
         df = log.df
 
@@ -53,7 +55,9 @@ def render(logs: dict[str, LogData]) -> None:
             )
         )
         fig_funnel.update_layout(title="Patch Pipeline Funnel")
-        st.plotly_chart(fig_funnel, use_container_width=True)
+        st.plotly_chart(
+            fig_funnel, use_container_width=True, key=f"patching_funnel_{fname}"
+        )
 
         col1, col2 = st.columns(2)
 
@@ -65,7 +69,9 @@ def render(logs: dict[str, LogData]) -> None:
                 title="Patch Score Distribution",
                 range_x=[0, 1],
             )
-            st.plotly_chart(fig_hist, use_container_width=True)
+            st.plotly_chart(
+                fig_hist, use_container_width=True, key=f"patching_hist_{fname}"
+            )
 
         with col2:
             fig_scatter = px.scatter(
@@ -76,6 +82,8 @@ def render(logs: dict[str, LogData]) -> None:
                 title="Diff Size vs Patch Score",
                 labels={"diff_lines": "Diff Lines", "patch_score": "Patch Score"},
             )
-            st.plotly_chart(fig_scatter, use_container_width=True)
+            st.plotly_chart(
+                fig_scatter, use_container_width=True, key=f"patching_scatter_{fname}"
+            )
 
         st.divider()

@@ -1,0 +1,10 @@
+name: expat
+format_type: text-markup
+language: c
+ossfuzz_project: expat
+repository: https://github.com/libexpat/libexpat.git
+ossfuzz_url: https://github.com/google/oss-fuzz/tree/master/projects/expat
+fuzz_targets:
+  - expat_fuzzer
+has_corpus: false
+has_dictionary: false

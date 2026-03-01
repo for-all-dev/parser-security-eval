@@ -1,0 +1,10 @@
+name: pcre2
+format_type: regex
+language: c
+ossfuzz_project: pcre2
+repository: https://github.com/PCRE2Project/pcre2.git
+ossfuzz_url: https://github.com/google/oss-fuzz/tree/master/projects/pcre2
+fuzz_targets:
+  - pcre2_fuzzer
+has_corpus: false
+has_dictionary: false

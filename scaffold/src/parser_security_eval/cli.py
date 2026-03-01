@@ -416,6 +416,43 @@ def verify(
 
 
 @app.command()
+def triage(
+    crashes_dir: Path = typer.Argument(help="Directory containing crash input files"),
+    target: str = typer.Option(
+        "unknown", help="Human-readable name for the fuzzing target"
+    ),
+    container: str | None = typer.Option(
+        None, help="Docker container ID to run CASR inside"
+    ),
+    binary_path: str | None = typer.Option(
+        None, help="Path to the sanitized binary for casr-san"
+    ),
+) -> None:
+    """Triage crash files using CASR (or stack-hash fallback).
+
+    Analyzes crash files in CRASHES_DIR, deduplicates them into clusters,
+    and prints a summary of exploitability classifications.
+    """
+    from parser_security_eval.triage.casr import CASRTriager
+
+    if not crashes_dir.exists():
+        typer.echo(f"Error: crashes directory not found: {crashes_dir}", err=True)
+        raise typer.Exit(1)
+
+    triager = CASRTriager(container_id=container)
+
+    result = asyncio.run(
+        triager.triage_crashes(
+            crashes_dir=crashes_dir,
+            target_name=target,
+            binary_path=binary_path,
+        )
+    )
+
+    typer.echo(result.summary())
+
+
+@app.command()
 def fetch_artifacts(
     benchmark_dir: Path = typer.Option(
         Path("../benchmark"), help="Benchmark directory with metadata.json"
@@ -494,3 +531,53 @@ def enrich_dataset(
         typer.echo("Resolving vulnerable_source_ref commit hashes …")
         resolved, total = resolve_vulnerable_refs(benchmark_dir, cache_dir)
         typer.echo(f"  Vulnerable refs: {resolved} / {total}")
+
+
+@app.command()
+def fuzzing(
+    target: str = typer.Option("libxml2", help="Parser target (e.g. 'libxml2')"),
+    engine: str = typer.Option(
+        "libfuzzer", help="Fuzz engine: libfuzzer, afl, honggfuzz"
+    ),
+    max_rounds: int = typer.Option(3, help="Maximum fuzzing rounds for the agent"),
+    round_duration: int = typer.Option(60, help="Default round duration in seconds"),
+    model: str = typer.Option("anthropic/claude-sonnet-4-6", help="Model to evaluate"),
+    targets_root: Path = typer.Option(
+        Path("../targets"), help="Targets root directory"
+    ),
+    limit: int | None = typer.Option(None, help="Max samples to evaluate"),
+) -> None:
+    """Run a single-agent live fuzzing campaign (Inspect-AI task).
+
+    The agent iteratively writes, compiles, and refines a fuzz harness inside
+    a Docker sandbox, running up to *max_rounds* fuzzing rounds to find crashes.
+
+    Example:
+        parser-security-eval fuzzing --target libxml2 --engine libfuzzer --max-rounds 3 --round-duration 60
+    """
+    from inspect_ai import eval as inspect_eval
+
+    from parser_security_eval.tasks.fuzzing import live_fuzzing
+
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+
+    inspect_task = live_fuzzing(
+        targets_dir=str(targets_root),
+        target=target,
+        engine=engine,
+        max_rounds=max_rounds,
+        round_duration=round_duration,
+    )
+
+    eval_kwargs: dict[str, object] = {"model": model, "limit": limit}
+    logs = inspect_eval(inspect_task, **eval_kwargs)
+
+    for log in logs:
+        typer.echo(f"\nTask:   {log.eval.task}")
+        typer.echo(f"Status: {log.status}")
+        if log.results:
+            for score in log.results.scores:
+                metrics_str = ", ".join(
+                    f"{k}={v.value:.3f}" for k, v in score.metrics.items()
+                )
+                typer.echo(f"  {score.name}: {metrics_str}")

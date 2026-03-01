@@ -1,0 +1,10 @@
+name: freetype
+format_type: binary-font
+language: c
+ossfuzz_project: freetype2
+repository: https://gitlab.freedesktop.org/freetype/freetype.git
+ossfuzz_url: https://github.com/google/oss-fuzz/tree/master/projects/freetype2
+fuzz_targets:
+  - freetype_fuzzer
+has_corpus: false
+has_dictionary: false

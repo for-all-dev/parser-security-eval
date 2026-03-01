@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pandas as pd
 import plotly.express as px
 import streamlit as st
@@ -19,7 +21,7 @@ def _accuracy_by(df: pd.DataFrame, score_col: str, group_col: str) -> pd.DataFra
     return grouped
 
 
-def _render_triage(log: LogData) -> None:
+def _render_triage(log: LogData, fname: str) -> None:
     df = log.df
     scorer = st.selectbox(
         "Scorer",
@@ -46,7 +48,9 @@ def _render_triage(log: LogData) -> None:
                 title="Accuracy by Target",
                 range_y=[0, 1],
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(
+                fig, use_container_width=True, key=f"breakdown_target_{fname}"
+            )
         else:
             st.info("No data.")
 
@@ -67,7 +71,9 @@ def _render_triage(log: LogData) -> None:
                 title="Accuracy by Difficulty",
                 range_y=[0, 1],
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(
+                fig, use_container_width=True, key=f"breakdown_difficulty_{fname}"
+            )
         else:
             st.info("No data.")
 
@@ -82,7 +88,9 @@ def _render_triage(log: LogData) -> None:
                 range_y=[0, 1],
             )
             fig.update_layout(xaxis_tickangle=-30)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(
+                fig, use_container_width=True, key=f"breakdown_crash_{fname}"
+            )
         else:
             st.info("No data.")
 
@@ -99,10 +107,12 @@ def _render_triage(log: LogData) -> None:
             fig = px.imshow(
                 ct, title="Ground Truth CWE vs Predicted CWE", aspect="auto"
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(
+                fig, use_container_width=True, key=f"breakdown_cwe_heatmap_{fname}"
+            )
 
 
-def _render_patching(log: LogData) -> None:
+def _render_patching(log: LogData, fname: str) -> None:
     df = log.df
     tab_target, tab_diff = st.tabs(["By Target", "By Difficulty"])
 
@@ -116,7 +126,9 @@ def _render_patching(log: LogData) -> None:
                 title="Mean Patch Score by Target",
                 range_y=[0, 1],
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(
+                fig, use_container_width=True, key=f"breakdown_patch_target_{fname}"
+            )
 
     with tab_diff:
         if "difficulty" in df.columns:
@@ -128,7 +140,9 @@ def _render_patching(log: LogData) -> None:
                 title="Mean Patch Score by Difficulty",
                 range_y=[0, 1],
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(
+                fig, use_container_width=True, key=f"breakdown_patch_difficulty_{fname}"
+            )
         else:
             st.info("No difficulty data for patching logs.")
 
@@ -141,13 +155,13 @@ def render(logs: dict[str, LogData]) -> None:
         return
 
     for path, log in logs.items():
-        fname = path.split("/")[-1]
+        fname = Path(path).stem
         st.subheader(fname)
 
         if log.task_type == TaskType.CRASH_TRIAGE:
-            _render_triage(log)
+            _render_triage(log, fname)
         elif log.task_type == TaskType.VULNERABILITY_PATCHING:
-            _render_patching(log)
+            _render_patching(log, fname)
         else:
             st.warning("Unknown task type — no breakdown available.")
 

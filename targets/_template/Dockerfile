@@ -14,6 +14,10 @@ FROM gcr.io/oss-fuzz-base/base-builder
 # RUN git clone <repo-url> /src/<project>
 # COPY src/ /src/<project>/
 
+# Optional: install CASR for crash triage
+# RUN cargo install casr --locked
+# or: RUN apt-get install -y ... (if a deb is available)
+
 WORKDIR /src
 
 COPY build.sh $SRC/

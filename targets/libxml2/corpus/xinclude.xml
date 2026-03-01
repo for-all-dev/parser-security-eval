@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="minimal.xml" parse="xml"/>
+  <xi:include href="nonexistent.xml" parse="xml">
+    <xi:fallback><fallback-content/></xi:fallback>
+  </xi:include>
+</root>
