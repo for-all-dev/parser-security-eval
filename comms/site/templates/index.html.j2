@@ -15,20 +15,22 @@
     {% if experiment.id %}<span class="badge">{{ experiment.id }}</span>{% endif %}
     {% if experiment.task %}<span class="badge">{{ experiment.task }}</span>{% endif %}
     {% if stats.engine %}<span class="badge">{{ stats.engine }}</span>{% endif %}
+    {% if stats.max_rounds %}<span class="badge">{{ stats.max_rounds }} rounds × {{ stats.round_duration }}s</span>{% endif %}
     {% if experiment.created_at %}<span class="badge">started {{ experiment.created_at[:10] }}</span>{% endif %}
     {% if is_example %}<span class="badge example">example data</span>{% endif %}
   </div>
 </div>
 
-<!-- Stat cards -->
 {% if stats %}
+<!-- Stat cards -->
 <div class="stats-grid">
   <div class="stat-card accent-blue">
     <div class="label">Total Runs</div>
     <div class="value">{{ stats.total_runs }}</div>
     <div class="sub">
-      {{ (stats.grid_models or []) | length }} model(s) ×
-      {{ (stats.grid_targets or []) | length }} target(s)
+      {% if stats.grid_models %}{{ stats.grid_models | length }} model(s){% endif %}
+      {% if stats.grid_targets %} × {{ stats.grid_targets | length }} target(s){% endif %}
+      {% if stats.grid_extra %} × extra dims{% endif %}
     </div>
   </div>
 
@@ -37,30 +39,28 @@
     <div class="value">{{ stats.completed }}</div>
     <div class="sub">
       {% if stats.total_runs > 0 %}
-        {{ (stats.completed / stats.total_runs * 100) | round(0) | int }}% of runs
+        {{ (stats.completed / stats.total_runs * 100) | round(0) | int }}% done
       {% endif %}
     </div>
   </div>
 
-  <div class="stat-card accent-red">
-    <div class="label">Failed</div>
-    <div class="value">{{ stats.failed }}</div>
-    <div class="sub">{{ stats.running }} running · {{ stats.pending }} pending</div>
+  <div class="stat-card {% if stats.failed > 0 %}accent-red{% else %}accent-teal{% endif %}">
+    <div class="label">Failed / Running</div>
+    <div class="value">{{ stats.failed }} / {{ stats.running }}</div>
+    <div class="sub">{{ stats.pending }} pending</div>
   </div>
 
-  {% if stats.mean_duration_min is defined %}
+  {% if stats.mean_score is not none %}
+  <div class="stat-card accent-teal">
+    <div class="label">Mean Score</div>
+    <div class="value">{{ "%.3f"|format(stats.mean_score) }}</div>
+    <div class="sub">{{ stats.scorer_name }} · max {{ "%.3f"|format(stats.max_score) }}</div>
+  </div>
+  {% elif stats.mean_duration_min is defined %}
   <div class="stat-card accent-teal">
     <div class="label">Mean Run Time</div>
     <div class="value">{{ stats.mean_duration_min }}<span style="font-size:1rem;color:var(--text-muted)"> min</span></div>
     <div class="sub">range {{ stats.min_duration_min }}–{{ stats.max_duration_min }} min</div>
-  </div>
-  {% endif %}
-
-  {% if stats.max_rounds %}
-  <div class="stat-card">
-    <div class="label">Rounds / Run</div>
-    <div class="value">{{ stats.max_rounds }}</div>
-    <div class="sub">{{ stats.round_duration }}s per round</div>
   </div>
   {% endif %}
 
@@ -73,8 +73,7 @@
   {% endif %}
 </div>
 
-<!-- Status donut + matrix -->
-{% if stats.status_donut or stats.status_matrix %}
+<!-- Status donut + status matrix -->
 <div class="chart-grid-2" style="margin-bottom:1.5rem">
 
   {% if stats.status_donut %}
@@ -112,9 +111,12 @@
               {% elif status == 'failed' %}{% set bg = 'rgba(248,113,113,0.15)' %}{% set color = '#f87171' %}{% set icon = '✗' %}
               {% elif status == 'running' %}{% set bg = 'rgba(251,191,36,0.12)' %}{% set color = '#fbbf24' %}{% set icon = '⟳' %}
               {% else %}{% set bg = 'rgba(148,163,184,0.06)' %}{% set color = '#4e617a' %}{% set icon = '·' %}{% endif %}
-              <td title="{{ cell.error or status }}{% if cell.duration_min %} ({{ cell.duration_min }} min){% endif %}"
-                  style="text-align:center;padding:.5rem .75rem;background:{{ bg }};color:{{ color }};font-weight:600;cursor:default">
-                {{ icon }}{% if cell.duration_min and status == 'completed' %}<br><span style="font-size:.68rem;font-weight:400;color:var(--text-dim)">{{ cell.duration_min }}m</span>{% endif %}
+              <td style="text-align:center;padding:.5rem .75rem;background:{{ bg }};color:{{ color }};font-weight:600;cursor:default"
+                  title="{{ status }}{% if cell.score is not none %} | score {{ cell.score }}{% endif %}{% if cell.extra %} | {{ cell.extra }}{% endif %}">
+                {{ icon }}
+                {% if cell.score is not none and status == 'completed' %}
+                <br><span style="font-size:.68rem;font-weight:400;color:var(--text-dim)">{{ cell.score }}</span>
+                {% endif %}
               </td>
             {% else %}
               <td style="text-align:center;padding:.5rem .75rem;color:var(--text-dim)">—</td>
@@ -126,16 +128,38 @@
       </table>
     </div>
     <p style="font-size:.75rem;color:var(--text-dim);margin-top:.75rem">
-      ✓ completed &nbsp;✗ failed &nbsp;⟳ running &nbsp;· pending
-      &nbsp;—&nbsp;Hover for error details.
+      ✓ completed &nbsp;✗ failed &nbsp;⟳ running &nbsp;· pending — hover for score / config.
+      {% if stats.grid_extra %}Extra dims: {{ stats.grid_extra.keys() | list | join(', ') }}; grid shows best-status per (model, target).{% endif %}
     </p>
   </div>
   {% endif %}
 
 </div>
+
+<!-- Score chart -->
+{% if stats.score_chart %}
+<div class="card">
+  <div class="card-title"><span class="icon">📊</span>
+    Score by Configuration
+    <span style="font-size:.75rem;color:var(--text-dim);font-weight:400;margin-left:.5rem">({{ stats.scorer_name or experiment.task + ' scorer' }})</span>
+  </div>
+  <div class="chart-wrap">
+    <canvas id="scoreChart"></canvas>
+  </div>
+  {% if stats.score_chart._models and stats.score_chart._models | length > 1 %}
+  <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem">
+    {% for i in range(stats.score_chart._models | length) %}
+    <span style="display:flex;align-items:center;gap:.3rem;font-size:.78rem;color:var(--text-muted)">
+      <span style="width:10px;height:10px;border-radius:2px;background:{{ stats.score_chart._colors[i] }};display:inline-block"></span>
+      {{ stats.score_chart._models[i] }}
+    </span>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
 {% endif %}
 
-<!-- Duration chart (completed runs) -->
+<!-- Duration chart -->
 {% if stats.duration_chart %}
 <div class="card">
   <div class="card-title"><span class="icon">⏱</span> Run Durations (completed)</div>
@@ -165,11 +189,32 @@
     type: 'doughnut',
     data: data,
     options: {
-      responsive: true,
-      cutout: '65%',
+      responsive: true, cutout: '65%',
       plugins: {
         legend: { position: 'bottom' },
         tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed}` } }
+      }
+    }
+  });
+})();
+{% endif %}
+
+{% if stats.score_chart %}
+(function() {
+  const d = {{ stats.score_chart | tojson }};
+  new Chart(document.getElementById('scoreChart'), {
+    type: 'bar',
+    data: { labels: d.labels, datasets: d.datasets },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: d.datasets.length > 1 } },
+      scales: {
+        x: { grid: { color: 'rgba(37,46,69,.6)' }, ticks: { maxRotation: 45 } },
+        y: {
+          title: { display: true, text: 'Score', color: '#8a9bb8' },
+          grid: { color: 'rgba(37,46,69,.6)' },
+          beginAtZero: true
+        }
       }
     }
   });
@@ -183,14 +228,12 @@
     type: 'bar',
     data: data,
     options: {
-      indexAxis: 'y',
-      responsive: true,
+      indexAxis: 'y', responsive: true,
       plugins: { legend: { display: false } },
       scales: {
         x: {
           title: { display: true, text: 'Minutes', color: '#8a9bb8' },
-          grid: { color: 'rgba(37,46,69,.6)' },
-          beginAtZero: true
+          grid: { color: 'rgba(37,46,69,.6)' }, beginAtZero: true
         },
         y: { grid: { display: false }, ticks: { font: { size: 11 } } }
       }

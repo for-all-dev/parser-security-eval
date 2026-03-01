@@ -1,0 +1,109 @@
+{
+  "_example": true,
+  "experiment": "fuzzing-baseline",
+  "task": "fuzzing",
+  "total_runs": 12,
+  "completed": 7,
+  "failed": 2,
+  "pending": 2,
+  "runs": [
+    {
+      "run_id": "9f34d716a054",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libpng",
+      "repetition": 0,
+      "status": "completed",
+      "task_kwargs": {"fuzz_duration": 60},
+      "scores": {"_live_fuzzing_scorer": {"mean": 0.12}},
+      "n_samples": 1,
+      "total_time": 68.4,
+      "eval_log": "results/fuzzing-baseline/logs/2026-03-01T20-51-47+00-00_live-fuzzing_KmyctEj.eval"
+    },
+    {
+      "run_id": "493ced1c3a93",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libpng",
+      "repetition": 0,
+      "status": "completed",
+      "task_kwargs": {"fuzz_duration": 120},
+      "scores": {"_live_fuzzing_scorer": {"mean": 0.31}},
+      "n_samples": 1,
+      "total_time": 131.7,
+      "eval_log": "results/fuzzing-baseline/logs/2026-03-01T20-52-03+00-00_live-fuzzing_XYHC7Mz.eval"
+    },
+    {
+      "run_id": "1741d545cc30",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libpng",
+      "repetition": 0,
+      "status": "completed",
+      "task_kwargs": {"fuzz_duration": 300},
+      "scores": {"_live_fuzzing_scorer": {"mean": 0.58}},
+      "n_samples": 1,
+      "total_time": 312.1,
+      "eval_log": "results/fuzzing-baseline/logs/2026-03-01T20-52-54+00-00_live-fuzzing_kNdMH9D.eval"
+    },
+    {
+      "run_id": "b7e24a5f1c83",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libjpeg-turbo",
+      "repetition": 0,
+      "status": "completed",
+      "task_kwargs": {"fuzz_duration": 60},
+      "scores": {"_live_fuzzing_scorer": {"mean": 0.20}},
+      "n_samples": 1,
+      "total_time": 72.9,
+      "eval_log": "results/fuzzing-baseline/logs/2026-03-01T21-00-11+00-00_live-fuzzing_Abc123.eval"
+    },
+    {
+      "run_id": "c9d35b6e2f94",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libjpeg-turbo",
+      "repetition": 0,
+      "status": "completed",
+      "task_kwargs": {"fuzz_duration": 120},
+      "scores": {"_live_fuzzing_scorer": {"mean": 0.44}},
+      "n_samples": 1,
+      "total_time": 128.3,
+      "eval_log": "results/fuzzing-baseline/logs/2026-03-01T21-02-00+00-00_live-fuzzing_Def456.eval"
+    },
+    {
+      "run_id": "a6fb2e3acae2",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libjpeg-turbo",
+      "repetition": 0,
+      "status": "running",
+      "task_kwargs": {"fuzz_duration": 300}
+    },
+    {
+      "run_id": "d1a46c7f3g05",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libxml2",
+      "repetition": 0,
+      "status": "completed",
+      "task_kwargs": {"fuzz_duration": 60},
+      "scores": {"_live_fuzzing_scorer": {"mean": 0.07}},
+      "n_samples": 1,
+      "total_time": 65.2,
+      "eval_log": "results/fuzzing-baseline/logs/2026-03-01T21-05-22+00-00_live-fuzzing_Ghi789.eval"
+    },
+    {
+      "run_id": "e2b57d8a4h16",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libxml2",
+      "repetition": 0,
+      "status": "failed",
+      "task_kwargs": {"fuzz_duration": 120},
+      "error": "HarnessError: harness failed to compile after 5 attempts; last error: undefined reference to 'xmlReadMemory'"
+    },
+    {
+      "run_id": "f3c68e9b5i27",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libxml2",
+      "repetition": 0,
+      "status": "failed",
+      "task_kwargs": {"fuzz_duration": 300},
+      "error": "DockerError: container exited with status 137 (OOM killed)"
+    }
+  ]
+}
