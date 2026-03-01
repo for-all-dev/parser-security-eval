@@ -4,7 +4,20 @@ language: c
 ossfuzz_project: libpng
 repository: https://github.com/glennrp/libpng
 ossfuzz_url: https://github.com/google/oss-fuzz/tree/master/projects/libpng
+spec_url: http://www.libpng.org/pub/png/spec/1.2/PNG-Contents.html  # PNG 1.2 specification
 fuzz_targets:
   - libpng_read_fuzzer
 has_corpus: true
 has_dictionary: true
+
+# Pre-processing configuration (used by `parser-security-eval preprocess`)
+key_entry_points:
+  - png_read_png           # high-level: read entire PNG into png_image
+  - png_process_data       # push-parser: feed data chunks
+  - png_read_info          # read PNG header and metadata
+  - png_read_row           # read a single image row
+  - png_read_image         # read all image rows
+
+# Known vulnerabilities (optional; populated by the curation pipeline)
+related_cves: []
+cve_descriptions: []

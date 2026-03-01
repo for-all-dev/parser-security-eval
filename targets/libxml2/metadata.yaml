@@ -4,8 +4,22 @@ language: c
 ossfuzz_project: libxml2
 repository: https://gitlab.gnome.org/GNOME/libxml2
 ossfuzz_url: https://github.com/google/oss-fuzz/tree/master/projects/libxml2
+spec_url: https://www.w3.org/TR/xml/  # W3C XML 1.0 specification
 fuzz_targets:
   - xml
   - xpath
 has_corpus: true
 has_dictionary: true
+
+# Pre-processing configuration (used by `parser-security-eval preprocess`)
+key_entry_points:
+  - xmlParseDocument       # top-level document parser
+  - xmlReadMemory          # parse XML from an in-memory buffer
+  - xmlParseChunk          # push-parser chunk interface
+  - xmlParseElement        # recursive element parser
+  - xmlParseContent        # content/children parser
+  - xmlParseStartTag       # start-tag and attribute parsing
+
+# Known vulnerabilities (optional; populated by the curation pipeline)
+related_cves: []
+cve_descriptions: []
