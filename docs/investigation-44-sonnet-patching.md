@@ -160,3 +160,98 @@ The following fixes have already been merged:
 7. **Increase message_limit**: 30 messages is tight for a workflow that needs: try_patch + compile + run (3 messages) × N iterations. With the binary-name bug causing 3 failed attempts before giving up, 30 messages runs out fast. Consider 60 messages.
 
 8. **Re-run the eval with the fixed scaffolding** to get a real baseline for model capability.
+
+---
+
+## Follow-up: New Eval Log Analysis (2026-03-01)
+
+**Log:** `2026-03-01T17-19-48+00-00_vulnerability-patching_HvG5eNoYAxLmK98bYSYCPD.eval`
+**Model:** `anthropic/claude-sonnet-4-6`
+**Samples:** 20 (limit=20, ready_only=True)
+**Mean score:** 0.35 (vs 0.032 in the previous run)
+
+---
+
+### Score distribution
+
+| Score | Count | Meaning |
+|-------|-------|---------|
+| 0.0 | 11 | patch never applied, or no diff produced |
+| 0.2 | 1 | patch applied but compilation failed |
+| 0.7 | 4 | crash eliminated but test suite regression |
+| 1.0 | 4 | fully successful |
+
+11 of 20 samples hit the 60-message limit (the limit was raised from 30 to 60 as recommended). Total tool calls across the run: `read_source_file=361, try_patch=34, compile_target=14, run_crash_input=13`.
+
+---
+
+### Are the original bugs fixed?
+
+**Bug A (wrong binary name, exit 127): FIXED.** No `run_crash_input` call in the new log returns exit 127 or "No such file or directory". The model is not burning its message budget in a dead-end retry loop against a missing binary.
+
+**Bug C (scorer reads only `state.output.completion`): FIXED, and correctly tested.** The new log has 9 samples that score "No unified diff found in model output." In all 9 cases, manual re-running of the three-pass extraction logic (`_extract_diff_from_state`) confirms there is genuinely no diff anywhere in the conversation — not in assistant text, not in `try_patch` arguments. The model never produced a diff at all. This is a new model behavior failure (see below), not a scorer bug.
+
+**Bug B (source window truncation): PARTIALLY ADDRESSED.** The `read_source_file` tool now appears in the tool set, providing the model a direct way to read any part of any source file. This tool did not exist in the previous run. However, the tool is now so convenient that the model vastly overuses it at the expense of actually writing patches (see New Failure Pattern below).
+
+**Bug D (libjpeg-turbo `/src/libjpeg-turbo` missing): STILL PRESENT.** ARVO-42489817 (libjpeg-turbo) fails with the same container path mismatch as before — every `read_source_file` call returns "No such file or directory" and every `try_patch` call exits with "bash: line 0: cd: /src/libjpeg-turbo: No such file or directory." The model correctly recognizes the environment is broken and stops after 25 messages. Score: 0.0.
+
+---
+
+### New failure patterns
+
+#### Pattern 1: Model gets stuck in source-reading loop and never writes a patch (9 samples)
+
+This is the dominant new failure mode. 9 of the 11 samples scoring 0.0 with "No unified diff found" share this behavior:
+
+- The model receives the crash report, understands it needs to find a root cause, and immediately starts calling `read_source_file` to explore the codebase.
+- It reads 29–32 source files across multiple passes, making progress on understanding the bug.
+- It hits the 60-message limit before ever calling `try_patch` once.
+- No diff is ever produced.
+
+Representative example — ARVO-42470114 (libxml2, MSan, `use-of-uninitialized-value`):
+- Tool calls: `read_source_file` × 29, `compile_target` × 1, `run_crash_input` × 1.
+- The model correctly identified the bug in `xmlSwitchInputEncodingInt` in `parserInternals.c`, traced the MSAN value origin from `xmlBufCreate`, and read related functions in `buf.c`, `encoding.c`, `xmlIO.c`, and `parser.c` — but kept discovering new questions and reading more code rather than committing to a patch.
+- A call to `compile_target` at message 47 (unpatched source) and `run_crash_input` at message 49 returned "CRASH ELIMINATED" — which is the same spurious "crash eliminated" signal as Bug D, here occurring because the unpatched binary coincidentally doesn't crash on this input without a new build.
+
+The pattern is especially severe for MSan (`sanitizer=memory`) samples. All 8 of the 9 pure-read-loop failures are MSan. The bugs these samples cover are difficult, multi-file MSAN `use-of-uninitialized-value` vulnerabilities (several related to `xmlBufCreate`, `xmlSwitchInputEncodingInt`, and encoding conversion buffers). The model consistently fails to converge on a patch for these because the root cause spans several indirection levels and the model keeps finding new relevant code to read.
+
+By contrast, all 4 samples that scored 1.0 made their first `try_patch` call by message 6. All 4 samples that scored 0.7 made their first call by message 37 at the latest. The relationship is stark: samples where the model starts patching early succeed; samples where it keeps reading never patch at all.
+
+#### Pattern 2: Diff truncation causes persistent "malformed patch" rejections (1 sample, ARVO-42470339)
+
+ARVO-42470339 called `try_patch` 11 times across 60 messages and was rejected every time with "malformed patch at line N." Inspection of the diffs shows a consistent truncation pattern: the model constructs a hunk header like `@@ -2339,6 +2339,14 @@` claiming 14 lines of output, but the diff body ends after 16 lines — exactly at the message boundary before all context lines are included. The last context line in the diff is cut off mid-diff.
+
+The model correctly identifies the root cause (heap-use-after-free in `xmlSAX2StartElementNs` after `nodePush` can set `ctxt->instate = XML_PARSER_EOF`) and tries a reasonable fix. The fix itself is sound (checking `ctxt->instate == XML_PARSER_EOF` and returning early). The 11 attempts differ only in exactly where the hunk is anchored. Every attempt is malformed because the context lines after the inserted block are truncated. `patch` rejects them all with "malformed patch."
+
+This appears to be a model-side context/generation issue: the model is generating diffs where the trailing context lines are cut off, producing hunk count mismatches. This may be a token budget issue within the generation (the diff is near the output token limit).
+
+#### Pattern 3: Test suite regression despite correct crash fix (4 samples, scores 0.7)
+
+4 samples reach `crash_eliminated=True` but score 0.7 because `tests_pass=False`. In all 4 cases the model's patch is functionally correct for the crash. The `run_test_suite` scorer tries `make check` then `ctest`; the failure may indicate either genuine regressions or test infrastructure issues (make check returning non-zero for reasons unrelated to the patch). This warrants investigation to determine whether the 0.7 → 1.0 gap is model quality or test setup.
+
+#### Pattern 4: `read_source_file` tool leads to tool-loop starvation
+
+The previous investigation recommended adding a `read_file` tool as a fix for the source-window problem. That tool has been added (`read_source_file`). It has indeed eliminated the source-window mismatch problem — the model can now read exactly the lines it needs. However, it introduces a new problem: the model overuses the tool at the expense of making progress.
+
+Across all 20 samples, `read_source_file` was called 361 times versus only 34 `try_patch` calls — a 10.6:1 ratio. The successful samples maintain a ratio closer to 2:1. For the 9 failing read-loop samples the ratio is effectively ∞ (zero patches ever attempted). The `read_source_file` tool fills the context with source code but does not enforce any progress toward actually writing a diff.
+
+---
+
+### Remaining issues / recommendations
+
+The three originally-identified scaffolding bugs are fixed. The new mean score (0.35 vs 0.032) confirms the fixes had the expected large effect. The remaining failures are now mostly model behavior issues, with one lingering infrastructure issue:
+
+1. **Tool-loop starvation from `read_source_file` overuse (highest impact).** The model needs a prompt nudge or a hard limit to prevent it from spending its entire budget reading source. Concrete options:
+   - Add to the system prompt: "After reading at most 4–6 source sections, attempt a patch. You can read more after seeing the patch rejection errors."
+   - Limit `read_source_file` calls per sample (e.g., at most 10) with a tool-level error after the cap.
+   - Add a "patch budget" reminder injected into the conversation at message 30 if no `try_patch` has been called yet.
+
+2. **Diff truncation on complex hunks.** The persistent "malformed patch" in ARVO-42470339 suggests the model is generating diffs that exceed its effective output window for a single tool call. Possible mitigations:
+   - Instruct the model to use minimal context (1 line instead of 3) to keep diffs short.
+   - Add diff validation inside the `try_patch` tool wrapper and return a more specific error ("hunk count mismatch: header claims N lines but N+M found") to help the model self-correct.
+
+3. **libjpeg-turbo container path mismatch (ARVO-42489817).** Still broken. The `/src/libjpeg-turbo` directory does not exist inside the container; the model correctly diagnoses this but cannot work around it. Needs a dataset/container fix.
+
+4. **MSan multi-file bugs are difficult for the model.** 8 of the 9 read-loop failures are MSan `use-of-uninitialized-value` across multiple libxml2 files. These are genuinely harder — the uninitialized value is created in one function (`xmlBufCreate` in `buf.c`) and consumed many frames later (`xmlParserPrintFileContextInternal` in `error.c`). The model needs to trace a long call chain to find the fix site. The `read_source_file` tool helps with this in principle but currently causes the model to over-explore without acting. Better prompt guidance on "when to stop reading and start patching" is the priority fix.
+
+5. **Test suite `tests_pass` failures.** 4 samples score 0.7 (crash eliminated, tests fail). It is not clear whether these are real regressions or test infrastructure failures. Adding a per-target test isolation check (run tests on unpatched source baseline; if tests already fail, mark `tests_pass` as N/A) would clarify this.
