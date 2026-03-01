@@ -1,0 +1,12 @@
+name = "triage-sweep"
+description = "Compare triage accuracy across models"
+task = "triage"
+output_dir = "results/triage-sweep"
+repetitions = 1
+
+[defaults]
+benchmark_dir = "../benchmark"
+ready_only = true
+
+[grid]
+model = ["anthropic/claude-sonnet-4-6"]

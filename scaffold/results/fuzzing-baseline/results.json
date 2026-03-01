@@ -1,0 +1,74 @@
+{
+  "experiment": "fuzzing-baseline",
+  "task": "fuzzing",
+  "total_runs": 12,
+  "completed": 3,
+  "failed": 0,
+  "pending": 8,
+  "runs": [
+    {
+      "run_id": "a6fb2e3acae2",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libjpeg-turbo",
+      "repetition": 0,
+      "status": "running",
+      "task_kwargs": {
+        "fuzz_duration": 60
+      }
+    },
+    {
+      "run_id": "9f34d716a054",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libpng",
+      "repetition": 0,
+      "status": "completed",
+      "task_kwargs": {
+        "fuzz_duration": 60
+      },
+      "scores": {
+        "_live_fuzzing_scorer": {
+          "mean": 0.0
+        }
+      },
+      "n_samples": 1,
+      "total_time": 0.0,
+      "eval_log": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline/logs/2026-03-01T20-51-47+00-00_live-fuzzing_KmyctEjiDSBGCWLVUZFBrq.eval"
+    },
+    {
+      "run_id": "493ced1c3a93",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libpng",
+      "repetition": 0,
+      "status": "completed",
+      "task_kwargs": {
+        "fuzz_duration": 120
+      },
+      "scores": {
+        "_live_fuzzing_scorer": {
+          "mean": 0.0
+        }
+      },
+      "n_samples": 1,
+      "total_time": 0.0,
+      "eval_log": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline/logs/2026-03-01T20-52-03+00-00_live-fuzzing_XYHC7MzPCFsrZV33mHGYwx.eval"
+    },
+    {
+      "run_id": "1741d545cc30",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libpng",
+      "repetition": 0,
+      "status": "completed",
+      "task_kwargs": {
+        "fuzz_duration": 300
+      },
+      "scores": {
+        "_live_fuzzing_scorer": {
+          "mean": 0.0
+        }
+      },
+      "n_samples": 1,
+      "total_time": 0.0,
+      "eval_log": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline/logs/2026-03-01T20-52-54+00-00_live-fuzzing_kNdMH9DQYeXXxywBeJA6gS.eval"
+    }
+  ]
+}

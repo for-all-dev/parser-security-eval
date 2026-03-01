@@ -1,0 +1,32 @@
+{
+  "experiment": "patching-model-sweep",
+  "task": "patching",
+  "total_runs": 4,
+  "completed": 1,
+  "failed": 0,
+  "pending": 2,
+  "runs": [
+    {
+      "run_id": "20a8b963a984",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libjpeg-turbo",
+      "repetition": 0,
+      "status": "running"
+    },
+    {
+      "run_id": "b63b3c2b69e4",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libpng",
+      "repetition": 0,
+      "status": "completed",
+      "scores": {
+        "_patch_scorer": {
+          "mean": 0.7
+        }
+      },
+      "n_samples": 1,
+      "total_time": 0.0,
+      "eval_log": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/patching-model-sweep/logs/2026-03-01T20-55-00+00-00_vulnerability-patching_j6m2GdNchBv3osxuNnxRRo.eval"
+    }
+  ]
+}

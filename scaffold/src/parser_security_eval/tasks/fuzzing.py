@@ -330,14 +330,14 @@ def _make_start_fuzzing_tool(
         async def execute(duration_seconds: int = 300) -> str:
             """Run the fuzzer campaign for the specified duration.
 
-            The duration is capped at {cycle_cap} seconds (30 minutes).
+            The duration is capped at 1800 seconds (30 minutes).
             After the run you MUST call get_fuzzer_stats() and, if crashes
             were found, get_crash_info(crash_id) before fuzzing again.
 
             Args:
-                duration_seconds: How long to fuzz (1–{cycle_cap}). Values
-                    above {cycle_cap} are silently clamped.
-            """.format(cycle_cap=CYCLE_CAP_SECONDS)
+                duration_seconds: How long to fuzz (1–1800). Values
+                    above 1800 are silently clamped.
+            """
             if not session_state.get("compiled"):
                 return (
                     "Harness not compiled. "
