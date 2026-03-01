@@ -9,7 +9,4 @@ benchmark_dir = "../benchmark"
 ready_only = true
 
 [grid]
-model = [
-    "anthropic/claude-sonnet-4-6",
-    "openai/gpt-4o",
-]
+model = ["anthropic/claude-sonnet-4-6"]

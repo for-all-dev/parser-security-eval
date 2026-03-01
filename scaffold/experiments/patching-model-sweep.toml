@@ -12,9 +12,5 @@ limit = 20
 engine = "libfuzzer"
 
 [grid]
-model = [
-    "anthropic/claude-sonnet-4-6",
-    "openai/gpt-4o",
-    "google/gemini-2.0-flash",
-]
+model = ["anthropic/claude-sonnet-4-6"]
 target = ["libpng", "libjpeg-turbo", "libxml2", "zlib"]
