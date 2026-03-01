@@ -17,10 +17,10 @@ from parser_security_eval.models.fuzzing import (
     HarnessRecord,
     LiveFuzzingSessionResult,
 )
+from parser_security_eval import prompts
 from parser_security_eval.tasks.fuzzing import (
     MAX_REPAIR_ITERS,
     CYCLE_CAP_SECONDS,
-    RED_TEAM_LIVE_PROMPT,
     _build_session_result,
     _compute_score,
     _extract_stack_hash,
@@ -783,23 +783,31 @@ class TestMemoryStubs:
 
 
 class TestSystemPrompt:
+    @pytest.fixture(autouse=True)
+    def _load_prompt(self) -> None:
+        self.prompt = prompts.load(
+            "fuzzing.system",
+            max_repair=MAX_REPAIR_ITERS,
+            cycle_cap=CYCLE_CAP_SECONDS,
+        )
+
     def test_prompt_contains_four_phases(self) -> None:
-        assert "ANALYZE" in RED_TEAM_LIVE_PROMPT
-        assert "SYNTHESIZE" in RED_TEAM_LIVE_PROMPT
-        assert "FUZZ" in RED_TEAM_LIVE_PROMPT
-        assert "TRIAGE" in RED_TEAM_LIVE_PROMPT
+        assert "ANALYZE" in self.prompt
+        assert "SYNTHESIZE" in self.prompt
+        assert "FUZZ" in self.prompt
+        assert "TRIAGE" in self.prompt
 
     def test_prompt_references_cycle_cap(self) -> None:
-        assert str(CYCLE_CAP_SECONDS) in RED_TEAM_LIVE_PROMPT
+        assert str(CYCLE_CAP_SECONDS) in self.prompt
 
     def test_prompt_references_repair_budget(self) -> None:
-        assert str(MAX_REPAIR_ITERS) in RED_TEAM_LIVE_PROMPT
+        assert str(MAX_REPAIR_ITERS) in self.prompt
 
     def test_prompt_mentions_per_function_targeting(self) -> None:
-        assert "entry-point" in RED_TEAM_LIVE_PROMPT.lower()
+        assert "entry-point" in self.prompt.lower()
 
     def test_prompt_mentions_reachability(self) -> None:
-        assert "eachab" in RED_TEAM_LIVE_PROMPT  # "Reachability"
+        assert "eachab" in self.prompt  # "Reachability"
 
 
 # ---------------------------------------------------------------------------

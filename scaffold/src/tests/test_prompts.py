@@ -30,7 +30,7 @@ class TestLoadPlainPrompts:
         assert len(text) > 0
 
     def test_fuzzing_system_returns_string(self) -> None:
-        text = prompts.load("fuzzing.system")
+        text = prompts.load("fuzzing.system", max_repair=5, cycle_cap=1800)
         assert isinstance(text, str)
         assert len(text) > 0
 
@@ -65,8 +65,12 @@ class TestLoadTemplatePrompts:
             target_name="libxml2",
             format_type="xml",
             language="c",
+            ossfuzz_project="libxml2",
+            fuzz_targets=["fuzz_xml"],
+            cwe_hints=["CWE-119"],
             build_sh="make",
-            existing_harnesses_section="No existing harnesses available.",
+            source_snippets="(no source)",
+            memory_section="",
         )
         assert "libxml2" in text
         assert "xml" in text
@@ -89,10 +93,14 @@ class TestLoadTemplatePrompts:
             target_name="libjpeg",
             format_type="image",
             language="c",
+            ossfuzz_project="libjpeg-turbo",
+            fuzz_targets=["fuzz_jpeg"],
+            cwe_hints=["CWE-125"],
             build_sh="make",
-            existing_harnesses_section="",
+            source_snippets="(no source)",
+            memory_section="",
         )
-        assert "harness_libjpeg" in text
+        assert "libjpeg" in text
 
     def test_render_alias_works(self) -> None:
         text = render(
@@ -169,11 +177,11 @@ class TestPromptContent:
         assert "coverage" in text.lower() or "exercise" in text.lower()
 
     def test_fuzzing_system_mentions_workflow(self) -> None:
-        text = prompts.load("fuzzing.system")
+        text = prompts.load("fuzzing.system", max_repair=5, cycle_cap=1800)
         assert "write_harness" in text
 
     def test_fuzzing_system_mentions_crashes(self) -> None:
-        text = prompts.load("fuzzing.system")
+        text = prompts.load("fuzzing.system", max_repair=5, cycle_cap=1800)
         assert "crash" in text.lower()
 
     def test_harness_user_contains_llvm_signature(self) -> None:
@@ -187,13 +195,17 @@ class TestPromptContent:
         )
         assert "LLVMFuzzerTestOneInput" in text
 
-    def test_fuzzing_user_contains_llvm_signature(self) -> None:
+    def test_fuzzing_user_contains_target_name(self) -> None:
         text = prompts.load(
             "fuzzing.user",
-            target_name="t",
+            target_name="testlib",
             format_type="f",
             language="c",
+            ossfuzz_project="N/A",
+            fuzz_targets=[],
+            cwe_hints="(none)",
             build_sh="b",
-            existing_harnesses_section="",
+            source_snippets="(none)",
+            memory_section="",
         )
-        assert "LLVMFuzzerTestOneInput" in text
+        assert "testlib" in text
