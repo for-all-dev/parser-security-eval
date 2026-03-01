@@ -33,7 +33,9 @@ def _render_turn(turn: TrajTurn, expanded: bool) -> None:
 
         icon = "✅" if turn.tool_ok else "❌"
         st.markdown(f"**Tool Result** {icon}")
-        truncated = turn.tool_result[:1500] + ("…" if len(turn.tool_result) > 1500 else "")
+        truncated = turn.tool_result[:1500] + (
+            "…" if len(turn.tool_result) > 1500 else ""
+        )
         st.code(truncated, language=None, wrap_lines=True)
 
 
