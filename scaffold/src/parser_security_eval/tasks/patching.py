@@ -12,6 +12,7 @@ The agent must:
 """
 
 import json
+import random
 import re
 import tempfile
 from pathlib import Path
@@ -31,56 +32,10 @@ from inspect_ai.solver import (
 )
 from inspect_ai.tool import Tool, tool
 
+from parser_security_eval import prompts
 from parser_security_eval.models.vulnerability import VulnerabilityRecord
 from parser_security_eval.sandbox.docker import DockerSandbox, SandboxConfig
 from parser_security_eval.scorers.patch import PatchResult, score_patch
-
-
-BLUE_TEAM_SYSTEM_PROMPT = """\
-You are a security engineer tasked with fixing a vulnerability in a C/C++ parser.
-
-You will be given:
-1. A crash report from AddressSanitizer showing the vulnerability
-2. The triggering input that causes the crash
-3. The vulnerable source code for the affected file(s)
-
-Your goal: generate a minimal patch that fixes the vulnerability without
-breaking existing functionality. Output your fix as a unified diff.
-
-IMPORTANT — diff format requirements:
-- Use the exact file paths shown in the "Source: <path>" headers
-- Your diff headers MUST use: --- a/<path> and +++ b/<path>
-- Include enough context lines (3+) around each change for patch to apply cleanly
-- Example:
-  --- a/SAX2.c
-  +++ b/SAX2.c
-  @@ -NNN,M +NNN,M @@
-   context line
-  -old line
-  +new line
-   context line
-
-Focus on:
-- Understanding the root cause from the ASAN output and stack trace
-- Referencing the actual source code provided to write correct line-level diffs
-- Making the smallest change that correctly fixes the bug
-- Not introducing new vulnerabilities or regressions
-
-You have four tools to iteratively develop and test your patch:
-1. try_patch(diff) - Apply your unified diff to the source tree. Returns success or rejection errors.
-2. compile_target() - Rebuild the target with sanitizers. Returns success or compiler errors.
-3. run_crash_input() - Run the triggering input against the rebuilt binary. Returns "CRASH ELIMINATED" or ASAN output.
-4. read_source_file(file_path, start_line, end_line) - Read lines from a source file in the container. Use this if try_patch fails to verify exact file contents and line numbers.
-
-Workflow: write a diff -> try_patch -> compile_target -> run_crash_input -> iterate if needed.
-If try_patch keeps failing, use read_source_file to inspect the actual file in the container.
-The source tree resets before each try_patch call, so you can retry freely.
-When you are satisfied, include your final working diff in a ```diff fenced block in your last message.
-
-IMPORTANT: Attempt a patch within the first 10 tool calls. Do not spend all your
-turns reading source files — read just enough to understand the crash site, then
-try a fix. You can always iterate if the first attempt is wrong.
-"""
 
 
 def _extract_crash_line(
@@ -237,6 +192,192 @@ def _resolve_fuzz_binary(target_dir: Path, target_name: str) -> str:
     return f"/out/{target_name}_fuzzer"
 
 
+def _validate_unified_diff(diff: str) -> str | None:
+    """Return an error message if *diff* is not valid unified diff format, else None."""
+    lines = diff.splitlines()
+    has_minus = any(line.startswith("--- ") for line in lines)
+    has_plus = any(line.startswith("+++ ") for line in lines)
+    has_hunk = any(line.startswith("@@ ") for line in lines)
+    if not (has_minus and has_plus and has_hunk):
+        problems: list[str] = []
+        if not has_minus:
+            problems.append("missing '--- a/<file>' header")
+        if not has_plus:
+            problems.append("missing '+++ b/<file>' header")
+        if not has_hunk:
+            problems.append("missing '@@ -N,M +N,M @@' hunk header")
+        return (
+            "Malformed diff — this does not look like unified diff format.\n"
+            f"Problems: {'; '.join(problems)}.\n"
+            "Expected format:\n"
+            "  --- a/file.c\n"
+            "  +++ b/file.c\n"
+            "  @@ -start,count +start,count @@\n"
+            "   context line\n"
+            "  -removed line\n"
+            "  +added line"
+        )
+    return None
+
+
+def _parse_diff_targets(diff: str) -> list[tuple[str, int]]:
+    """Extract (file_path, first_hunk_line) pairs from a unified diff.
+
+    Returns the file paths from +++ headers stripped of 'b/' prefix,
+    paired with the first hunk start line for that file.
+    """
+    results: list[tuple[str, int]] = []
+    current_file: str | None = None
+    for line in diff.splitlines():
+        if line.startswith("+++ "):
+            path = line[4:].strip()
+            # Strip b/ prefix
+            if path.startswith("b/"):
+                path = path[2:]
+            current_file = path
+        elif line.startswith("@@ ") and current_file is not None:
+            m = re.search(r"^@@ -(\d+)", line)
+            if m:
+                results.append((current_file, int(m.group(1))))
+                current_file = None  # only take first hunk per file
+    return results
+
+
+async def _build_rejection_context(
+    sandbox: DockerSandbox,
+    src_dir: str,
+    diff: str,
+    patch_output: str,
+) -> str:
+    """Build detailed error context when a patch is rejected.
+
+    Reads .rej files, shows surrounding source lines at the failed hunk
+    location, detects common failure modes, and suggests next steps.
+    """
+    parts: list[str] = []
+    targets = _parse_diff_targets(diff)
+
+    # --- Check for .rej files ---
+    _, rej_output, _ = await sandbox.exec(
+        f"find {src_dir} -name '*.rej' -type f 2>/dev/null"
+    )
+    rej_files = [f.strip() for f in rej_output.strip().splitlines() if f.strip()]
+    if rej_files:
+        parts.append("\n--- Reject file contents (expected vs actual mismatch) ---")
+        for rej_path in rej_files[:3]:  # limit to 3 files
+            _, rej_content, _ = await sandbox.exec(f"cat '{rej_path}'")
+            rej_content = rej_content.strip()
+            if rej_content:
+                parts.append(f"\n{rej_path}:\n{rej_content}")
+
+    # --- Per-target-file diagnostics ---
+    for file_path, hunk_line in targets:
+        full_path = f"{src_dir}/{file_path}"
+
+        # Check if target file exists at all
+        rc_exists, _, _ = await sandbox.exec(f"test -f '{full_path}'")
+        if rc_exists != 0:
+            parts.append(
+                f"\nERROR: Target file '{file_path}' does not exist in the source tree."
+            )
+            # List available files with similar names
+            basename = Path(file_path).name
+            _, ls_out, _ = await sandbox.exec(
+                f"find {src_dir} -name '{basename}' -type f 2>/dev/null"
+            )
+            if ls_out.strip():
+                parts.append(f"  Did you mean one of: {ls_out.strip()}")
+            continue
+
+        # Get total line count
+        _, wc_out, _ = await sandbox.exec(f"wc -l < '{full_path}'")
+        total_lines = int(wc_out.strip()) if wc_out.strip().isdigit() else 0
+
+        # Check wrong line numbers
+        if total_lines > 0 and hunk_line > total_lines:
+            parts.append(
+                f"\nERROR: Hunk expected line {hunk_line} but "
+                f"'{file_path}' only has {total_lines} lines."
+            )
+
+        # Show surrounding lines at the failed hunk location
+        context_start = max(1, hunk_line - 5)
+        context_end = (
+            min(hunk_line + 15, total_lines) if total_lines > 0 else hunk_line + 15
+        )
+        _, context_lines, _ = await sandbox.exec(
+            f"sed -n '{context_start},{context_end}p' '{full_path}'"
+        )
+        if context_lines.strip():
+            parts.append(
+                f"\n--- Actual file content: {file_path} "
+                f"lines {context_start}-{context_end} ---"
+            )
+            # Number the lines for clarity
+            numbered = []
+            for i, line in enumerate(context_lines.splitlines(), start=context_start):
+                numbered.append(f"{i:>6} | {line}")
+            parts.append("\n".join(numbered))
+
+        # Detect whitespace mismatch: extract the first hunk context lines
+        # from the diff and compare against actual file content
+        _check_whitespace_mismatch(diff, file_path, hunk_line, context_lines, parts)
+
+    # --- Suggest using read_source_file ---
+    if targets:
+        file_path, hunk_line = targets[0]
+        suggest_start = max(1, hunk_line - 10)
+        suggest_end = hunk_line + 30
+        parts.append(
+            f'\nHINT: Use read_source_file(file_path="{file_path}", '
+            f"start_line={suggest_start}, end_line={suggest_end}) "
+            f"to see the exact file content and fix your diff."
+        )
+
+    return "\n".join(parts)
+
+
+def _check_whitespace_mismatch(
+    diff: str,
+    file_path: str,
+    hunk_line: int,
+    actual_content: str,
+    parts: list[str],
+) -> None:
+    """Detect if the hunk context lines differ only in whitespace from the file."""
+    # Extract context lines (lines starting with ' ') from the first hunk
+    # for this file in the diff
+    in_target = False
+    context_lines_from_diff: list[str] = []
+    for line in diff.splitlines():
+        if line.startswith("+++ "):
+            path = line[4:].strip()
+            if path.startswith("b/"):
+                path = path[2:]
+            in_target = path == file_path
+        elif in_target and line.startswith(" "):
+            context_lines_from_diff.append(line[1:])  # strip leading space
+        elif in_target and line.startswith("@@"):
+            context_lines_from_diff = []  # reset for first hunk
+
+    if not context_lines_from_diff or not actual_content.strip():
+        return
+
+    actual_lines = actual_content.splitlines()
+    for i, diff_ctx in enumerate(context_lines_from_diff[:5]):
+        if i >= len(actual_lines):
+            break
+        actual_line = actual_lines[i]
+        if diff_ctx != actual_line and diff_ctx.strip() == actual_line.strip():
+            parts.append(
+                "\nWARNING: Whitespace mismatch detected — your diff context "
+                "lines have different indentation (tabs vs spaces, or different "
+                "indent width) from the actual file. Use read_source_file to "
+                "see exact whitespace."
+            )
+            return
+
+
 def _make_try_patch_tool(sandbox: DockerSandbox) -> Tool:
     """Create a tool that applies a unified diff to the source tree."""
     src_dir = f"/src/{sandbox.config.target_name}"
@@ -251,8 +392,15 @@ def _make_try_patch_tool(sandbox: DockerSandbox) -> Tool:
             Args:
                 diff: The unified diff to apply (e.g. output of git diff).
             """
+            # Pre-validate diff format before even trying to apply
+            format_error = _validate_unified_diff(diff)
+            if format_error is not None:
+                return f"Patch REJECTED (malformed diff):\n{format_error}"
+
             # Reset source tree for a clean slate
             await sandbox.exec(f"cd {src_dir} && git checkout .")
+            # Clean up any leftover .rej files from previous attempts
+            await sandbox.exec(f"find {src_dir} -name '*.rej' -delete 2>/dev/null")
             # Write the diff to a temp file inside the container
             with tempfile.NamedTemporaryFile(
                 mode="w", suffix=".diff", delete=False
@@ -269,7 +417,10 @@ def _make_try_patch_tool(sandbox: DockerSandbox) -> Tool:
             combined = (stdout + "\n" + stderr).strip()
             if exit_code == 0:
                 return f"Patch applied successfully.\n{combined}"
-            return f"Patch REJECTED (exit {exit_code}):\n{combined}"
+
+            # Build detailed rejection context
+            context = await _build_rejection_context(sandbox, src_dir, diff, combined)
+            return f"Patch REJECTED (exit {exit_code}):\n{combined}\n{context}"
 
         return execute
 
@@ -371,12 +522,24 @@ def _make_run_crash_tool(
 
 
 def load_patching_dataset(
-    benchmark_dir: str, target: str | None = None, ready_only: bool = False
+    benchmark_dir: str,
+    target: str | None = None,
+    ready_only: bool = False,
+    seed: int | None = None,
 ) -> list[Sample]:
     """Load vulnerability records as Inspect-AI samples.
 
     Reads benchmark_dir/metadata.json, filters by target if given,
     and constructs one Sample per VulnerabilityRecord.
+
+    Pipeline order:
+      1. Filter by target (if provided)
+      2. Filter by ready_only (if True)
+      3. Shuffle with seed (if provided) — before any limit is applied
+         Note: inspect_eval(limit=N) selects the first N samples from
+         Task(dataset=...) in list order, so we must shuffle here rather
+         than relying on inspect_ai's sample_shuffle parameter, in order
+         to guarantee that --limit picks from the shuffled order.
     """
     bdir = Path(benchmark_dir)
     metadata_path = bdir / "metadata.json"
@@ -399,6 +562,9 @@ def load_patching_dataset(
             and r.reference_patch_path
             and r.vulnerable_source_paths
         ]
+
+    if seed is not None:
+        random.Random(seed).shuffle(records)
 
     samples: list[Sample] = []
     for record in records:
@@ -559,7 +725,9 @@ def patching_solver(
             ]
 
             # Inject system prompt
-            state = await system_message(BLUE_TEAM_SYSTEM_PROMPT)(state, generate)
+            state = await system_message(prompts.load("patching.system"))(
+                state, generate
+            )
 
             # Register tools and run the agentic loop
             state = await use_tools(tools)(state, generate)
@@ -674,6 +842,7 @@ def vulnerability_patching(
     targets_root: str = "targets",
     fuzzing_engine: str = "libfuzzer",
     ready_only: bool = False,
+    seed: int | None = None,
 ) -> Task:
     """Inspect-AI task: patch parser vulnerabilities given crash reports.
 
@@ -682,7 +851,9 @@ def vulnerability_patching(
         inspect eval tasks/patching.py -T benchmark_dir=benchmark -T target=libpng
         inspect eval tasks/patching.py -T benchmark_dir=benchmark -T fuzzing_engine=afl
     """
-    samples = load_patching_dataset(benchmark_dir, target, ready_only=ready_only)
+    samples = load_patching_dataset(
+        benchmark_dir, target, ready_only=ready_only, seed=seed
+    )
     if not samples:
         filter_msg = f" for target '{target}'" if target else ""
         raise ValueError(

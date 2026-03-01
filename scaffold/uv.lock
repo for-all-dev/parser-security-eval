@@ -970,6 +970,7 @@ source = { editable = "." }
 dependencies = [
     { name = "anthropic" },
     { name = "inspect-ai" },
+    { name = "jinja2" },
     { name = "pandas" },
     { name = "plotly" },
     { name = "pydantic" },
@@ -991,6 +992,7 @@ dev = [
 requires-dist = [
     { name = "anthropic", specifier = ">=0.84.0" },
     { name = "inspect-ai", specifier = ">=0.3.184" },
+    { name = "jinja2", specifier = ">=3.1.6" },
     { name = "pandas", specifier = ">=2.2.0" },
     { name = "plotly", specifier = ">=5.22.0" },
     { name = "pydantic", specifier = ">=2.12.5" },

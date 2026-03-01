@@ -9,8 +9,16 @@ ossfuzz_project: null  # oss-fuzz project name, if it exists
 # Links
 repository: ""  # upstream source repo URL
 ossfuzz_url: null  # oss-fuzz project URL if applicable
+spec_url: ""  # URL to format spec (RFC, man page, W3C recommendation, etc.)
 
 # Fuzzing configuration
 fuzz_targets: []  # list of fuzz target names compiled by build.sh
 has_corpus: false
 has_dictionary: false
+
+# Pre-processing configuration (used by `parser-security-eval preprocess`)
+key_entry_points: []  # function names to target in harness generation
+
+# Known vulnerabilities (optional; populated by the curation pipeline)
+related_cves: []      # list of CVE IDs, e.g. ["CVE-2019-7317"]
+cve_descriptions: []  # parallel list of short descriptions
