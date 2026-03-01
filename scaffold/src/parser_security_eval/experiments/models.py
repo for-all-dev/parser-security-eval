@@ -74,6 +74,16 @@ def _run_id(
     return hashlib.sha256(blob.encode()).hexdigest()[:12]
 
 
+class RunResult(BaseModel):
+    """Extracted outcome from a completed eval log."""
+
+    eval_status: str
+    scores: dict[str, dict[str, float]] = Field(default_factory=dict)
+    n_samples: int = 0
+    total_time: float = 0.0
+    error: str | None = None
+
+
 class RunSpec(BaseModel):
     run_id: str
     model: str
@@ -85,6 +95,7 @@ class RunSpec(BaseModel):
     started_at: datetime | None = None
     completed_at: datetime | None = None
     error: str | None = None
+    result: RunResult | None = None
 
     @staticmethod
     def make_id(

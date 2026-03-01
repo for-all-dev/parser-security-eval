@@ -31,6 +31,9 @@ def experiment_run(
     dry_run: bool = typer.Option(
         False, "--dry-run", help="Expand grid and show runs without executing"
     ),
+    retry_failed: bool = typer.Option(
+        False, "--retry-failed", help="Reset failed runs to pending and re-execute"
+    ),
 ) -> None:
     """Run or resume an experiment from a TOML config file."""
     from parser_security_eval.experiments.runner import load_config, run_experiment
@@ -52,7 +55,7 @@ def experiment_run(
     if dry_run:
         console.print("[yellow]Dry run mode — no tasks will be executed.[/yellow]")
 
-    manifest = run_experiment(config, dry_run=dry_run)
+    manifest = run_experiment(config, dry_run=dry_run, retry_failed=retry_failed)
 
     # Summary table
     table = Table(title="Experiment Summary")

@@ -24,6 +24,7 @@ from parser_security_eval.experiments.models import (
     TaskType,
 )
 from parser_security_eval.experiments.state import (
+    extract_run_result,
     init_or_resume_manifest,
     mark_run_completed,
     mark_run_failed,
@@ -131,11 +132,14 @@ def _build_task(config: ExperimentConfig, run: RunSpec) -> Any:
 
 
 def run_experiment(
-    config: ExperimentConfig, *, dry_run: bool = False
+    config: ExperimentConfig,
+    *,
+    dry_run: bool = False,
+    retry_failed: bool = False,
 ) -> ExperimentManifest:
     """Main experiment loop: expand grid, init/resume manifest, execute runs."""
     runs = expand_grid(config)
-    manifest = init_or_resume_manifest(config, runs)
+    manifest = init_or_resume_manifest(config, runs, retry_failed=retry_failed)
 
     pending = [r for r in manifest.runs.values() if r.status == RunStatus.pending]
 
@@ -190,16 +194,26 @@ def run_experiment(
                     limit=config.defaults.limit,
                 )
 
-                eval_log_path = ""
-                if logs:
+                # Check that inspect_eval actually succeeded
+                if not logs or logs[0].status != "success":
+                    status = logs[0].status if logs else "no-log"
+                    error_msg = f"inspect_eval returned status={status}"
+                    if logs and logs[0].error:
+                        error_msg += f": {logs[0].error.message}"
+                    run_result = extract_run_result(logs[0]) if logs else None
+                    mark_run_failed(manifest, run.run_id, error_msg, result=run_result)
+                    logger.error("Run %s failed: %s", run.run_id, error_msg)
+                else:
                     eval_log_path = (
                         str(logs[0].location)
                         if hasattr(logs[0], "location")
                         else log_dir
                     )
-
-                mark_run_completed(manifest, run.run_id, eval_log_path)
-                logger.info("Run %s completed.", run.run_id)
+                    run_result = extract_run_result(logs[0])
+                    mark_run_completed(
+                        manifest, run.run_id, eval_log_path, result=run_result
+                    )
+                    logger.info("Run %s completed.", run.run_id)
 
             except Exception as exc:
                 mark_run_failed(manifest, run.run_id, str(exc))

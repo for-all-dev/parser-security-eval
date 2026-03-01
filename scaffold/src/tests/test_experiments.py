@@ -12,6 +12,7 @@ from parser_security_eval.experiments.models import (
     ExperimentDefaults,
     ExperimentGrid,
     ExperimentManifest,
+    RunResult,
     RunStatus,
     TaskType,
 )
@@ -222,11 +223,47 @@ class TestManifestPersistence:
 
         first_id = list(manifest.runs.keys())[0]
         mark_run_started(manifest, first_id)
-        mark_run_completed(manifest, first_id, "/some/log.eval")
+        result = RunResult(
+            eval_status="success",
+            scores={"scorer": {"mean": 0.5}},
+            n_samples=5,
+            total_time=42.0,
+        )
+        mark_run_completed(manifest, first_id, "/some/log.eval", result=result)
 
         resumed = init_or_resume_manifest(sample_config, runs)
         assert resumed.runs[first_id].status == RunStatus.completed
         assert resumed.runs[first_id].eval_log_path == "/some/log.eval"
+        assert resumed.runs[first_id].result is not None
+        assert resumed.runs[first_id].result.scores == {"scorer": {"mean": 0.5}}
+
+    def test_results_json_written(
+        self, sample_config: ExperimentConfig, tmp_path: Path
+    ):
+        import json
+
+        sample_config.output_dir = str(tmp_path / "results-json-test")
+        runs = expand_grid(sample_config)
+        manifest = init_or_resume_manifest(sample_config, runs)
+
+        first_id = list(manifest.runs.keys())[0]
+        mark_run_started(manifest, first_id)
+        result = RunResult(
+            eval_status="success",
+            scores={"scorer": {"mean": 0.75}},
+            n_samples=10,
+            total_time=30.0,
+        )
+        mark_run_completed(manifest, first_id, "/log.eval", result=result)
+
+        results_path = Path(sample_config.output_dir) / "results.json"
+        assert results_path.exists()
+        data = json.loads(results_path.read_text())
+        assert data["experiment"] == "test-sweep"
+        assert data["completed"] == 1
+        assert len(data["runs"]) == 1
+        assert data["runs"][0]["scores"] == {"scorer": {"mean": 0.75}}
+        assert data["runs"][0]["n_samples"] == 10
 
     def test_resume_adds_new_grid_cells(
         self, sample_config: ExperimentConfig, tmp_path: Path
@@ -255,6 +292,26 @@ class TestManifestPersistence:
         assert loaded is not None
         assert loaded.runs[first_id].status == RunStatus.failed
         assert loaded.runs[first_id].error == "something broke"
+
+    def test_retry_failed_resets_to_pending(
+        self, sample_config: ExperimentConfig, tmp_path: Path
+    ):
+        sample_config.output_dir = str(tmp_path / "retry-test")
+        runs = expand_grid(sample_config)
+        manifest = init_or_resume_manifest(sample_config, runs)
+
+        first_id = list(manifest.runs.keys())[0]
+        mark_run_started(manifest, first_id)
+        mark_run_failed(manifest, first_id, "something broke")
+
+        # Without retry_failed, failed stays failed
+        resumed = init_or_resume_manifest(sample_config, runs)
+        assert resumed.runs[first_id].status == RunStatus.failed
+
+        # With retry_failed, failed resets to pending
+        retried = init_or_resume_manifest(sample_config, runs, retry_failed=True)
+        assert retried.runs[first_id].status == RunStatus.pending
+        assert retried.runs[first_id].error is None
 
 
 # ---------------------------------------------------------------------------
