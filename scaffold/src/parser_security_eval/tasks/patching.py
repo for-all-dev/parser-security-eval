@@ -32,56 +32,10 @@ from inspect_ai.solver import (
 )
 from inspect_ai.tool import Tool, tool
 
+from parser_security_eval import prompts
 from parser_security_eval.models.vulnerability import VulnerabilityRecord
 from parser_security_eval.sandbox.docker import DockerSandbox, SandboxConfig
 from parser_security_eval.scorers.patch import PatchResult, score_patch
-
-
-BLUE_TEAM_SYSTEM_PROMPT = """\
-You are a security engineer tasked with fixing a vulnerability in a C/C++ parser.
-
-You will be given:
-1. A crash report from AddressSanitizer showing the vulnerability
-2. The triggering input that causes the crash
-3. The vulnerable source code for the affected file(s)
-
-Your goal: generate a minimal patch that fixes the vulnerability without
-breaking existing functionality. Output your fix as a unified diff.
-
-IMPORTANT — diff format requirements:
-- Use the exact file paths shown in the "Source: <path>" headers
-- Your diff headers MUST use: --- a/<path> and +++ b/<path>
-- Include enough context lines (3+) around each change for patch to apply cleanly
-- Example:
-  --- a/SAX2.c
-  +++ b/SAX2.c
-  @@ -NNN,M +NNN,M @@
-   context line
-  -old line
-  +new line
-   context line
-
-Focus on:
-- Understanding the root cause from the ASAN output and stack trace
-- Referencing the actual source code provided to write correct line-level diffs
-- Making the smallest change that correctly fixes the bug
-- Not introducing new vulnerabilities or regressions
-
-You have four tools to iteratively develop and test your patch:
-1. try_patch(diff) - Apply your unified diff to the source tree. Returns success or rejection errors.
-2. compile_target() - Rebuild the target with sanitizers. Returns success or compiler errors.
-3. run_crash_input() - Run the triggering input against the rebuilt binary. Returns "CRASH ELIMINATED" or ASAN output.
-4. read_source_file(file_path, start_line, end_line) - Read lines from a source file in the container. Use this if try_patch fails to verify exact file contents and line numbers.
-
-Workflow: write a diff -> try_patch -> compile_target -> run_crash_input -> iterate if needed.
-If try_patch keeps failing, use read_source_file to inspect the actual file in the container.
-The source tree resets before each try_patch call, so you can retry freely.
-When you are satisfied, include your final working diff in a ```diff fenced block in your last message.
-
-IMPORTANT: Attempt a patch within the first 10 tool calls. Do not spend all your
-turns reading source files — read just enough to understand the crash site, then
-try a fix. You can always iterate if the first attempt is wrong.
-"""
 
 
 def _extract_crash_line(
@@ -575,7 +529,9 @@ def patching_solver(
             ]
 
             # Inject system prompt
-            state = await system_message(BLUE_TEAM_SYSTEM_PROMPT)(state, generate)
+            state = await system_message(prompts.load("patching.system"))(
+                state, generate
+            )
 
             # Register tools and run the agentic loop
             state = await use_tools(tools)(state, generate)

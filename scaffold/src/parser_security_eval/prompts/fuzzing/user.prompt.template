@@ -1,0 +1,25 @@
+Run a live fuzzing campaign against the following parser target.
+
+## Target: {{ target_name }}
+- Format type: {{ format_type }}
+- Language: {{ language }}
+
+## Build script
+```bash
+{{ build_sh }}
+```
+
+{{ existing_harnesses_section }}
+
+Start by writing a harness that implements:
+```c
+int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size);
+```
+
+The harness will be compiled with:
+- $CC / $CXX with sanitizer flags ($CFLAGS / $CXXFLAGS)
+- Linked against $LIB_FUZZING_ENGINE
+- Source available at /src/{{ target_name }}
+
+Your harness will be saved as /src/harness_{{ target_name }}.cc inside the sandbox.
+Use your tools in the order: write_harness -> compile_harness -> start_fuzzing -> inspect crashes -> refine.
