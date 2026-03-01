@@ -53,15 +53,10 @@ def main() -> None:
             st.warning(f"No .eval files found in `{LOG_DIR}`.")
             selected_paths: list[str] = []
         else:
-            default_selected = [p.name for p in eval_files[:3]]
-            selected_names = st.multiselect(
-                "Select eval files",
-                options=[p.name for p in eval_files],
-                default=default_selected,
-                help="Files sorted newest-first. Select which runs to display.",
-            )
-            name_to_path = {p.name: str(p) for p in eval_files}
-            selected_paths = [name_to_path[n] for n in selected_names]
+            selected_paths = []
+            for p in eval_files:
+                if st.checkbox(p.name, value=True, key=f"log_{p.name}", help=p.name):
+                    selected_paths.append(str(p))
 
         st.divider()
         page = st.radio(
