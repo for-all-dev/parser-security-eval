@@ -20,4 +20,8 @@ Parsers are bad-- it'd be great if they were less bad. One way to do this would 
 - use docker orchestration, maybe with compose.yml? if you like.
 - `pydantic.BaseModels`
 - `uv run ruff check --fix` and `uv run ruff format` and `uv run pytest` and `uv run ty check`
-   - note: use typehints, but not pyright or numpy. `ty` is a new typechecker by astral. 
+   - note: use typehints, but not pyright or numpy. `ty` is a new typechecker by astral.
+- **Prompts**: Never inline prompt strings in Python task files. Use the Jinja2-backed loader:
+   - Plain prompts: `scaffold/src/parser_security_eval/prompts/{domain}/system.prompt`
+   - Templates: `scaffold/src/parser_security_eval/prompts/{domain}/user.prompt.template` (Jinja2 `{{ var }}` syntax)
+   - Load via `from parser_security_eval import prompts; prompts.load("domain.key", **kwargs)`
