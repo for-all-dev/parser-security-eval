@@ -256,7 +256,7 @@ class TrajTurn(BaseModel):
     tool_time: float  # seconds for the tool execution
 
 
-_TOOL_SUCCESS_RE = re.compile(r"applied|success", re.IGNORECASE)
+_TOOL_SUCCESS_RE = re.compile(r"applied|success|eliminated", re.IGNORECASE)
 # Reuse diff-extraction pattern from views — inline here to avoid circular import
 _TRAJ_CODE_RE = re.compile(r"```(?:diff)?\s*\n(.*?)```", re.DOTALL)
 _TRAJ_DIFF_HDR_RE = re.compile(r"((?:diff --git|---|\+\+\+).*)", re.MULTILINE)
@@ -346,8 +346,16 @@ def _parse_trajectory(sample: Any) -> list[TrajTurn]:
             td = tool_ev.model_dump()
             tool_name = td.get("function", "try_patch") or "try_patch"
             t_time = float(td.get("working_time", 0) or 0)
-            tool_result = str(td.get("result", "") or "")
-            tool_ok = bool(_TOOL_SUCCESS_RE.search(tool_result))
+            tool_result = _resolve_attachment(
+                str(td.get("result", "") or ""), attachments
+            )
+            error_field = td.get("error")
+            if error_field is not None:
+                # Prefer structured error field: None/falsy = success
+                tool_ok = not error_field
+            else:
+                # Fall back to regex on resolved result text
+                tool_ok = bool(_TOOL_SUCCESS_RE.search(tool_result))
             args = td.get("arguments", {}) or {}
             if isinstance(args, dict):
                 proposed_diff = _resolve_attachment(args.get("diff", ""), attachments)
