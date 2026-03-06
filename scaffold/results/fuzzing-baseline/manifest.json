@@ -120,12 +120,22 @@
       "task_kwargs": {
         "fuzz_duration": 60
       },
-      "status": "running",
-      "eval_log_path": null,
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline/logs/2026-03-01T20-53-31+00-00_live-fuzzing_EboHKh24YYsf9cMhXz8db9.eval",
       "started_at": "2026-03-01T20:53:31.006555Z",
-      "completed_at": null,
+      "completed_at": "2026-03-02T17:19:56.884393Z",
       "error": null,
-      "result": null
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 0.0,
+        "error": null
+      }
     },
     "7ef8e06251b8": {
       "run_id": "7ef8e06251b8",
@@ -135,12 +145,22 @@
       "task_kwargs": {
         "fuzz_duration": 120
       },
-      "status": "pending",
-      "eval_log_path": null,
-      "started_at": null,
-      "completed_at": null,
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline/logs/2026-03-02T17-19-56+00-00_live-fuzzing_F3pkGUMd3KXG7Tzok3f3Ur.eval",
+      "started_at": "2026-03-02T17:19:56.885567Z",
+      "completed_at": "2026-03-02T17:43:08.878102Z",
       "error": null,
-      "result": null
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 0.0,
+        "error": null
+      }
     },
     "9524ce3c69fb": {
       "run_id": "9524ce3c69fb",
@@ -150,12 +170,22 @@
       "task_kwargs": {
         "fuzz_duration": 300
       },
-      "status": "pending",
-      "eval_log_path": null,
-      "started_at": null,
-      "completed_at": null,
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline/logs/2026-03-02T17-43-08+00-00_live-fuzzing_doRWNcY6J5F5EFnQ3jf4mU.eval",
+      "started_at": "2026-03-02T17:43:08.879198Z",
+      "completed_at": "2026-03-02T17:54:20.843199Z",
       "error": null,
-      "result": null
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 0.0,
+        "error": null
+      }
     },
     "51f3dc849fe3": {
       "run_id": "51f3dc849fe3",
@@ -165,12 +195,22 @@
       "task_kwargs": {
         "fuzz_duration": 60
       },
-      "status": "pending",
-      "eval_log_path": null,
-      "started_at": null,
-      "completed_at": null,
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline/logs/2026-03-02T17-54-20+00-00_live-fuzzing_oV8KTFiib4HH8WbzvXESqi.eval",
+      "started_at": "2026-03-02T17:54:20.844581Z",
+      "completed_at": "2026-03-03T17:04:32.868272Z",
       "error": null,
-      "result": null
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 0.0,
+        "error": null
+      }
     },
     "e5b3b47bf7ae": {
       "run_id": "e5b3b47bf7ae",
@@ -180,12 +220,22 @@
       "task_kwargs": {
         "fuzz_duration": 120
       },
-      "status": "pending",
-      "eval_log_path": null,
-      "started_at": null,
-      "completed_at": null,
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline/logs/2026-03-03T17-04-32+00-00_live-fuzzing_CctKjyZ8otbghqkaKUrpeo.eval",
+      "started_at": "2026-03-03T17:04:32.870104Z",
+      "completed_at": "2026-03-03T17:35:03.687121Z",
       "error": null,
-      "result": null
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 0.0,
+        "error": null
+      }
     },
     "a296500b35fd": {
       "run_id": "a296500b35fd",
@@ -195,12 +245,22 @@
       "task_kwargs": {
         "fuzz_duration": 300
       },
-      "status": "pending",
-      "eval_log_path": null,
-      "started_at": null,
-      "completed_at": null,
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline/logs/2026-03-03T17-35-03+00-00_live-fuzzing_M6dDvyYPiDHMpRxrwn6PR6.eval",
+      "started_at": "2026-03-03T17:35:03.688901Z",
+      "completed_at": "2026-03-03T18:04:57.584813Z",
       "error": null,
-      "result": null
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 0.0,
+        "error": null
+      }
     },
     "6f5db6fbe49c": {
       "run_id": "6f5db6fbe49c",
@@ -210,12 +270,22 @@
       "task_kwargs": {
         "fuzz_duration": 60
       },
-      "status": "pending",
-      "eval_log_path": null,
-      "started_at": null,
-      "completed_at": null,
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline/logs/2026-03-03T18-04-57+00-00_live-fuzzing_4UeEgTUWkSRnadFdS33qRz.eval",
+      "started_at": "2026-03-03T18:04:57.586363Z",
+      "completed_at": "2026-03-03T21:45:29.875514Z",
       "error": null,
-      "result": null
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 0.0,
+        "error": null
+      }
     },
     "a1ddd56e7aa7": {
       "run_id": "a1ddd56e7aa7",
@@ -225,12 +295,22 @@
       "task_kwargs": {
         "fuzz_duration": 120
       },
-      "status": "pending",
-      "eval_log_path": null,
-      "started_at": null,
-      "completed_at": null,
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline/logs/2026-03-03T21-45-29+00-00_live-fuzzing_bwRaHGUXGKDs86pKH4oBEa.eval",
+      "started_at": "2026-03-03T21:45:29.876176Z",
+      "completed_at": "2026-03-04T18:39:50.326239Z",
       "error": null,
-      "result": null
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 0.0,
+        "error": null
+      }
     },
     "b83402acf072": {
       "run_id": "b83402acf072",
@@ -240,14 +320,24 @@
       "task_kwargs": {
         "fuzz_duration": 300
       },
-      "status": "pending",
-      "eval_log_path": null,
-      "started_at": null,
-      "completed_at": null,
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline/logs/2026-03-04T18-39-50+00-00_live-fuzzing_mLSshDRTVwQKfwksNEsbgo.eval",
+      "started_at": "2026-03-04T18:39:50.328387Z",
+      "completed_at": "2026-03-04T20:18:19.623773Z",
       "error": null,
-      "result": null
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 0.0,
+        "error": null
+      }
     }
   },
   "created_at": "2026-03-01T20:51:46.142057Z",
-  "updated_at": "2026-03-01T20:53:31.006561Z"
+  "updated_at": "2026-03-04T20:18:19.623783Z"
 }

@@ -2,16 +2,24 @@
   "experiment": "patching-model-sweep",
   "task": "patching",
   "total_runs": 4,
-  "completed": 1,
+  "completed": 4,
   "failed": 0,
-  "pending": 2,
+  "pending": 0,
   "runs": [
     {
       "run_id": "20a8b963a984",
       "model": "anthropic/claude-sonnet-4-6",
       "target": "libjpeg-turbo",
       "repetition": 0,
-      "status": "running"
+      "status": "completed",
+      "scores": {
+        "_patch_scorer": {
+          "mean": 0.775
+        }
+      },
+      "n_samples": 20,
+      "total_time": 0.0,
+      "eval_log": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/patching-model-sweep/logs/2026-03-01T21-00-46+00-00_vulnerability-patching_JehevAsZJqpQcJQVjnaPVw.eval"
     },
     {
       "run_id": "b63b3c2b69e4",
@@ -27,6 +35,36 @@
       "n_samples": 1,
       "total_time": 0.0,
       "eval_log": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/patching-model-sweep/logs/2026-03-01T20-55-00+00-00_vulnerability-patching_j6m2GdNchBv3osxuNnxRRo.eval"
+    },
+    {
+      "run_id": "4ca3365a4558",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libxml2",
+      "repetition": 0,
+      "status": "completed",
+      "scores": {
+        "_patch_scorer": {
+          "mean": 0.45999999999999996
+        }
+      },
+      "n_samples": 20,
+      "total_time": 0.0,
+      "eval_log": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/patching-model-sweep/logs/2026-03-01T21-16-38+00-00_vulnerability-patching_SXUxmLRW8inzPJ5Gj6PBuL.eval"
+    },
+    {
+      "run_id": "15307122aebc",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "zlib",
+      "repetition": 0,
+      "status": "completed",
+      "scores": {
+        "_patch_scorer": {
+          "mean": 1.0
+        }
+      },
+      "n_samples": 1,
+      "total_time": 0.0,
+      "eval_log": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/patching-model-sweep/logs/2026-03-02T03-19-06+00-00_vulnerability-patching_TJoS5t7zhB4EF2YSK7j2qq.eval"
     }
   ]
 }
