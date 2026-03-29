@@ -8,6 +8,7 @@ build/
 .ruff_cache/
 
 .claude/worktrees/
+.claude/scheduled_tasks.lock
 .cache/
 scaffold/benchmark/
 

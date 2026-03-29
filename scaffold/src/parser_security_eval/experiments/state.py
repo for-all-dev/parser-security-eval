@@ -110,8 +110,22 @@ def extract_run_result(log: Any) -> RunResult:
     n_samples = len(log.samples) if log.samples else 0
 
     total_time = 0.0
-    if log.stats and hasattr(log.stats, "eval_time"):
-        total_time = log.stats.eval_time or 0.0
+    if log.stats:
+        if hasattr(log.stats, "eval_time") and log.stats.eval_time:
+            total_time = log.stats.eval_time
+        elif log.stats.started_at and log.stats.completed_at:
+            from datetime import datetime
+
+            try:
+                started = datetime.fromisoformat(
+                    str(log.stats.started_at).replace("Z", "+00:00")
+                )
+                completed = datetime.fromisoformat(
+                    str(log.stats.completed_at).replace("Z", "+00:00")
+                )
+                total_time = (completed - started).total_seconds()
+            except (ValueError, TypeError):
+                pass
 
     error_msg = None
     if log.error:

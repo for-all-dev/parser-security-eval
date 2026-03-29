@@ -682,6 +682,16 @@ def live_fuzzing_solver(
             "current_entry_point": "",
         }
 
+        def _stash_session_state(st: TaskState) -> TaskState:
+            """Persist session_state on both store and metadata so the scorer
+            can always find it — even if the solver is interrupted by a
+            message/token/time limit."""
+            if st.metadata is None:
+                st.metadata = {}
+            st.metadata["_session_state"] = session_state
+            st.store.set("_session_state", session_state)
+            return st
+
         async with DockerSandbox(config) as sandbox:
             # Build the target so libraries are available for harness linking
             logger.info("Building target %s inside sandbox", target_name)
@@ -705,7 +715,7 @@ def live_fuzzing_solver(
                         )
                     )
                 )
-                return state
+                return _stash_session_state(state)
 
             # Ensure corpus and crash dirs exist
             await sandbox.exec("mkdir -p /out/corpus /out/crashes")
@@ -729,13 +739,16 @@ def live_fuzzing_solver(
             )
             state = await system_message(system_prompt)(state, generate)
             state = await use_tools(tools)(state, generate)
-            state = await generate(state, tool_calls="loop", max_tokens=16384)
+            try:
+                state = await generate(state, tool_calls="loop", max_tokens=16384)
+            except BaseException:
+                # Message/token/time limit exceptions interrupt generate().
+                # Stash session_state before re-raising so the scorer can
+                # still read whatever progress the agent made.
+                _stash_session_state(state)
+                raise
 
-        # Stash session_state on metadata for the scorer to read
-        # (Inspect-AI passes state through to scorer)
-        if state.metadata is None:
-            state.metadata = {}
-        state.metadata["_session_state"] = session_state
+        _stash_session_state(state)
 
         # Persist session memory for future runs
         save_session_memory(target_name, session_state)
@@ -817,7 +830,11 @@ def live_fuzzing_scorer(
         async def score(state: TaskState, target: object) -> Score:
             meta: dict[str, Any] = state.metadata or {}
             target_name: str = meta.get("target_name", meta.get("target", "unknown"))
-            session_state: dict[str, Any] = meta.get("_session_state", {})
+            # Check both store (preferred, survives limit exceptions) and
+            # metadata (fallback) for session state.
+            session_state: dict[str, Any] = state.store.get(
+                "_session_state", {}
+            ) or meta.get("_session_state", {})
 
             if not session_state:
                 return Score(

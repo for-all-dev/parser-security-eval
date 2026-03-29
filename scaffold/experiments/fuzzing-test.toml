@@ -1,0 +1,19 @@
+name = "fuzzing-test"
+description = "Single short fuzzing run to validate scorer fix"
+task = "fuzzing"
+output_dir = "results/fuzzing-test"
+repetitions = 1
+
+[defaults]
+targets_root = "../targets"
+engine = "libfuzzer"
+max_rounds = 1
+round_duration = 60
+limit = 30
+
+[grid]
+model = ["anthropic/claude-sonnet-4-6"]
+target = ["zlib"]
+
+[grid.extra]
+fuzz_duration = [60]
