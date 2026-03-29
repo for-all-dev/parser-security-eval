@@ -19,7 +19,7 @@ FROM gcr.io/oss-fuzz-base/base-builder
 RUN apt-get update && \
     apt-get install -y make autoconf automake libtool zlib1g-dev cmake cflow
 
-RUN git clone https://github.com/madler/zlib.git
+RUN git clone https://github.com/madler/zlib.git /src/zlib
 # Full clone of libpng so we can checkout vulnerable commits.
 RUN git clone https://github.com/glennrp/libpng /src/libpng
 
