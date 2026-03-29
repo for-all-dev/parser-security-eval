@@ -125,6 +125,8 @@ def _build_task(config: ExperimentConfig, run: RunSpec) -> Any:
             targets_dir=defaults.targets_root,
             target=run.target,
             fuzzing_engine=defaults.engine,
+            fuzz_duration=run.task_kwargs.get("fuzz_duration", defaults.fuzz_duration),
+            message_limit=defaults.message_limit,
         )
 
     msg = f"Unknown task type: {config.task}"

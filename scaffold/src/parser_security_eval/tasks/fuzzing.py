@@ -321,22 +321,24 @@ def _make_add_seed_tool(sandbox: DockerSandbox, session_state: dict[str, Any]) -
 
 
 def _make_start_fuzzing_tool(
-    sandbox: DockerSandbox, session_state: dict[str, Any]
+    sandbox: DockerSandbox,
+    session_state: dict[str, Any],
+    max_duration: int = CYCLE_CAP_SECONDS,
 ) -> Tool:
-    """Tool: start the fuzzer for up to CYCLE_CAP_SECONDS."""
+    """Tool: start the fuzzer for up to max_duration seconds."""
 
     @tool
     def start_fuzzing() -> Tool:
         async def execute(duration_seconds: int = 300) -> str:
-            """Run the fuzzer campaign for the specified duration.
+            f"""Run the fuzzer campaign for the specified duration.
 
-            The duration is capped at 1800 seconds (30 minutes).
+            The duration is capped at {max_duration} seconds.
             After the run you MUST call get_fuzzer_stats() and, if crashes
             were found, get_crash_info(crash_id) before fuzzing again.
 
             Args:
-                duration_seconds: How long to fuzz (1–1800). Values
-                    above 1800 are silently clamped.
+                duration_seconds: How long to fuzz (1–{max_duration}). Values
+                    above {max_duration} are silently clamped.
             """
             if not session_state.get("compiled"):
                 return (
@@ -344,7 +346,7 @@ def _make_start_fuzzing_tool(
                     "Call write_harness() then compile_harness() first."
                 )
 
-            capped = max(1, min(duration_seconds, CYCLE_CAP_SECONDS))
+            capped = max(1, min(duration_seconds, max_duration))
             fuzz_target = session_state.get("fuzz_target", "")
             if not fuzz_target:
                 return "No compiled fuzz target found. Compile the harness first."
@@ -641,6 +643,7 @@ def live_fuzzing_solver(
     targets_root: str = "targets",
     fuzzing_engine: str = "libfuzzer",
     sanitizer: str = "address",
+    max_fuzz_duration: int = CYCLE_CAP_SECONDS,
 ) -> Solver:
     """Agentic solver for the live fuzzing loop.
 
@@ -726,7 +729,7 @@ def live_fuzzing_solver(
                     sandbox, session_state, target_name, fuzzing_engine, sanitizer
                 ),
                 _make_add_seed_tool(sandbox, session_state),
-                _make_start_fuzzing_tool(sandbox, session_state),
+                _make_start_fuzzing_tool(sandbox, session_state, max_fuzz_duration),
                 _make_get_fuzzer_stats_tool(session_state),
                 _make_get_crash_info_tool(session_state),
                 _make_refine_harness_tool(session_state),
@@ -888,22 +891,27 @@ def live_fuzzing(
     target: str = "libxml2",
     fuzzing_engine: str = "libfuzzer",
     sanitizer: str = "address",
+    fuzz_duration: int = CYCLE_CAP_SECONDS,
+    message_limit: int = 120,
 ) -> Task:
     """Inspect-AI task: single-agent live fuzzing with Analyze→Synthesize→Fuzz→Triage.
 
     The agent receives parser source + metadata, writes per-function harnesses,
-    runs the fuzzer for up to 30-minute cycles, triages crashes, and refines.
+    runs the fuzzer for up to fuzz_duration-second cycles, triages crashes, and
+    refines.
 
     Run with:
         inspect eval tasks/fuzzing.py -T target=libxml2
         inspect eval tasks/fuzzing.py -T target=libpng -T fuzzing_engine=afl
-        inspect eval tasks/fuzzing.py -T target=libxml2 -T sanitizer=undefined
+        inspect eval tasks/fuzzing.py -T target=libxml2 -T fuzz_duration=60
 
     Args:
         targets_dir: Root directory containing parser target definitions.
         target: Name of the parser target (subdirectory of targets_dir).
         fuzzing_engine: Fuzzing engine — 'libfuzzer', 'afl', or 'honggfuzz'.
         sanitizer: Sanitizer — 'address', 'undefined', or 'memory'.
+        fuzz_duration: Max seconds per fuzzing cycle (caps agent's choice).
+        message_limit: Max agent messages before stopping.
     """
     dataset = load_live_fuzzing_dataset(targets_dir, target)
 
@@ -913,10 +921,11 @@ def live_fuzzing(
             targets_root=targets_dir,
             fuzzing_engine=fuzzing_engine,
             sanitizer=sanitizer,
+            max_fuzz_duration=fuzz_duration,
         ),
         scorer=live_fuzzing_scorer(
             targets_root=targets_dir,
             fuzzing_engine=fuzzing_engine,
         ),
-        message_limit=120,  # generous limit for multi-cycle runs
+        message_limit=message_limit,
     )

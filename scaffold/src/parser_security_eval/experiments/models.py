@@ -30,6 +30,7 @@ class ExperimentDefaults(BaseModel):
     limit: int | None = None
     engine: str = "libfuzzer"
     fuzz_duration: int = 300
+    message_limit: int = 120
     max_rounds: int = 3
     round_duration: int = 60
 
