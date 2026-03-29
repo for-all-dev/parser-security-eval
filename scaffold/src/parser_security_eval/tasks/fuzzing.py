@@ -330,15 +330,15 @@ def _make_start_fuzzing_tool(
     @tool
     def start_fuzzing() -> Tool:
         async def execute(duration_seconds: int = 300) -> str:
-            f"""Run the fuzzer campaign for the specified duration.
+            """Run the fuzzer campaign for the specified duration.
 
-            The duration is capped at {max_duration} seconds.
+            The duration is capped at the experiment-configured maximum.
             After the run you MUST call get_fuzzer_stats() and, if crashes
             were found, get_crash_info(crash_id) before fuzzing again.
 
             Args:
-                duration_seconds: How long to fuzz (1–{max_duration}). Values
-                    above {max_duration} are silently clamped.
+                duration_seconds: How long to fuzz in seconds. Values
+                    above the configured cap are silently clamped.
             """
             if not session_state.get("compiled"):
                 return (

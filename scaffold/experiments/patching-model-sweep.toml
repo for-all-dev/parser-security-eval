@@ -1,7 +1,7 @@
 name = "patching-model-sweep"
 description = "Compare patching performance across models on tier-1 targets"
 task = "patching"
-output_dir = "results/patching-model-sweep"
+output_dir = "results/patching-model-sweep-v2"
 repetitions = 1
 
 [defaults]
@@ -12,5 +12,5 @@ limit = 20
 engine = "libfuzzer"
 
 [grid]
-model = ["anthropic/claude-sonnet-4-6"]
+model = ["anthropic/claude-sonnet-4-6", "openai/gpt-5.4-mini", "anthropic/claude-opus-4-6"]
 target = ["libpng", "libjpeg-turbo", "libxml2", "zlib"]
