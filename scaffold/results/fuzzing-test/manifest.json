@@ -1,0 +1,63 @@
+{
+  "experiment_name": "fuzzing-test",
+  "config": {
+    "name": "fuzzing-test",
+    "description": "Single short fuzzing run to validate scorer fix",
+    "task": "fuzzing",
+    "output_dir": "results/fuzzing-test",
+    "defaults": {
+      "benchmark_dir": "../benchmark",
+      "targets_root": "../targets",
+      "ready_only": false,
+      "seed": null,
+      "limit": 30,
+      "engine": "libfuzzer",
+      "fuzz_duration": 300,
+      "max_rounds": 1,
+      "round_duration": 60
+    },
+    "grid": {
+      "model": [
+        "anthropic/claude-sonnet-4-6"
+      ],
+      "target": [
+        "zlib"
+      ],
+      "extra": {
+        "fuzz_duration": [
+          60
+        ]
+      }
+    },
+    "repetitions": 1
+  },
+  "runs": {
+    "b3d8cf49dd76": {
+      "run_id": "b3d8cf49dd76",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "zlib",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 60
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-test/logs/2026-03-29T15-28-44+00-00_live-fuzzing_miRYnvvnAzpTFPM6xAGSN8.eval",
+      "started_at": "2026-03-29T15:28:44.093620Z",
+      "completed_at": "2026-03-29T16:45:53.952344Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 4629.0,
+        "error": null
+      }
+    }
+  },
+  "created_at": "2026-03-29T15:28:43.446053Z",
+  "updated_at": "2026-03-29T16:45:53.952364Z"
+}

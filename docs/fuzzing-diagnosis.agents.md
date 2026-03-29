@@ -73,10 +73,27 @@ Looking at the eval logs for the 9 runs that hit message limit:
 3. **libpng build failure** needs separate investigation — likely a Docker
    image or dependency issue in the sandbox.
 
+## Post-Fix Changes
+
+### Commit a245066: Scorer + total_time fixes
+- Wrapped generate() in try/except, stash session_state on both store + metadata
+- Fall back to completed_at - started_at for total_time
+
+### Commit a8ff9f7: fuzz_duration + message_limit wiring
+- Agent was choosing 600-900s durations despite config saying 60s
+- Added max_fuzz_duration param flowing from experiment TOML → task → solver → tool
+- Added message_limit to ExperimentDefaults (was hardcoded to 120)
+
+### Test run results (zlib, validated scorer fix)
+- Scorer now reports: `cycles=6, unique_crashes=0, first_try_compile_rate=0.0`
+- Previously: `"No session state found"` — now actually captures session data
+- total_time=4629s (previously 0.0)
+- Agent compiled harnesses (with repairs), ran 6 fuzzing cycles
+- Note: fuzz_duration cap was not yet wired during test run
+
 ## Next Steps
 
-- [ ] Small test run to validate the fix (single target, short duration)
-- [ ] If fix works, rerun full experiment grid
+- [ ] Rerun full experiment grid with fixed scorer + capped fuzz_duration
 - [ ] Investigate libpng build failure separately
 - [ ] Consider whether `compile_score` and `coverage_score` components of the
       scorer are capturing useful signal even when crash_score is 0

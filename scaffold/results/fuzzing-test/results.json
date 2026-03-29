@@ -1,0 +1,28 @@
+{
+  "experiment": "fuzzing-test",
+  "task": "fuzzing",
+  "total_runs": 1,
+  "completed": 1,
+  "failed": 0,
+  "pending": 0,
+  "runs": [
+    {
+      "run_id": "b3d8cf49dd76",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "zlib",
+      "repetition": 0,
+      "status": "completed",
+      "task_kwargs": {
+        "fuzz_duration": 60
+      },
+      "scores": {
+        "_live_fuzzing_scorer": {
+          "mean": 0.0
+        }
+      },
+      "n_samples": 1,
+      "total_time": 4629.0,
+      "eval_log": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-test/logs/2026-03-29T15-28-44+00-00_live-fuzzing_miRYnvvnAzpTFPM6xAGSN8.eval"
+    }
+  ]
+}
