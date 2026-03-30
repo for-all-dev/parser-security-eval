@@ -1,0 +1,316 @@
+{
+  "experiment_name": "patching-model-sweep",
+  "config": {
+    "name": "patching-model-sweep",
+    "description": "Compare patching performance across models on tier-1 targets",
+    "task": "patching",
+    "output_dir": "results/patching-model-sweep-v2",
+    "defaults": {
+      "benchmark_dir": "../benchmark",
+      "targets_root": "../targets",
+      "ready_only": true,
+      "seed": null,
+      "limit": 20,
+      "engine": "libfuzzer",
+      "fuzz_duration": 300,
+      "message_limit": 120,
+      "max_rounds": 3,
+      "round_duration": 60
+    },
+    "grid": {
+      "model": [
+        "anthropic/claude-sonnet-4-6",
+        "openai/gpt-5.4-mini",
+        "anthropic/claude-opus-4-6"
+      ],
+      "target": [
+        "libpng",
+        "libjpeg-turbo",
+        "libxml2",
+        "zlib"
+      ],
+      "extra": {}
+    },
+    "repetitions": 1
+  },
+  "runs": {
+    "b63b3c2b69e4": {
+      "run_id": "b63b3c2b69e4",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libpng",
+      "repetition": 0,
+      "task_kwargs": {},
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/patching-model-sweep-v2/logs/2026-03-29T17-15-54+00-00_vulnerability-patching_Bo9NanSVdCtH6jKcVgxm8a.eval",
+      "started_at": "2026-03-29T17:15:53.924497Z",
+      "completed_at": "2026-03-29T17:19:29.364442Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_patch_scorer": {
+            "mean": 0.7
+          }
+        },
+        "n_samples": 1,
+        "total_time": 215.0,
+        "error": null
+      }
+    },
+    "20a8b963a984": {
+      "run_id": "20a8b963a984",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libjpeg-turbo",
+      "repetition": 0,
+      "task_kwargs": {},
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/patching-model-sweep-v2/logs/2026-03-29T17-19-29+00-00_vulnerability-patching_UnxNS2gELBUSfc5Wfineg3.eval",
+      "started_at": "2026-03-29T17:19:29.365393Z",
+      "completed_at": "2026-03-29T17:26:19.193201Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_patch_scorer": {
+            "mean": 0.725
+          }
+        },
+        "n_samples": 20,
+        "total_time": 409.0,
+        "error": null
+      }
+    },
+    "4ca3365a4558": {
+      "run_id": "4ca3365a4558",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libxml2",
+      "repetition": 0,
+      "task_kwargs": {},
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/patching-model-sweep-v2/logs/2026-03-29T17-26-20+00-00_vulnerability-patching_A92KzDXeWAnk3SZggzMCTp.eval",
+      "started_at": "2026-03-29T17:26:19.194190Z",
+      "completed_at": "2026-03-29T17:35:17.392026Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_patch_scorer": {
+            "mean": 0.4699999999999999
+          }
+        },
+        "n_samples": 20,
+        "total_time": 536.0,
+        "error": null
+      }
+    },
+    "15307122aebc": {
+      "run_id": "15307122aebc",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "zlib",
+      "repetition": 0,
+      "task_kwargs": {},
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/patching-model-sweep-v2/logs/2026-03-29T17-35-17+00-00_vulnerability-patching_LnneHdRegFqAsU4LTWdDMi.eval",
+      "started_at": "2026-03-29T17:35:17.393104Z",
+      "completed_at": "2026-03-29T17:37:13.023043Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_patch_scorer": {
+            "mean": 1.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 115.0,
+        "error": null
+      }
+    },
+    "b91e158263e1": {
+      "run_id": "b91e158263e1",
+      "model": "openai/gpt-5.4-mini",
+      "target": "libpng",
+      "repetition": 0,
+      "task_kwargs": {},
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/patching-model-sweep-v2/logs/2026-03-29T17-37-13+00-00_vulnerability-patching_exCYygS7q3uJZZfYL3tMPd.eval",
+      "started_at": "2026-03-29T17:37:13.024048Z",
+      "completed_at": "2026-03-29T17:38:21.133946Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_patch_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 68.0,
+        "error": null
+      }
+    },
+    "6274a9f2b0ae": {
+      "run_id": "6274a9f2b0ae",
+      "model": "openai/gpt-5.4-mini",
+      "target": "libjpeg-turbo",
+      "repetition": 0,
+      "task_kwargs": {},
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/patching-model-sweep-v2/logs/2026-03-29T17-38-21+00-00_vulnerability-patching_2yZJfFmvBXUA8wMnPMNPj6.eval",
+      "started_at": "2026-03-29T17:38:21.134530Z",
+      "completed_at": "2026-03-29T17:52:48.442091Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_patch_scorer": {
+            "mean": 0.525
+          }
+        },
+        "n_samples": 20,
+        "total_time": 866.0,
+        "error": null
+      }
+    },
+    "ddbe439b3ddb": {
+      "run_id": "ddbe439b3ddb",
+      "model": "openai/gpt-5.4-mini",
+      "target": "libxml2",
+      "repetition": 0,
+      "task_kwargs": {},
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/patching-model-sweep-v2/logs/2026-03-29T17-52-49+00-00_vulnerability-patching_oF4DNbDDNVFnLnktrktjE3.eval",
+      "started_at": "2026-03-29T17:52:48.443132Z",
+      "completed_at": "2026-03-29T18:09:23.331595Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_patch_scorer": {
+            "mean": 0.61
+          }
+        },
+        "n_samples": 20,
+        "total_time": 993.0,
+        "error": null
+      }
+    },
+    "f711839926c8": {
+      "run_id": "f711839926c8",
+      "model": "openai/gpt-5.4-mini",
+      "target": "zlib",
+      "repetition": 0,
+      "task_kwargs": {},
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/patching-model-sweep-v2/logs/2026-03-29T18-09-23+00-00_vulnerability-patching_WcFqaVX6EKQM9P5apWGZ5G.eval",
+      "started_at": "2026-03-29T18:09:23.332739Z",
+      "completed_at": "2026-03-29T18:09:57.794626Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_patch_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 34.0,
+        "error": null
+      }
+    },
+    "4e017a5b89f9": {
+      "run_id": "4e017a5b89f9",
+      "model": "anthropic/claude-opus-4-6",
+      "target": "libpng",
+      "repetition": 0,
+      "task_kwargs": {},
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/patching-model-sweep-v2/logs/2026-03-29T18-09-57+00-00_vulnerability-patching_hG6FqbrZiDwsBnA9HSxRxX.eval",
+      "started_at": "2026-03-29T18:09:57.795911Z",
+      "completed_at": "2026-03-29T18:11:59.988574Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_patch_scorer": {
+            "mean": 0.7
+          }
+        },
+        "n_samples": 1,
+        "total_time": 122.0,
+        "error": null
+      }
+    },
+    "998d3adf4cb9": {
+      "run_id": "998d3adf4cb9",
+      "model": "anthropic/claude-opus-4-6",
+      "target": "libjpeg-turbo",
+      "repetition": 0,
+      "task_kwargs": {},
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/patching-model-sweep-v2/logs/2026-03-29T18-12-00+00-00_vulnerability-patching_nikknEpr59mnP9D75nPLsx.eval",
+      "started_at": "2026-03-29T18:11:59.989700Z",
+      "completed_at": "2026-03-29T18:19:09.474647Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_patch_scorer": {
+            "mean": 0.85
+          }
+        },
+        "n_samples": 20,
+        "total_time": 428.0,
+        "error": null
+      }
+    },
+    "eb89c05f6eb2": {
+      "run_id": "eb89c05f6eb2",
+      "model": "anthropic/claude-opus-4-6",
+      "target": "libxml2",
+      "repetition": 0,
+      "task_kwargs": {},
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/patching-model-sweep-v2/logs/2026-03-29T18-19-10+00-00_vulnerability-patching_8fy9etdZmHkMvvEnki9gPG.eval",
+      "started_at": "2026-03-29T18:19:09.475884Z",
+      "completed_at": "2026-03-29T18:30:24.854997Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_patch_scorer": {
+            "mean": 0.475
+          }
+        },
+        "n_samples": 20,
+        "total_time": 674.0,
+        "error": null
+      }
+    },
+    "1526e11518fe": {
+      "run_id": "1526e11518fe",
+      "model": "anthropic/claude-opus-4-6",
+      "target": "zlib",
+      "repetition": 0,
+      "task_kwargs": {},
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/patching-model-sweep-v2/logs/2026-03-29T18-30-24+00-00_vulnerability-patching_E5fjaLXPS84fR6nwjpYHFa.eval",
+      "started_at": "2026-03-29T18:30:24.856180Z",
+      "completed_at": "2026-03-29T18:31:20.210380Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_patch_scorer": {
+            "mean": 1.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 56.0,
+        "error": null
+      }
+    }
+  },
+  "created_at": "2026-03-29T17:15:53.328528Z",
+  "updated_at": "2026-03-29T18:31:20.210387Z"
+}

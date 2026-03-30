@@ -1,0 +1,946 @@
+{
+  "experiment_name": "fuzzing-baseline",
+  "config": {
+    "name": "fuzzing-baseline",
+    "description": "Baseline fuzzing runs across targets with varying durations",
+    "task": "fuzzing",
+    "output_dir": "results/fuzzing-baseline-v2",
+    "defaults": {
+      "benchmark_dir": "../benchmark",
+      "targets_root": "../targets",
+      "ready_only": false,
+      "seed": null,
+      "limit": null,
+      "engine": "libfuzzer",
+      "fuzz_duration": 300,
+      "message_limit": 120,
+      "max_rounds": 3,
+      "round_duration": 60
+    },
+    "grid": {
+      "model": [
+        "anthropic/claude-sonnet-4-6",
+        "openai/gpt-5.4-mini",
+        "anthropic/claude-opus-4-6"
+      ],
+      "target": [
+        "libpng",
+        "libjpeg-turbo",
+        "libxml2",
+        "zlib"
+      ],
+      "extra": {
+        "fuzz_duration": [
+          60,
+          120,
+          300
+        ]
+      }
+    },
+    "repetitions": 1
+  },
+  "runs": {
+    "9f34d716a054": {
+      "run_id": "9f34d716a054",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libpng",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 60
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T17-12-09+00-00_live-fuzzing_bJMYZsnWMnEx5J2WKSptkf.eval",
+      "started_at": "2026-03-29T17:12:09.027282Z",
+      "completed_at": "2026-03-29T17:12:25.414017Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 16.0,
+        "error": null
+      }
+    },
+    "493ced1c3a93": {
+      "run_id": "493ced1c3a93",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libpng",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 120
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T17-12-25+00-00_live-fuzzing_FSLYoM2qQBsGp59kAvsQc7.eval",
+      "started_at": "2026-03-29T17:12:25.414481Z",
+      "completed_at": "2026-03-29T17:12:33.129041Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 8.0,
+        "error": null
+      }
+    },
+    "1741d545cc30": {
+      "run_id": "1741d545cc30",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libpng",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 300
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T17-12-33+00-00_live-fuzzing_jfyz6rvkYnEPkEZqo8U3Wk.eval",
+      "started_at": "2026-03-29T17:12:33.129548Z",
+      "completed_at": "2026-03-29T17:12:40.456438Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 7.0,
+        "error": null
+      }
+    },
+    "a6fb2e3acae2": {
+      "run_id": "a6fb2e3acae2",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libjpeg-turbo",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 60
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T17-41-08+00-00_live-fuzzing_JbFbX9Vi52456YvdZMEXP2.eval",
+      "started_at": "2026-03-29T17:41:08.051634Z",
+      "completed_at": "2026-03-29T18:04:29.949466Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 1401.0,
+        "error": null
+      }
+    },
+    "7ef8e06251b8": {
+      "run_id": "7ef8e06251b8",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libjpeg-turbo",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 120
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T18-04-29+00-00_live-fuzzing_8zZrTUN42QCpvEmE7PgpuP.eval",
+      "started_at": "2026-03-29T18:04:29.950447Z",
+      "completed_at": "2026-03-29T18:20:25.634060Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.04000000000000001
+          }
+        },
+        "n_samples": 1,
+        "total_time": 956.0,
+        "error": null
+      }
+    },
+    "9524ce3c69fb": {
+      "run_id": "9524ce3c69fb",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libjpeg-turbo",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 300
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T18-20-25+00-00_live-fuzzing_chGxamhEVdymLaJPUge6jn.eval",
+      "started_at": "2026-03-29T18:20:25.638448Z",
+      "completed_at": "2026-03-29T18:48:04.556301Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 1659.0,
+        "error": null
+      }
+    },
+    "51f3dc849fe3": {
+      "run_id": "51f3dc849fe3",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libxml2",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 60
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T18-48-04+00-00_live-fuzzing_aBcze3LkA37XYHe6WCTtAL.eval",
+      "started_at": "2026-03-29T18:48:04.557591Z",
+      "completed_at": "2026-03-29T19:09:13.553728Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 1269.0,
+        "error": null
+      }
+    },
+    "e5b3b47bf7ae": {
+      "run_id": "e5b3b47bf7ae",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libxml2",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 120
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T19-09-13+00-00_live-fuzzing_kteHxjPw6vfyJEQpKXDMHq.eval",
+      "started_at": "2026-03-29T19:09:13.555106Z",
+      "completed_at": "2026-03-29T19:29:10.693154Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 1197.0,
+        "error": null
+      }
+    },
+    "a296500b35fd": {
+      "run_id": "a296500b35fd",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "libxml2",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 300
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T19-29-10+00-00_live-fuzzing_GZoLy4UL7kWnRkz4P5ecU5.eval",
+      "started_at": "2026-03-29T19:29:10.694629Z",
+      "completed_at": "2026-03-29T19:48:00.286842Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 1130.0,
+        "error": null
+      }
+    },
+    "6f5db6fbe49c": {
+      "run_id": "6f5db6fbe49c",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "zlib",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 60
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T19-48-00+00-00_live-fuzzing_73edCjAenGBViz6PwCtbtc.eval",
+      "started_at": "2026-03-29T19:48:00.288190Z",
+      "completed_at": "2026-03-29T20:09:10.188216Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 1269.0,
+        "error": null
+      }
+    },
+    "a1ddd56e7aa7": {
+      "run_id": "a1ddd56e7aa7",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "zlib",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 120
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T20-09-10+00-00_live-fuzzing_k7xMBXFdMPbLZsjv3i6AZi.eval",
+      "started_at": "2026-03-29T20:09:10.189651Z",
+      "completed_at": "2026-03-29T20:24:37.326223Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 927.0,
+        "error": null
+      }
+    },
+    "b83402acf072": {
+      "run_id": "b83402acf072",
+      "model": "anthropic/claude-sonnet-4-6",
+      "target": "zlib",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 300
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T20-24-37+00-00_live-fuzzing_dqQJdkndFHGnmkjhvSnn8B.eval",
+      "started_at": "2026-03-29T20:24:37.327624Z",
+      "completed_at": "2026-03-29T20:49:30.628630Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 1493.0,
+        "error": null
+      }
+    },
+    "addba7c41333": {
+      "run_id": "addba7c41333",
+      "model": "openai/gpt-5.4-mini",
+      "target": "libpng",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 60
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T20-49-30+00-00_live-fuzzing_aEc7Eu4ngxdU2sx2J56XyU.eval",
+      "started_at": "2026-03-29T20:49:30.630241Z",
+      "completed_at": "2026-03-29T20:49:38.748606Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 8.0,
+        "error": null
+      }
+    },
+    "f6aa49daafac": {
+      "run_id": "f6aa49daafac",
+      "model": "openai/gpt-5.4-mini",
+      "target": "libpng",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 120
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T20-49-38+00-00_live-fuzzing_n5GDJ2y4jeuWvnsR6twKVZ.eval",
+      "started_at": "2026-03-29T20:49:38.749355Z",
+      "completed_at": "2026-03-29T20:49:46.889855Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 8.0,
+        "error": null
+      }
+    },
+    "f8955cc9c952": {
+      "run_id": "f8955cc9c952",
+      "model": "openai/gpt-5.4-mini",
+      "target": "libpng",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 300
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T20-49-46+00-00_live-fuzzing_JkzL7XyJeDw6NRLJaHuebP.eval",
+      "started_at": "2026-03-29T20:49:46.890635Z",
+      "completed_at": "2026-03-29T20:49:55.046964Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 9.0,
+        "error": null
+      }
+    },
+    "8ce9efde18f2": {
+      "run_id": "8ce9efde18f2",
+      "model": "openai/gpt-5.4-mini",
+      "target": "libjpeg-turbo",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 60
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T20-49-55+00-00_live-fuzzing_cWnwiuvZ36hy5gif2Hvgy9.eval",
+      "started_at": "2026-03-29T20:49:55.047885Z",
+      "completed_at": "2026-03-29T20:50:23.743162Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 28.0,
+        "error": null
+      }
+    },
+    "d82b28155fc2": {
+      "run_id": "d82b28155fc2",
+      "model": "openai/gpt-5.4-mini",
+      "target": "libjpeg-turbo",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 120
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T20-50-23+00-00_live-fuzzing_LpFYPMuMcJzkr3PnxwkdpN.eval",
+      "started_at": "2026-03-29T20:50:23.744610Z",
+      "completed_at": "2026-03-29T20:50:53.902190Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 30.0,
+        "error": null
+      }
+    },
+    "b25f9763a51c": {
+      "run_id": "b25f9763a51c",
+      "model": "openai/gpt-5.4-mini",
+      "target": "libjpeg-turbo",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 300
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T20-50-53+00-00_live-fuzzing_atpKbzns9FZJVJWBXQUTjd.eval",
+      "started_at": "2026-03-29T20:50:53.903899Z",
+      "completed_at": "2026-03-29T20:52:13.606617Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 80.0,
+        "error": null
+      }
+    },
+    "2fa8cfacc752": {
+      "run_id": "2fa8cfacc752",
+      "model": "openai/gpt-5.4-mini",
+      "target": "libxml2",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 60
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T20-52-13+00-00_live-fuzzing_Q6HcbSXhZ8tiw9gSaQkguP.eval",
+      "started_at": "2026-03-29T20:52:13.607993Z",
+      "completed_at": "2026-03-29T20:52:40.497325Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 27.0,
+        "error": null
+      }
+    },
+    "8ecff8e305b0": {
+      "run_id": "8ecff8e305b0",
+      "model": "openai/gpt-5.4-mini",
+      "target": "libxml2",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 120
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T20-52-40+00-00_live-fuzzing_EDtiB7F7eFquefwpGadtg3.eval",
+      "started_at": "2026-03-29T20:52:40.498756Z",
+      "completed_at": "2026-03-29T20:53:18.973601Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 38.0,
+        "error": null
+      }
+    },
+    "f8916812ec0e": {
+      "run_id": "f8916812ec0e",
+      "model": "openai/gpt-5.4-mini",
+      "target": "libxml2",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 300
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T20-53-18+00-00_live-fuzzing_bwEkGbYUyPoHKJGfq5z9Ac.eval",
+      "started_at": "2026-03-29T20:53:18.974985Z",
+      "completed_at": "2026-03-29T20:53:47.516285Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 29.0,
+        "error": null
+      }
+    },
+    "b5e276ca4e9c": {
+      "run_id": "b5e276ca4e9c",
+      "model": "openai/gpt-5.4-mini",
+      "target": "zlib",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 60
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T20-53-47+00-00_live-fuzzing_BBkaSTiN74wfb3Xaqc2BJn.eval",
+      "started_at": "2026-03-29T20:53:47.517740Z",
+      "completed_at": "2026-03-29T20:54:05.494956Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 18.0,
+        "error": null
+      }
+    },
+    "5be6bfdc86cd": {
+      "run_id": "5be6bfdc86cd",
+      "model": "openai/gpt-5.4-mini",
+      "target": "zlib",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 120
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T20-54-05+00-00_live-fuzzing_8c8YDJihnAUhhCmLMZVFA5.eval",
+      "started_at": "2026-03-29T20:54:05.496388Z",
+      "completed_at": "2026-03-29T20:55:20.707126Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 75.0,
+        "error": null
+      }
+    },
+    "8141605eba34": {
+      "run_id": "8141605eba34",
+      "model": "openai/gpt-5.4-mini",
+      "target": "zlib",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 300
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T20-55-20+00-00_live-fuzzing_R2DoNzj97XcYhfHap8Se8P.eval",
+      "started_at": "2026-03-29T20:55:20.708652Z",
+      "completed_at": "2026-03-29T20:55:37.611911Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 17.0,
+        "error": null
+      }
+    },
+    "c043d49cc390": {
+      "run_id": "c043d49cc390",
+      "model": "anthropic/claude-opus-4-6",
+      "target": "libpng",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 60
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T17-13-45+00-00_live-fuzzing_HGgaNrHc9MXqWUG3MKPiDQ.eval",
+      "started_at": "2026-03-29T17:13:45.368285Z",
+      "completed_at": "2026-03-29T17:13:52.727995Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 7.0,
+        "error": null
+      }
+    },
+    "c89ec2e4c8a4": {
+      "run_id": "c89ec2e4c8a4",
+      "model": "anthropic/claude-opus-4-6",
+      "target": "libpng",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 120
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T17-13-52+00-00_live-fuzzing_7X33g9JuacGAQoSiPxhwKJ.eval",
+      "started_at": "2026-03-29T17:13:52.728589Z",
+      "completed_at": "2026-03-29T17:14:00.042849Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 8.0,
+        "error": null
+      }
+    },
+    "0d2e5f6c5667": {
+      "run_id": "0d2e5f6c5667",
+      "model": "anthropic/claude-opus-4-6",
+      "target": "libpng",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 300
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T17-14-00+00-00_live-fuzzing_m3E8mh9kjzTSErWUatGJ9x.eval",
+      "started_at": "2026-03-29T17:14:00.043846Z",
+      "completed_at": "2026-03-29T17:14:07.488309Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 7.0,
+        "error": null
+      }
+    },
+    "95a1fcbb865d": {
+      "run_id": "95a1fcbb865d",
+      "model": "anthropic/claude-opus-4-6",
+      "target": "libjpeg-turbo",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 60
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T20-55-37+00-00_live-fuzzing_mPJTiXdeCUiyJffwid7kYe.eval",
+      "started_at": "2026-03-29T20:55:37.613434Z",
+      "completed_at": "2026-03-29T21:10:05.678311Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 868.0,
+        "error": null
+      }
+    },
+    "382532bf009b": {
+      "run_id": "382532bf009b",
+      "model": "anthropic/claude-opus-4-6",
+      "target": "libjpeg-turbo",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 120
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T21-10-05+00-00_live-fuzzing_PsiY7yWkUn6xcrDg8bm6eh.eval",
+      "started_at": "2026-03-29T21:10:05.679416Z",
+      "completed_at": "2026-03-29T21:23:10.482499Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 785.0,
+        "error": null
+      }
+    },
+    "1bb437ca2412": {
+      "run_id": "1bb437ca2412",
+      "model": "anthropic/claude-opus-4-6",
+      "target": "libjpeg-turbo",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 300
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T21-23-10+00-00_live-fuzzing_4KdGskpxDyFhap9hgiHCzQ.eval",
+      "started_at": "2026-03-29T21:23:10.484304Z",
+      "completed_at": "2026-03-29T21:38:49.252167Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 939.0,
+        "error": null
+      }
+    },
+    "9118c3d49278": {
+      "run_id": "9118c3d49278",
+      "model": "anthropic/claude-opus-4-6",
+      "target": "libxml2",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 60
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T21-38-49+00-00_live-fuzzing_ZVy2wdJBhFvNbx8Unpy6NX.eval",
+      "started_at": "2026-03-29T21:38:49.253764Z",
+      "completed_at": "2026-03-29T21:51:51.590395Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 782.0,
+        "error": null
+      }
+    },
+    "58040f991beb": {
+      "run_id": "58040f991beb",
+      "model": "anthropic/claude-opus-4-6",
+      "target": "libxml2",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 120
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T21-51-51+00-00_live-fuzzing_mKLp7q33aZY2m4LT4GQtV7.eval",
+      "started_at": "2026-03-29T21:51:51.591964Z",
+      "completed_at": "2026-03-29T22:04:45.882815Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 774.0,
+        "error": null
+      }
+    },
+    "6409ced6fecf": {
+      "run_id": "6409ced6fecf",
+      "model": "anthropic/claude-opus-4-6",
+      "target": "libxml2",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 300
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T22-04-45+00-00_live-fuzzing_KVhaCdwLJDW2fjQ3qkXrSd.eval",
+      "started_at": "2026-03-29T22:04:45.884459Z",
+      "completed_at": "2026-03-29T22:24:24.633402Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 1179.0,
+        "error": null
+      }
+    },
+    "63b20577a946": {
+      "run_id": "63b20577a946",
+      "model": "anthropic/claude-opus-4-6",
+      "target": "zlib",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 60
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T22-24-24+00-00_live-fuzzing_5onyPFR3uoGiKoaLbYdXP4.eval",
+      "started_at": "2026-03-29T22:24:24.634869Z",
+      "completed_at": "2026-03-29T22:47:27.646330Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 1383.0,
+        "error": null
+      }
+    },
+    "dc6d87d80085": {
+      "run_id": "dc6d87d80085",
+      "model": "anthropic/claude-opus-4-6",
+      "target": "zlib",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 120
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T22-47-27+00-00_live-fuzzing_krPBGehtfVD6rYngQVR43z.eval",
+      "started_at": "2026-03-29T22:47:27.647962Z",
+      "completed_at": "2026-03-29T23:05:12.483717Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 1065.0,
+        "error": null
+      }
+    },
+    "07c68e9cb35f": {
+      "run_id": "07c68e9cb35f",
+      "model": "anthropic/claude-opus-4-6",
+      "target": "zlib",
+      "repetition": 0,
+      "task_kwargs": {
+        "fuzz_duration": 300
+      },
+      "status": "completed",
+      "eval_log_path": "/home/q/Documents/Work/safeguarded/forall/parser-security-eval/scaffold/results/fuzzing-baseline-v2/logs/2026-03-29T23-05-12+00-00_live-fuzzing_KCBtYUAdTLD2FCLVgLDDDX.eval",
+      "started_at": "2026-03-29T23:05:12.485381Z",
+      "completed_at": "2026-03-29T23:39:37.523750Z",
+      "error": null,
+      "result": {
+        "eval_status": "success",
+        "scores": {
+          "_live_fuzzing_scorer": {
+            "mean": 0.0
+          }
+        },
+        "n_samples": 1,
+        "total_time": 2065.0,
+        "error": null
+      }
+    }
+  },
+  "created_at": "2026-03-29T17:12:08.381756Z",
+  "updated_at": "2026-03-29T23:39:37.523754Z"
+}
