@@ -1,6 +1,6 @@
 ---
 title: Why This Matters
-order: 2
+order: 1
 ---
 
 # The Problem

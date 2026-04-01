@@ -92,7 +92,6 @@
       <div class="card-title">Score by Target</div>
       <p style="color:var(--text-muted);font-size:.82rem;margin-bottom:.75rem">
         Per-model, per-target patch success rate (0–1).
-        Hover a cell for the exact score.
       </p>
       {% set matrix = exp.stats.status_matrix %}
       {% set n_t = matrix.targets | length %}
@@ -108,11 +107,11 @@
         {% set cell = matrix.cells[mi * n_t + ti] %}
         <div class="grid-cell"
              {% if cell.score is not none %}
-             style="background:hsl({{ (cell.score * 120)|int }},58%,16%);border-color:hsl({{ (cell.score * 120)|int }},58%,28%)"
+             style="background:hsl({{ cell.score_hue }},58%,16%);border-color:hsl({{ cell.score_hue }},58%,28%)"
              {% endif %}
              title="{{ matrix.models[mi] }} × {{ matrix.targets[ti] }}{% if cell.score is not none %}: {{ '%.3f'|format(cell.score) }}{% endif %}">
           {% if cell.score is not none %}
-          <span style="color:hsl({{ (cell.score * 120)|int }},80%,68%);font-weight:700;font-size:.95rem">
+          <span style="color:hsl({{ cell.score_hue }},80%,68%);font-weight:700;font-size:.95rem">
             {{ '%.2f'|format(cell.score) }}
           </span>
           {% else %}
@@ -125,6 +124,39 @@
     </div>
     {% endif %}
   </div>
+
+  {# ── Score by Target (per-model bar chart) ── #}
+  {% if exp.stats.config_charts %}
+  <div class="card" style="margin-top:1rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+      <div class="card-title" style="margin:0">Score by Target</div>
+      <select id="{{ exp.name }}-configModelSel"
+              onchange="switchConfigChart('{{ exp.name }}', this.value)"
+              style="background:var(--bg-card-2);border:1px solid var(--border);
+                     color:var(--text);border-radius:6px;padding:.3rem .7rem;
+                     font-size:.83rem;cursor:pointer">
+        {% for model in exp.stats.config_charts.models %}
+        <option value="{{ model }}"
+                {% if model == exp.stats.config_charts.default_model %}selected{% endif %}>
+          {{ model }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <p style="color:var(--text-muted);font-size:.82rem;margin-bottom:1rem">
+      Patch success rate per target for the selected model.
+    </p>
+    {% for model in exp.stats.config_charts.models %}
+    <div id="{{ exp.name }}-configChartWrap-{{ model }}"
+         {% if model != exp.stats.config_charts.default_model %}style="display:none"{% endif %}>
+      <div class="chart-wrap" style="min-height:200px">
+        <canvas id="{{ exp.name }}-configCanvas-{{ model }}"></canvas>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
 </div>
 {% endif %}
 
@@ -161,7 +193,6 @@
     <div class="card-title" style="margin-bottom:.75rem">Run Matrix</div>
     <p style="color:var(--text-muted);font-size:.82rem;margin-bottom:.75rem">
       {{ exp.stats.model_count }} models × {{ exp.stats.target_count }} targets.
-      Color shows score (red ≈ zero; any green would indicate a crash found).
     </p>
     {% set matrix = exp.stats.status_matrix %}
     {% set n_t = matrix.targets | length %}
@@ -177,11 +208,11 @@
       {% set cell = matrix.cells[mi * n_t + ti] %}
       <div class="grid-cell"
            {% if cell.score is not none %}
-           style="background:hsl({{ (cell.score * 120)|int }},58%,16%);border-color:hsl({{ (cell.score * 120)|int }},58%,28%)"
+           style="background:hsl({{ cell.score_hue }},58%,16%);border-color:hsl({{ cell.score_hue }},58%,28%)"
            {% endif %}
            title="{{ matrix.models[mi] }} × {{ matrix.targets[ti] }}{% if cell.score is not none %}: {{ '%.4f'|format(cell.score) }}{% endif %}">
         {% if cell.score is not none %}
-        <span style="color:hsl({{ (cell.score * 120)|int }},80%,68%);font-weight:600;font-size:.8rem">
+        <span style="color:hsl({{ cell.score_hue }},80%,68%);font-weight:600;font-size:.8rem">
           {{ '%.3f'|format(cell.score) }}
         </span>
         {% else %}
@@ -193,6 +224,7 @@
     </div>
     {% endif %}
   </div>
+
 </div>
 {% endif %}
 
@@ -200,13 +232,13 @@
 
 {# ── Prose content ─────────────────────────────────────────────────────── #}
 {% if content %}
-<section id="about" style="scroll-margin-top:70px;margin-top:.5rem">
+<div style="margin-top:.5rem">
   {% for key, page in content.items() %}
-  <div class="card">
+  <div class="card" id="{{ key }}" style="scroll-margin-top:70px">
     <div class="prose">{{ page.html | safe }}</div>
   </div>
   {% endfor %}
-</section>
+</div>
 {% endif %}
 
 {# ── Roadmap ───────────────────────────────────────────────────────────── #}
@@ -249,6 +281,8 @@
 
 {% block scripts %}
 <script>
+const _configCharts = {};
+
 {% for exp in experiments %}
 {% if exp.stats.model_avg_chart %}
 (function() {
@@ -274,6 +308,40 @@
   });
 })();
 {% endif %}
+{% if exp.stats.config_charts %}
+(function() {
+  const charts = {{ exp.stats.config_charts.charts | tojson }};
+  const models = {{ exp.stats.config_charts.models | tojson }};
+  models.forEach(function(model) {
+    const key = '{{ exp.name }}-configCanvas-' + model;
+    _configCharts[key] = new Chart(document.getElementById(key), {
+      type: 'bar',
+      data: charts[model],
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: 'rgba(37,46,69,.6)' }, ticks: { color: '#8a9bb8' } },
+          y: {
+            beginAtZero: true, max: 1.0,
+            title: { display: true, text: 'Score', color: '#8a9bb8' },
+            grid: { color: 'rgba(37,46,69,.6)' },
+            ticks: { color: '#8a9bb8', callback: function(v) { return (v*100).toFixed(0)+'%'; } }
+          }
+        }
+      }
+    });
+  });
+})();
+{% endif %}
 {% endfor %}
+function switchConfigChart(expName, model) {
+  document.querySelectorAll('[id^="' + expName + '-configChartWrap-"]').forEach(function(el) {
+    el.style.display = 'none';
+  });
+  document.getElementById(expName + '-configChartWrap-' + model).style.display = '';
+  const key = expName + '-configCanvas-' + model;
+  if (_configCharts[key]) { _configCharts[key].resize(); }
+}
 </script>
 {% endblock %}

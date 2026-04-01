@@ -65,6 +65,16 @@ def _interesting_kwargs(task_kwargs: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _score_hue(score: float | None) -> int:
+    """HSL hue (0–120) for a score cell.
+    score=0 → 0 (red); any non-zero score floors at 45 (amber) so tiny values
+    don't blend into red; score=1 → 120 (green).
+    """
+    if score is None or score == 0.0:
+        return 0
+    return max(45, int(score * 120))
+
+
 def _display_name(name: str, task: str) -> str:
     """Human-readable display name for an experiment."""
     return {
@@ -284,13 +294,15 @@ def _build_status_matrix(
             else:
                 replace = False
         if replace:
+            s_rounded = round(score, 3) if score is not None else None
             cell_map[(m, t)] = {
                 "model":       m,
                 "model_short": _short_model(m),
                 "target":      t,
                 "status":      status,
                 "run_id":      r.get("run_id", "")[:8],
-                "score":       round(score, 3) if score is not None else None,
+                "score":       s_rounded,
+                "score_hue":   _score_hue(score),
                 "extra":       ", ".join(f"{k}={v}" for k, v in task_kw.items()) if task_kw else "",
             }
 
@@ -298,7 +310,7 @@ def _build_status_matrix(
         cell_map.get(
             (m, t),
             {"model": m, "target": t, "status": "not_scheduled",
-             "model_short": _short_model(m), "score": None},
+             "model_short": _short_model(m), "score": None, "score_hue": 0},
         )
         for m in models_seen
         for t in targets_seen
@@ -331,13 +343,15 @@ def _build_status_matrix_from_results(
         score = _primary_score(r, "")
         existing = cell_map.get((m, t))
         if existing is None or STATUS_ORDER.get(status, 9) < STATUS_ORDER.get(existing["status"], 9):
+            s_rounded = round(score, 3) if score is not None else None
             cell_map[(m, t)] = {
                 "model":       m,
                 "model_short": _short_model(m),
                 "target":      t,
                 "status":      status,
                 "run_id":      r.get("run_id", "")[:8],
-                "score":       round(score, 3) if score is not None else None,
+                "score":       s_rounded,
+                "score_hue":   _score_hue(score),
                 "extra":       "",
             }
 
@@ -345,7 +359,7 @@ def _build_status_matrix_from_results(
         cell_map.get(
             (m, t),
             {"model": m, "target": t, "status": "pending",
-             "model_short": _short_model(m), "score": None},
+             "model_short": _short_model(m), "score": None, "score_hue": 0},
         )
         for m in models_seen
         for t in targets_seen
@@ -427,6 +441,97 @@ def _build_model_avg_chart(
             "data":  means,
             "backgroundColor": colors,
         }],
+    }
+
+
+def _build_config_charts_by_model(
+    runs_list: list[dict[str, Any]],
+    task: str,
+) -> dict[str, Any] | None:
+    """Per-model bar charts: score per target, grouped by config value if one exists.
+
+    Returns None if there are no completed runs.
+    """
+    completed = [r for r in runs_list if r.get("status") == "completed"]
+    if not completed:
+        return None
+
+    targets = list(dict.fromkeys(r.get("target", "") for r in completed if r.get("target")))
+    models  = list(dict.fromkeys(r.get("model", "") for r in completed if r.get("model")))
+    if not targets or not models:
+        return None
+
+    # Discover config axis (first interesting kwarg found)
+    config_key: str | None = None
+    config_values: set[str] = set()
+    for r in completed:
+        kw = _interesting_kwargs(r.get("task_kwargs") or {})
+        if kw:
+            k = next(iter(kw))
+            config_key = config_key or k
+            if k == config_key:
+                config_values.add(str(kw[k]))
+
+    charts: dict[str, Any] = {}
+
+    if config_key and config_values:
+        config_labels = sorted(config_values, key=lambda x: int(x) if x.lstrip("-").isdigit() else x)
+        score_lookup: dict[tuple[str, str, str], float] = {}
+        for r in completed:
+            m  = r.get("model", "")
+            t  = r.get("target", "")
+            kw = _interesting_kwargs(r.get("task_kwargs") or {})
+            cv = str(kw.get(config_key, "")) if config_key and kw else ""
+            if m and t and cv:
+                s = _primary_score(r, task)
+                score_lookup[(m, t, cv)] = s if s is not None else 0.0
+        for m in models:
+            ms = _short_model(m)
+            datasets = []
+            for ci, cv in enumerate(config_labels):
+                data = [round(score_lookup.get((m, t, cv), 0.0), 4) for t in targets]
+                datasets.append({
+                    "label":           f"{cv}s" if config_key == "fuzz_duration" else cv,
+                    "data":            data,
+                    "backgroundColor": _PALETTE[ci % len(_PALETTE)],
+                })
+            charts[ms] = {"labels": targets, "datasets": datasets}
+    else:
+        # No config axis: one bar per target per model
+        score_lookup2: dict[tuple[str, str], float] = {}
+        for r in completed:
+            m, t = r.get("model", ""), r.get("target", "")
+            if m and t:
+                s = _primary_score(r, task)
+                score_lookup2[(m, t)] = max(
+                    score_lookup2.get((m, t), 0.0), s if s is not None else 0.0
+                )
+        for m in models:
+            ms = _short_model(m)
+            data = [round(score_lookup2.get((m, t), 0.0), 4) for t in targets]
+            charts[ms] = {
+                "labels": targets,
+                "datasets": [{
+                    "label":           "Score",
+                    "data":            data,
+                    "backgroundColor": [_PALETTE[i % len(_PALETTE)] for i in range(len(targets))],
+                }],
+            }
+
+    short_models = [_short_model(m) for m in models]
+
+    def _model_max(ms: str) -> float:
+        return max(
+            (v for ds in charts.get(ms, {}).get("datasets", []) for v in ds.get("data", [])),
+            default=0.0,
+        )
+
+    default = max(short_models, key=_model_max)
+    return {
+        "models":        short_models,
+        "default_model": default,
+        "config_key":    config_key,
+        "charts":        charts,
     }
 
 
@@ -629,6 +734,8 @@ def compute_stats(
         stats["runs_table"]      = _build_runs_table(runs_list, task)
         stats["score_chart"]     = _build_score_chart(runs_list, task)
         stats["model_avg_chart"] = _build_model_avg_chart(runs_list, task)
+        if task == "patching":
+            stats["config_charts"] = _build_config_charts_by_model(runs_list, task)
 
         if not manifest:
             stats["status_matrix"] = _build_status_matrix_from_results(runs_list)
@@ -787,10 +894,12 @@ def build_site(
         "is_example":  is_example,
         "build_date":  datetime.now().strftime("%Y-%m-%d"),
         "pages": [
-            {"id": "patching", "title": "Patching", "href": "#patching"},
-            {"id": "fuzzing",  "title": "Fuzzing",  "href": "#fuzzing"},
-            {"id": "about",    "title": "About",    "href": "#about"},
-            {"id": "roadmap",  "title": "Roadmap",  "href": "#roadmap"},
+            {"id": "patching",    "title": "Patching", "href": "#patching"},
+            {"id": "fuzzing",     "title": "Fuzzing",  "href": "#fuzzing"},
+            {"id": "overview",          "title": "About",    "href": "#overview"},
+            {"id": "methodology",       "title": "Eval",     "href": "#methodology"},
+            {"id": "agent-methodology", "title": "Methods",  "href": "#agent-methodology"},
+            {"id": "roadmap",           "title": "Roadmap",  "href": "#roadmap"},
         ],
     }
 
