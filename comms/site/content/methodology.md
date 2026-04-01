@@ -1,46 +1,31 @@
 ---
-title: Methodology
+title: What We Built
 order: 2
 ---
 
-# Methodology
+# Eval Framework
 
-## Agent Architecture
+We built an end-to-end evaluation framework on top of [Inspect-AI](https://inspect.ai-safety.org/) that tests frontier AI models on two complementary tasks:
 
-Each run uses a single agent (no swarm) that:
+**Patching** — Given a crash-triggering input and the vulnerable parser source, can the model produce a correct patch? A patch is scored on whether it applies cleanly, compiles, eliminates the crash, and passes the existing test suite.
 
-1. **Reads the target library source** to understand the public API surface.
-2. **Generates a LibFuzzer harness** using the LLM, targeting the parser's primary entry points.
-3. **Compiles and runs the harness** in a Docker sandbox mirroring the OSS-Fuzz environment.
-4. In **30-min cycle mode**: after each 30-minute fuzzing window, the agent reviews coverage feedback and coverage gaps, then rewrites or mutates the harness for the next window.
-5. In **continuous mode**: the agent generates a harness once and runs it for the full two hours.
+**Fuzzing** — Can an AI agent autonomously write a LibFuzzer harness, compile it against the target, and discover crashes — without human guidance?
 
-## Fuzzing Engine
+## Benchmark
 
-The default engine is **libFuzzer** (LLVM's in-process coverage-guided fuzzer), with AFL++ comparison runs for a subset of configurations. The sandbox uses the OSS-Fuzz project layout to ensure results are comparable to historical OSS-Fuzz campaigns.
+The patching task is grounded in **ARVO** (Automated Reproduction of Vulnerabilities from OSS-Fuzz) — a dataset of 209 real-world CVE patches from the OSS-Fuzz corpus, each paired with a crash-triggering input and the exact vulnerable source snapshot. This gives ground-truth pass/fail scoring against historical bugs that actually shipped in production software.
 
-## Statistical Design
+## Targets
 
-- **3+ replicates** per configuration (different random seeds)
-- Reported values are means ± standard deviation across replicates
-- Minimum two-hour wall-clock budget per run
-- CPU time reported as wall-clock × CPU count
+| Library | What it parses |
+|---------|----------------|
+| **libpng** | PNG images |
+| **libjpeg-turbo** | JPEG images |
+| **libxml2** | XML and HTML |
+| **zlib** | Deflate / gzip compression |
 
-## Literature Motivation
-
-The 30-min cycle condition is directly motivated by:
-
-- **PBFuzz** (arXiv:2512.04611): 25.6× speedup over AFL++ with CmpLog within 30-minute budgets
-- **HGFuzzer** (arXiv:2505.03425): 24.8× speedup, 11/17 vulnerabilities triggered within the first minute
-- **RandLuzz** (arXiv:2507.22065): 2.1–4.8× speedup from LLM-synthesized seeds
-
-All three papers find that short cycles with LLM reflection dramatically outperform longer continuous runs. This experiment directly tests and quantifies that finding for our specific parser targets.
+These four libraries are foundational to the internet — embedded in browsers, servers, mobile OS frameworks, and embedded systems. They have a decades-long history of memory-safety CVEs.
 
 ## Infrastructure
 
-Runs execute inside isolated Docker containers with:
-
-- Ubuntu 22.04 base
-- LLVM/Clang toolchain matching the OSS-Fuzz environment
-- Network-isolated from the host (harness generation happens before container launch)
-- CPU and memory limits enforced per-container
+Each eval run executes inside an isolated Docker container with the OSS-Fuzz LLVM/Clang toolchain. The framework supports multi-model sweeps, configurable time budgets, and structured result export — making it straightforward to expand coverage to more models, more targets, and longer fuzzing campaigns as compute budget grows.
