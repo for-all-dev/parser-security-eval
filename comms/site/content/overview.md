@@ -1,38 +1,22 @@
 ---
-title: Overview
-order: 1
+title: Why This Matters
+order: 2
 ---
 
-# Baseline: Vulns per CPU-Hour
+# The Problem
 
-This experiment establishes the baseline crash discovery rate for AI-assisted fuzzing on Tier 1 parser targets, directly addressing our core research question:
+Every program that processes untrusted input is a potential exploit surface. Parsers are especially dangerous: they're written in C/C++ for performance, they run in attack-reachable paths by definition, and they have a decades-long track record of memory-safety bugs. libpng, libjpeg-turbo, libxml2, and zlib are foundational to the modern internet — and they consistently appear in CVE databases year after year.
 
-> **What is the incidence of vulnerabilities per unit walltime of fuzzing in targeted parsers?**
+AI-assisted code generation is making this worse by default. More code, written faster, means more attack surface. Models that can generate plausible-looking C don't automatically generate *safe* C. The number of vulnerabilities introduced per line of AI-generated code is not zero, and the scale of deployment is growing rapidly.
 
-We run single-agent live fuzzing across four widely-deployed C parsers, comparing multiple frontier language models against each other and against non-AI baselines. The key comparison is whether short LLM reflection cycles (30-minute windows) outperform a continuous two-hour run—a hypothesis strongly supported by recent literature (PBFuzz, HGFuzzer, RandLuzz).
+## The Opportunity
 
-## Targets
+**Secure program synthesis** — AI that can not only write code but also find and fix its own vulnerabilities — is one of the highest-leverage defensive capabilities we can develop. If frontier models become genuinely good at patching memory-safety bugs in production parsers, that skill is directly deployable: as a post-training target, as a code review tool, and eventually as a self-improving agent in a red-blue security loop.
 
-| Library | Domain | OSS-Fuzz ID |
-|---------|--------|-------------|
-| **libpng** | PNG image parsing | libpng |
-| **libjpeg-turbo** | JPEG image decoding | libjpeg_turbo |
-| **libxml2** | XML/HTML parsing | libxml2 |
-| **zlib** | Deflate compression | zlib |
+These are defense-dominant evaluations. Unlike dangerous-capability evals, we actively *want* models to score well on these. Getting this kind of eval into posttraining — across as many models as possible — accelerates the defensive side of the AI security race.
 
-These targets represent high-value, widely-deployed parsers with known historical vulnerabilities, making them ideal baselines.
+## What the Numbers Mean
 
-## Conditions
+The patching results show that current frontier models are already meaningfully capable: Claude Opus 4.6 patches ~76% of vulnerabilities across four targets, with 100% success on zlib and near-70% on libpng. The model stratification is clear and consistent.
 
-- **30-min cycles**: Agent runs in 30-minute fuzzing windows, with an LLM synthesis step between each cycle to reflect on coverage gaps and update the harness. This is the architecture recommended by the literature.
-- **2-hr continuous**: Agent runs for a straight two hours without mid-run LLM interaction. Serves as the primary comparison point.
-- **OSS-Fuzz baseline**: Existing OSS-Fuzz harness, no agent, identical time budget.
-- **Random harness**: Randomly mutated harness, lower baseline.
-
-## What We Measure
-
-- **Unique crashes found** vs. wall time
-- **Coverage (%)** vs. wall time
-- **Crashes per CPU-hour** (primary headline metric)
-- **Harness quality**: how many compilation attempts did the agent need?
-- **Time to first crash**
+The fuzzing results show that autonomous crash discovery is an open problem — models can generate and compile harnesses but do not yet find crashes within typical time budgets. This is the research frontier, and closing it is the goal of the next phase.

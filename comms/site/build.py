@@ -9,8 +9,9 @@ Primary data source (auto-detected by file structure):
                     leaderboard and CWE/difficulty/target breakdowns.
 
 Usage:
-    uv run python build.py              # builds to dist/
-    uv run python build.py --data-dir ../../scaffold/results/fuzzing-baseline
+    uv run python build.py              # builds from scaffold/results/ v2 dirs
+    uv run python build.py --data-dir ../../scaffold/results/patching-model-sweep-v2 \\
+                            --data-dir ../../scaffold/results/fuzzing-baseline-v2
     uv run python build.py --help
 """
 
@@ -21,7 +22,7 @@ import tomllib
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import frontmatter
 import markdown as md_lib
@@ -29,7 +30,6 @@ import typer
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from rich.console import Console
 from rich.panel import Panel
-from rich.table import Table
 
 app = typer.Typer(add_completion=False)
 console = Console()
@@ -65,12 +65,21 @@ def _interesting_kwargs(task_kwargs: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _display_name(name: str, task: str) -> str:
+    """Human-readable display name for an experiment."""
+    return {
+        "patching": "Vulnerability Patching",
+        "fuzzing":  "Crash Finding (Fuzzing)",
+        "harness":  "Harness Generation",
+        "triage":   "Vulnerability Triage",
+    }.get(task, name.replace("-", " ").replace("_", " ").title())
+
+
 def _primary_score(run: dict[str, Any], task: str) -> float | None:
     """Extract the headline scalar from a run's scores dict."""
     scores = run.get("scores")
     if not scores:
         return None
-    # Task-specific preferred scorers
     preferred: dict[str, str] = {
         "fuzzing":  "_live_fuzzing_scorer",
         "patching": "_patch_scorer",
@@ -80,7 +89,6 @@ def _primary_score(run: dict[str, Any], task: str) -> float | None:
     if key and key in scores:
         metrics = scores[key]
         return metrics.get("mean", next(iter(metrics.values()), None))
-    # Fall back to first scorer, first metric
     first_metrics = next(iter(scores.values()), {})
     return next(iter(first_metrics.values()), None)
 
@@ -99,17 +107,14 @@ def _run_kwarg_label(run: dict[str, Any]) -> str:
 
 def _detect_type(data: dict[str, Any]) -> str:
     """Return 'results', 'manifest', 'analysis', or 'unknown'."""
-    # results.json: flat dict with total_runs + runs as a LIST
     if (
         "total_runs" in data
         and isinstance(data.get("runs"), list)
         and ("task" in data or "experiment" in data)
     ):
         return "results"
-    # manifest.json: runs as a DICT keyed by run_id
     if "experiment_name" in data and isinstance(data.get("runs"), dict):
         return "manifest"
-    # analysis.json: leaderboard + task_type
     if "leaderboard" in data and "task_type" in data:
         return "analysis"
     return "unknown"
@@ -122,10 +127,7 @@ def _detect_type(data: dict[str, Any]) -> str:
 def load_data_dir(
     data_dir: Path,
 ) -> tuple[dict[str, Any] | None, dict[str, Any] | None, dict[str, Any] | None]:
-    """
-    Scan data_dir for data files and return (results, manifest, analysis).
-    Files prefixed with _ are skipped.
-    """
+    """Scan data_dir for data files; return (results, manifest, analysis)."""
     results:  dict[str, Any] | None = None
     manifest: dict[str, Any] | None = None
     analysis: dict[str, Any] | None = None
@@ -170,6 +172,8 @@ def load_content(content_dir: Path) -> dict[str, dict[str, Any]]:
     md_conv = md_lib.Markdown(extensions=["extra", "tables", "toc", "fenced_code"])
     pages: dict[str, dict[str, Any]] = {}
     for path in sorted(content_dir.glob("*.md")):
+        if path.name.startswith("_"):
+            continue
         post = frontmatter.load(path)
         md_conv.reset()
         html = md_conv.convert(post.content)
@@ -203,7 +207,7 @@ def _duration_minutes(started: str | None, ended: str | None) -> float | None:
 
 
 # ---------------------------------------------------------------------------
-# Chart builders — status
+# Chart builders
 # ---------------------------------------------------------------------------
 
 _STATUS_COLORS = {
@@ -243,7 +247,8 @@ def _build_status_donut(completed: int, failed: int, running: int, pending: int)
 def _build_status_matrix(
     manifest_runs: dict[str, Any],
 ) -> dict[str, Any]:
-    """Model × target grid built from manifest (includes pending runs)."""
+    """Model × target grid built from manifest.
+    When multiple runs share a (model, target) cell, keeps the best-scored completed run."""
     models_seen: list[str] = []
     targets_seen: list[str] = []
     for r in manifest_runs.values():
@@ -254,38 +259,54 @@ def _build_status_matrix(
             targets_seen.append(t)
 
     cell_map: dict[tuple[str, str], dict[str, Any]] = {}
+    STATUS_ORDER = {"completed": 0, "running": 1, "failed": 2, "pending": 3}
     for r in manifest_runs.values():
         m, t = r.get("model", ""), r.get("target") or "—"
         status = r.get("status", "pending")
         task_kw = _interesting_kwargs(r.get("task_kwargs") or {})
         result = r.get("result") or {}
-        score = None
+        score: float | None = None
         if result.get("scores"):
             first_scorer = next(iter(result["scores"].values()), {})
             score = next(iter(first_scorer.values()), None)
-        # If multiple runs per (model, target), keep the best-status one
         existing = cell_map.get((m, t))
-        STATUS_ORDER = {"completed": 0, "running": 1, "failed": 2, "pending": 3}
-        if existing is None or STATUS_ORDER.get(status, 9) < STATUS_ORDER.get(existing["status"], 9):
+        new_rank = STATUS_ORDER.get(status, 9)
+        if existing is None:
+            replace = True
+        else:
+            old_rank = STATUS_ORDER.get(existing["status"], 9)
+            if new_rank < old_rank:
+                replace = True
+            elif new_rank == old_rank and score is not None and (
+                existing["score"] is None or score > existing["score"]
+            ):
+                replace = True
+            else:
+                replace = False
+        if replace:
             cell_map[(m, t)] = {
-                "model": m,
+                "model":       m,
                 "model_short": _short_model(m),
-                "target": t,
-                "status": status,
-                "run_id": r.get("run_id", "")[:8],
-                "score": round(score, 3) if score is not None else None,
-                "extra": ", ".join(f"{k}={v}" for k, v in task_kw.items()) if task_kw else "",
+                "target":      t,
+                "status":      status,
+                "run_id":      r.get("run_id", "")[:8],
+                "score":       round(score, 3) if score is not None else None,
+                "extra":       ", ".join(f"{k}={v}" for k, v in task_kw.items()) if task_kw else "",
             }
 
     cells = [
-        cell_map.get((m, t), {"model": m, "target": t, "status": "not_scheduled", "model_short": _short_model(m)})
+        cell_map.get(
+            (m, t),
+            {"model": m, "target": t, "status": "not_scheduled",
+             "model_short": _short_model(m), "score": None},
+        )
         for m in models_seen
         for t in targets_seen
     ]
     return {
-        "models": [_short_model(m) for m in models_seen],
+        "models":  [_short_model(m) for m in models_seen],
         "targets": targets_seen,
-        "cells": cells,
+        "cells":   cells,
     }
 
 
@@ -311,26 +332,30 @@ def _build_status_matrix_from_results(
         existing = cell_map.get((m, t))
         if existing is None or STATUS_ORDER.get(status, 9) < STATUS_ORDER.get(existing["status"], 9):
             cell_map[(m, t)] = {
-                "model": m,
+                "model":       m,
                 "model_short": _short_model(m),
-                "target": t,
-                "status": status,
-                "run_id": r.get("run_id", "")[:8],
-                "score": round(score, 3) if score is not None else None,
-                "extra": "",
+                "target":      t,
+                "status":      status,
+                "run_id":      r.get("run_id", "")[:8],
+                "score":       round(score, 3) if score is not None else None,
+                "extra":       "",
             }
 
     cells = [
-        cell_map.get((m, t), {"model": m, "target": t, "status": "pending", "model_short": _short_model(m)})
+        cell_map.get(
+            (m, t),
+            {"model": m, "target": t, "status": "pending",
+             "model_short": _short_model(m), "score": None},
+        )
         for m in models_seen
         for t in targets_seen
     ]
-    return {"models": [_short_model(m) for m in models_seen], "targets": targets_seen, "cells": cells}
+    return {
+        "models":  [_short_model(m) for m in models_seen],
+        "targets": targets_seen,
+        "cells":   cells,
+    }
 
-
-# ---------------------------------------------------------------------------
-# Chart builders — scores from results.json
-# ---------------------------------------------------------------------------
 
 def _build_score_chart(
     runs_list: list[dict[str, Any]],
@@ -350,27 +375,58 @@ def _build_score_chart(
 
     datasets: list[dict[str, Any]] = [{"label": "Score", "data": data, "backgroundColor": colors}]
 
-    # If multiple models: separate datasets for the legend
     if len(models) > 1:
         datasets = []
         for m in models:
             m_runs = [r for r in completed if r.get("model") == m]
             datasets.append({
                 "label": _short_model(m),
-                "data": [_primary_score(r, task) or 0.0 for r in m_runs],
+                "data":  [_primary_score(r, task) or 0.0 for r in m_runs],
                 "backgroundColor": model_color[m],
             })
-        # Use per-model labels when grouped
         labels = [_run_kwarg_label(r) for r in (
             [r for r in completed if r.get("model") == models[0]]
         )]
 
     return {
-        "labels": labels,
+        "labels":   labels,
         "datasets": datasets,
         "_scorer_name": _preferred_scorer(task),
-        "_models": [_short_model(m) for m in models],
-        "_colors": [model_color[m] for m in models],
+        "_models":  [_short_model(m) for m in models],
+        "_colors":  [model_color[m] for m in models],
+    }
+
+
+def _build_model_avg_chart(
+    runs_list: list[dict[str, Any]],
+    task: str,
+) -> dict[str, Any] | None:
+    """Horizontal bar chart: mean score per model across all targets."""
+    completed = [r for r in runs_list if r.get("status") == "completed"]
+    if not completed:
+        return None
+    model_scores: dict[str, list[float]] = defaultdict(list)
+    for r in completed:
+        s = _primary_score(r, task)
+        if s is not None:
+            model_scores[r.get("model", "")].append(s)
+    if not model_scores:
+        return None
+    # Sort descending by mean (best model first = top of horizontal bar)
+    sorted_models = sorted(
+        model_scores,
+        key=lambda m: -(sum(model_scores[m]) / len(model_scores[m])),
+    )
+    labels = [_short_model(m) for m in sorted_models]
+    means  = [round(sum(model_scores[m]) / len(model_scores[m]), 4) for m in sorted_models]
+    colors = [_PALETTE[i % len(_PALETTE)] for i in range(len(sorted_models))]
+    return {
+        "labels": labels,
+        "datasets": [{
+            "label": "Mean success rate across targets",
+            "data":  means,
+            "backgroundColor": colors,
+        }],
     }
 
 
@@ -409,7 +465,7 @@ def _build_duration_chart(manifest_runs: dict[str, Any]) -> dict[str, Any] | Non
     if not data:
         return None
     return {
-        "labels": labels,
+        "labels":   labels,
         "datasets": [{"label": "Duration (minutes)", "data": data, "backgroundColor": colors}],
     }
 
@@ -422,7 +478,6 @@ def _build_runs_table(
     runs_list: list[dict[str, Any]],
     task: str,
 ) -> list[dict[str, Any]]:
-    """Build display rows from results.json runs array."""
     rows = []
     for r in runs_list:
         score = _primary_score(r, task)
@@ -452,7 +507,7 @@ def _build_leaderboard_chart(leaderboard: list[dict[str, Any]]) -> dict[str, Any
         "labels": labels,
         "datasets": [{
             "label": "Mean score",
-            "data": [round(m["mean_score"], 4) for m in leaderboard],
+            "data":  [round(m["mean_score"], 4) for m in leaderboard],
             "backgroundColor": [_PALETTE[i % len(_PALETTE)] for i in range(len(labels))],
         }],
     }
@@ -466,7 +521,7 @@ def _build_pipeline_chart(leaderboard: list[dict[str, Any]]) -> dict[str, Any]:
         "datasets": [
             {
                 "label": _short_model(m["model"]),
-                "data": [round(m.get(s, 0.0) * 100, 1) for s in stages],
+                "data":  [round(m.get(s, 0.0) * 100, 1) for s in stages],
                 "backgroundColor": _PALETTE[i % len(_PALETTE)],
             }
             for i, m in enumerate(leaderboard)
@@ -483,7 +538,7 @@ def _build_target_breakdown_chart(target_breakdown: list[dict[str, Any]]) -> dic
         "datasets": [
             {
                 "label": _short_model(m),
-                "data": [round(lookup.get((m, t), 0.0), 4) for t in targets],
+                "data":  [round(lookup.get((m, t), 0.0), 4) for t in targets],
                 "backgroundColor": _PALETTE[i % len(_PALETTE)],
             }
             for i, m in enumerate(models)
@@ -500,7 +555,7 @@ def _build_cwe_chart(cwe_breakdown: list[dict[str, Any]]) -> dict[str, Any]:
         "datasets": [
             {
                 "label": _short_model(m),
-                "data": [round(lookup.get((m, c), 0.0), 4) for c in cwes],
+                "data":  [round(lookup.get((m, c), 0.0), 4) for c in cwes],
                 "backgroundColor": _PALETTE[i % len(_PALETTE)],
             }
             for i, m in enumerate(models)
@@ -519,12 +574,10 @@ def _build_difficulty_chart(difficulty_breakdown: list[dict[str, Any]]) -> dict[
         "datasets": [
             {
                 "label": _short_model(m),
-                "data": [round(lookup.get((m, d), 0.0), 4) for d in diffs],
-                "borderColor": _PALETTE[i % len(_PALETTE)].replace("0.85", "1"),
-                "backgroundColor": _PALETTE[i % len(_PALETTE)].replace("0.85", "0.15"),
-                "tension": 0.3,
-                "fill": False,
-                "pointRadius": 5,
+                "data":  [round(lookup.get((m, d), 0.0), 4) for d in diffs],
+                "borderColor":      _PALETTE[i % len(_PALETTE)].replace("0.85", "1"),
+                "backgroundColor":  _PALETTE[i % len(_PALETTE)].replace("0.85", "0.15"),
+                "tension": 0.3, "fill": False, "pointRadius": 5,
             }
             for i, m in enumerate(models)
         ],
@@ -536,7 +589,7 @@ def _build_token_chart(leaderboard: list[dict[str, Any]]) -> dict[str, Any]:
     return {
         "labels": labels,
         "datasets": [
-            {"label": "Input tokens (mean)", "data": [round(m.get("mean_input_tokens", 0)) for m in leaderboard], "backgroundColor": "rgba(59,130,246,0.75)"},
+            {"label": "Input tokens (mean)",  "data": [round(m.get("mean_input_tokens",  0)) for m in leaderboard], "backgroundColor": "rgba(59,130,246,0.75)"},
             {"label": "Output tokens (mean)", "data": [round(m.get("mean_output_tokens", 0)) for m in leaderboard], "backgroundColor": "rgba(20,184,166,0.75)"},
         ],
     }
@@ -555,7 +608,7 @@ def compute_stats(
 
     # ── From results.json (primary) ───────────────────────────────────────
     if results:
-        task = results.get("task", "unknown")
+        task      = results.get("task", "unknown")
         completed = results.get("completed", 0)
         failed    = results.get("failed", 0)
         pending   = results.get("pending", 0)
@@ -563,7 +616,7 @@ def compute_stats(
         running   = max(0, total - completed - failed - pending)
 
         stats.update({
-            "task_type": task,
+            "task_type":  task,
             "total_runs": total,
             "completed":  completed,
             "failed":     failed,
@@ -572,21 +625,41 @@ def compute_stats(
         })
 
         runs_list: list[dict[str, Any]] = results.get("runs", [])
-        stats["status_donut"] = _build_status_donut(completed, failed, running, pending)
-        stats["runs_table"]   = _build_runs_table(runs_list, task)
-        stats["score_chart"]  = _build_score_chart(runs_list, task)
+        stats["status_donut"]    = _build_status_donut(completed, failed, running, pending)
+        stats["runs_table"]      = _build_runs_table(runs_list, task)
+        stats["score_chart"]     = _build_score_chart(runs_list, task)
+        stats["model_avg_chart"] = _build_model_avg_chart(runs_list, task)
 
-        # Status matrix from results only (fallback if no manifest)
         if not manifest:
             stats["status_matrix"] = _build_status_matrix_from_results(runs_list)
 
         # Score stats
-        scores_flat = [_primary_score(r, task) for r in runs_list if r.get("status") == "completed"]
+        scores_flat = [
+            _primary_score(r, task) for r in runs_list if r.get("status") == "completed"
+        ]
         scores_flat = [s for s in scores_flat if s is not None]
         if scores_flat:
-            stats["mean_score"]   = round(sum(scores_flat) / len(scores_flat), 4)
-            stats["max_score"]    = round(max(scores_flat), 4)
-            stats["scorer_name"]  = _preferred_scorer(task)
+            stats["mean_score"]  = round(sum(scores_flat) / len(scores_flat), 4)
+            stats["max_score"]   = round(max(scores_flat), 4)
+            stats["scorer_name"] = _preferred_scorer(task)
+
+        # Per-model aggregates for headline display
+        model_avgs: dict[str, list[float]] = defaultdict(list)
+        for r in runs_list:
+            if r.get("status") == "completed":
+                s = _primary_score(r, task)
+                if s is not None:
+                    model_avgs[r.get("model", "")].append(s)
+        stats["model_count"]  = len(model_avgs)
+        stats["target_count"] = len(list(dict.fromkeys(
+            r.get("target", "") for r in runs_list if r.get("target")
+        )))
+        if model_avgs:
+            best_m = max(model_avgs, key=lambda m: sum(model_avgs[m]) / len(model_avgs[m]))
+            stats["best_model_name"] = _short_model(best_m)
+            stats["best_model_avg"]  = round(
+                sum(model_avgs[best_m]) / len(model_avgs[best_m]), 4
+            )
 
     # ── From manifest.json (supplementary) ───────────────────────────────
     if manifest:
@@ -598,21 +671,18 @@ def compute_stats(
         if not stats.get("task_type"):
             stats["task_type"] = cfg.get("task", "unknown")
 
-        stats["grid_models"]   = grid.get("model", [])
-        stats["grid_targets"]  = [t for t in (grid.get("target") or []) if t]
-        stats["grid_extra"]    = grid.get("extra", {})
-        stats["engine"]        = defs.get("engine", "")
-        stats["max_rounds"]    = defs.get("max_rounds")
-        stats["round_duration"]= defs.get("round_duration")
+        stats["grid_models"]    = grid.get("model", [])
+        stats["grid_targets"]   = [t for t in (grid.get("target") or []) if t]
+        stats["grid_extra"]     = grid.get("extra", {})
+        stats["engine"]         = defs.get("engine", "")
+        stats["max_rounds"]     = defs.get("max_rounds")
+        stats["round_duration"] = defs.get("round_duration")
 
-        # Status matrix with pending rows
-        stats["status_matrix"]  = _build_status_matrix(manifest_runs)
-        # Duration chart from timestamps
+        stats["status_matrix"] = _build_status_matrix(manifest_runs)
         dur = _build_duration_chart(manifest_runs)
         if dur:
             stats["duration_chart"] = dur
 
-        # Timing stats
         durations = []
         for r in manifest_runs.values():
             d = _duration_minutes(r.get("started_at"), r.get("completed_at"))
@@ -623,7 +693,7 @@ def compute_stats(
             stats["min_duration_min"]  = round(min(durations), 1)
             stats["max_duration_min"]  = round(max(durations), 1)
 
-    # ── From analysis.json ───────────────────────────────────────────────
+    # ── From analysis.json ────────────────────────────────────────────────
     if analysis:
         if not stats.get("task_type"):
             stats["task_type"] = analysis.get("task_type", "unknown")
@@ -662,119 +732,86 @@ def compute_stats(
 # ---------------------------------------------------------------------------
 
 def build_site(
-    data_dir: Path,
+    data_dirs: list[Path],
     content_dir: Path,
     output_dir: Path,
     templates_dir: Path,
 ) -> None:
     console.print(Panel("[bold]parser-security-eval site builder[/bold]", style="blue"))
 
-    console.print("\n[bold]Loading data...[/bold]")
-    results, manifest, analysis = load_data_dir(data_dir)
-    if results is None and manifest is None and analysis is None:
-        console.print("  [yellow]No recognised data files found — building empty site.[/yellow]")
+    # ── Load experiments ──────────────────────────────────────────────────
+    experiments: list[dict[str, Any]] = []
+    for data_dir in data_dirs:
+        if not data_dir.exists():
+            console.print(f"  [yellow]skip[/yellow] {data_dir.name} (not found)")
+            continue
+        console.print(f"\n[bold]Loading {data_dir.name}...[/bold]")
+        results, manifest, analysis = load_data_dir(data_dir)
+        if results is None and manifest is None and analysis is None:
+            console.print("  [yellow]No recognised data — skipping.[/yellow]")
+            continue
+        stats = compute_stats(results, manifest, analysis)
+        task  = stats.get("task_type", "unknown")
+        name  = data_dir.name
+        experiments.append({
+            "name":         name,
+            "display_name": _display_name(name, task),
+            "task":         task,
+            "results":      results,
+            "manifest":     manifest,
+            "analysis":     analysis,
+            "stats":        stats,
+        })
 
-    is_example = bool(
-        (results  and results.get("_example"))
-        or (manifest and manifest.get("_example"))
-        or (analysis and analysis.get("_example"))
-    )
+    # Sort: patching first, fuzzing second, rest alphabetically
+    _TASK_ORDER = {"patching": 0, "fuzzing": 1}
+    experiments.sort(key=lambda e: (_TASK_ORDER.get(e["task"], 9), e["name"]))
 
+    is_example = any((e.get("results") or {}).get("_example") for e in experiments)
+
+    # ── Load content ──────────────────────────────────────────────────────
     console.print("\n[bold]Loading content...[/bold]")
     content = load_content(content_dir)
     console.print(f"  {len(content)} content page(s) loaded")
 
-    console.print("\n[bold]Computing statistics...[/bold]")
-    stats = compute_stats(results, manifest, analysis)
-    console.print(
-        f"  task={stats.get('task_type','?')} | "
-        f"{stats.get('total_runs',0)} runs | "
-        f"{stats.get('completed',0)} completed / "
-        f"{stats.get('failed',0)} failed / "
-        f"{stats.get('running',0)} running / "
-        f"{stats.get('pending',0)} pending"
-    )
-
-    # Experiment metadata for the hero/nav
-    exp_name = (
-        (results  and results.get("experiment"))
-        or (manifest and manifest.get("experiment_name"))
-        or (analysis and analysis.get("experiment_name"))
-        or "Experiment Results"
-    )
-    exp_cfg  = (manifest or {}).get("config", {})
-    exp_meta: dict[str, Any] = {
-        "name":        exp_cfg.get("description") or exp_name,
-        "id":          exp_name,
-        "task":        stats.get("task_type", ""),
-        "description": exp_cfg.get("description", ""),
-        "created_at":  (manifest or {}).get("created_at", ""),
-        "updated_at":  (manifest or {}).get("updated_at", ""),
-    }
-
+    # ── Render ────────────────────────────────────────────────────────────
     output_dir.mkdir(parents=True, exist_ok=True)
-
     env = Environment(
         loader=FileSystemLoader(str(templates_dir)),
         autoescape=select_autoescape(["html"]),
     )
 
     ctx: dict[str, Any] = {
-        "experiment": exp_meta,
-        "results":    results,
-        "manifest":   manifest,
-        "analysis":   analysis,
-        "stats":      stats,
-        "content":    content,
-        "is_example": is_example,
+        "experiments": experiments,
+        "content":     content,
+        "is_example":  is_example,
+        "build_date":  datetime.now().strftime("%Y-%m-%d"),
         "pages": [
-            {"id": "index",      "title": "Overview",   "href": "index.html"},
-            {"id": "results",    "title": "Results",    "href": "results.html"},
-            {"id": "breakdowns", "title": "Breakdowns", "href": "breakdowns.html"},
+            {"id": "patching", "title": "Patching", "href": "#patching"},
+            {"id": "fuzzing",  "title": "Fuzzing",  "href": "#fuzzing"},
+            {"id": "about",    "title": "About",    "href": "#about"},
+            {"id": "roadmap",  "title": "Roadmap",  "href": "#roadmap"},
         ],
     }
 
-    pages_to_render = [
-        ("index.html.j2",      "index.html"),
-        ("results.html.j2",    "results.html"),
-        ("breakdowns.html.j2", "breakdowns.html"),
-    ]
-
-    console.print("\n[bold]Rendering pages...[/bold]")
-    for tpl_name, out_name in pages_to_render:
-        tpl = env.get_template(tpl_name)
-        out_path = output_dir / out_name
-        out_path.write_text(
-            tpl.render(**ctx, current_page=out_name.replace(".html", ""))
-        )
-        size_kb = round(out_path.stat().st_size / 1024, 1)
-        console.print(f"  [green]✓[/green] {out_name} ({size_kb} KB)")
-
-    table = Table(title="Build Summary", style="dim")
-    table.add_column("Metric")
-    table.add_column("Value", style="cyan")
-    table.add_row("Experiment", exp_name)
-    table.add_row("Task",       stats.get("task_type", "—"))
-    table.add_row("Runs",       str(stats.get("total_runs", 0)))
-    table.add_row(
-        "Status",
-        f"{stats.get('completed',0)} ✓ / "
-        f"{stats.get('failed',0)} ✗ / "
-        f"{stats.get('running',0)} ⟳ / "
-        f"{stats.get('pending',0)} …",
-    )
-    if stats.get("mean_score") is not None:
-        table.add_row("Mean score", f"{stats['mean_score']} ({stats.get('scorer_name','')})")
-    if stats.get("best_model"):
-        table.add_row("Best model", f"{stats['best_model']} (score {stats['best_score']})")
-    console.print(table)
+    console.print("\n[bold]Rendering...[/bold]")
+    tpl = env.get_template("index.html.j2")
+    out = output_dir / "index.html"
+    out.write_text(tpl.render(**ctx, current_page="index"))
+    console.print(f"  [green]✓[/green] index.html ({round(out.stat().st_size / 1024, 1)} KB)")
 
     console.print(f"\n[bold green]Done![/bold green] Output → [cyan]{output_dir}[/cyan]")
-    if is_example:
-        console.print(
-            "[yellow]⚠  Built with EXAMPLE data. "
-            "Point --data-dir at your actual results directory and rebuild.[/yellow]"
+    for exp in experiments:
+        s = exp["stats"]
+        line = (
+            f"  {exp['display_name']:38} "
+            f"{s.get('completed', 0)} ✓ / {s.get('total_runs', 0)} total"
         )
+        if s.get("best_model_avg") is not None:
+            line += f"  |  best: {s['best_model_name']} {s['best_model_avg']:.3f}"
+        console.print(line)
+    if is_example:
+        console.print("[yellow]⚠  Built with EXAMPLE data.[/yellow]")
 
 
 # ---------------------------------------------------------------------------
@@ -783,16 +820,22 @@ def build_site(
 
 @app.command()
 def main(
-    data_dir: Path = typer.Option(
-        HERE / "data",
-        help="Directory with results.json / manifest.json / analysis.json",
+    data_dir: Optional[list[Path]] = typer.Option(
+        None,
+        "--data-dir",
+        help="Experiment result directory (repeat to load multiple experiments). "
+             "Defaults to scaffold/results/patching-model-sweep-v2 and fuzzing-baseline-v2.",
     ),
-    content_dir:   Path = typer.Option(HERE / "content",   help="Directory with .md content files"),
+    content_dir:   Path = typer.Option(HERE / "content",   help="Markdown content directory"),
     output_dir:    Path = typer.Option(HERE / "dist",      help="Output directory"),
     templates_dir: Path = typer.Option(HERE / "templates", help="Jinja2 templates directory"),
 ) -> None:
-    """Build the experiment results static site."""
-    build_site(data_dir, content_dir, output_dir, templates_dir)
+    """Build the funder-facing experiment results site."""
+    dirs: list[Path] = list(data_dir) if data_dir else [
+        HERE / "../../scaffold/results/patching-model-sweep-v2",
+        HERE / "../../scaffold/results/fuzzing-baseline-v2",
+    ]
+    build_site(dirs, content_dir, output_dir, templates_dir)
 
 
 if __name__ == "__main__":

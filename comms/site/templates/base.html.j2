@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}{{ experiment.name | default('Experiment Results') }}{% endblock %} — Parser Security Eval</title>
+  <title>{% block title %}Parser Security Eval{% endblock %}</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <style>
     /* ── Reset & base ─────────────────────────────────────────── */
@@ -259,6 +259,38 @@
       font-size: .8rem; color: var(--text-dim);
     }
 
+    /* ── Score grid ──────────────────────────────────────────────── */
+    .score-grid {
+      display: grid;
+      gap: 5px;
+      margin-top: .75rem;
+    }
+    .grid-header {
+      font-size: .68rem; text-transform: uppercase; letter-spacing: .07em;
+      color: var(--text-muted); text-align: center; padding: .3rem .2rem;
+      font-weight: 600; word-break: break-word;
+    }
+    .grid-label {
+      font-size: .75rem; color: var(--text-muted);
+      display: flex; align-items: center;
+      padding-right: .5rem; white-space: nowrap; font-weight: 500;
+    }
+    .grid-cell {
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--bg-card-2);
+      display: flex; align-items: center; justify-content: center;
+      padding: .5rem .2rem;
+      min-height: 44px;
+      transition: transform .12s, box-shadow .12s;
+      cursor: default;
+    }
+    .grid-cell:hover {
+      transform: scale(1.06);
+      box-shadow: 0 2px 12px rgba(0,0,0,.4);
+      z-index: 1; position: relative;
+    }
+
     /* ── Tabs ────────────────────────────────────────────────── */
     .tabs { display: flex; gap: .25rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
     .tab-btn {
@@ -286,9 +318,9 @@
     <a href="{{ page.href }}"
        class="{{ 'active' if current_page == page.id else '' }}">{{ page.title }}</a>
     {% endfor %}
-    <a href="https://github.com/for-all-dev/parser-security-eval/issues/53"
+    <a href="https://github.com/for-all-dev/parser-security-eval"
        style="color:var(--text-dim);font-size:.8rem;margin-left:.5rem"
-       target="_blank">Issue #53 ↗</a>
+       target="_blank">GitHub ↗</a>
   </div>
 </nav>
 
@@ -308,12 +340,9 @@
 <footer>
   <div class="container">
     Parser Security Eval ·
-    {% if experiment.issue %}
-    <a href="https://github.com/for-all-dev/parser-security-eval/issues/{{ experiment.issue }}"
-       style="color:var(--accent);text-decoration:none">Issue #{{ experiment.issue }}</a> ·
-    {% endif %}
-    {% if experiment.date %}{{ experiment.date }} · {% endif %}
-    Built with parser-security-eval site generator
+    {% if build_date %}{{ build_date }} · {% endif %}
+    <a href="https://github.com/for-all-dev/parser-security-eval"
+       style="color:var(--accent);text-decoration:none">github.com/for-all-dev/parser-security-eval</a>
   </div>
 </footer>
 
