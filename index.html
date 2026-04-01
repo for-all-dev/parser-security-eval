@@ -375,8 +375,8 @@
   </div>
   <div class="stat-card">
     <div class="label">Ground-truth CVEs</div>
-    <div class="value">209</div>
-    <div class="sub">from the ARVO dataset</div>
+    <div class="value">209 <span style="font-size:.6em;color:var(--text-muted)">/ 5,001</span></div>
+    <div class="sub">subset of ARVO (4 targets of ~150 parser projects)</div>
   </div>
   <div class="stat-card accent-amber">
     <div class="label">Crashes found by agents</div>
@@ -915,7 +915,7 @@
   <div class="card" id="methodology" style="scroll-margin-top:70px">
     <div class="prose"><h1 id="eval-framework">Eval Framework</h1>
 <p>We built an evaluation framework on <a href="https://inspect.ai-safety.org/">Inspect-AI</a> that tests frontier models on two tasks against real C parser targets (libpng, libjpeg-turbo, libxml2, zlib):</p>
-<p><strong>Patching</strong> — Given a crash input and vulnerable source, produce a patch that compiles and eliminates the crash. Scored against 209 real CVEs from the <a href="https://github.com/AetherSeal/arvo">ARVO</a> dataset.</p>
+<p><strong>Patching</strong> — Given a crash input and vulnerable source, produce a patch that compiles and eliminates the crash. Scored against 209 real CVEs from the <a href="https://github.com/AetherSeal/arvo">ARVO</a> dataset (a shortlist from 4 targets; ARVO has 5,001 patchable vulnerabilities across ~150 parser projects).</p>
 <p><strong>Fuzzing</strong> — Autonomously write a LibFuzzer harness, compile it, and discover crashes without human guidance. This is the harder task and the active research frontier.</p>
 <p>Each run executes in an isolated Docker container with the OSS-Fuzz toolchain.</p></div>
   </div>
