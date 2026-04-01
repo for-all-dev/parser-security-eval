@@ -6,10 +6,12 @@
 {# ── Hero ──────────────────────────────────────────────────────────────── #}
 <div class="hero" id="top">
   <div class="hero-label">Experiment Results · {{ build_date }}</div>
-  <h1>Can AI find and fix<br>parser vulnerabilities?</h1>
-  <p>An end-to-end evaluation of frontier AI on production C parsers —
-     automated patch generation and live crash-finding, scored against
-     real-world CVE data.</p>
+  <h1>Toward an RL environment<br>for parser security</h1>
+  <p>Early-stage eval measuring whether AI agents can find and fix
+     vulnerabilities in production C parsers — building toward a
+     red-blue training loop for
+     <a href="https://www.lesswrong.com/posts/8wtrLoDPyCfMLuHkt/how-to-solve-secure-program-synthesis"
+        target="_blank" style="color:var(--accent)">secure program synthesis</a>.</p>
   <div class="hero-meta">
     <span class="badge">Inspect-AI</span>
     <span class="badge">OSS-Fuzz targets</span>
@@ -27,36 +29,29 @@
 </div>
 {% endif %}
 
-{# ── Headline stat cards (driven by patching experiment) ──────────────── #}
-{% set pe = namespace(exp=none) %}
-{% for exp in experiments %}
-  {% if exp.task == 'patching' and pe.exp is none %}{% set pe.exp = exp %}{% endif %}
-{% endfor %}
-
-{% if pe.exp and pe.exp.stats.best_model_avg %}
+{# ── Headline stat cards ──────────────────────────────────────────────── #}
 <div class="stats-grid">
-  <div class="stat-card accent-green">
-    <div class="label">Best patch rate</div>
-    <div class="value">{{ "%.0f"|format(pe.exp.stats.best_model_avg * 100) }}%</div>
-    <div class="sub">{{ pe.exp.stats.best_model_name }} mean across targets</div>
-  </div>
-  <div class="stat-card accent-blue">
-    <div class="label">Models compared</div>
-    <div class="value">{{ pe.exp.stats.model_count }}</div>
-    <div class="sub">frontier models</div>
-  </div>
   <div class="stat-card">
     <div class="label">Parser targets</div>
-    <div class="value">{{ pe.exp.stats.target_count }}</div>
+    <div class="value">4</div>
     <div class="sub">libpng · libjpeg-turbo · libxml2 · zlib</div>
   </div>
   <div class="stat-card">
-    <div class="label">Ground-truth patches</div>
-    <div class="value">209</div>
-    <div class="sub">real CVEs from ARVO</div>
+    <div class="label">Ground-truth CVEs</div>
+    <div class="value">209 <span style="font-size:.6em;color:var(--text-muted)">/ 5,001</span></div>
+    <div class="sub">subset of ARVO (4 targets of ~150 parser projects)</div>
+  </div>
+  <div class="stat-card accent-amber">
+    <div class="label">Crashes found by agents</div>
+    <div class="value">0</div>
+    <div class="sub">the open problem we're working on</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Status</div>
+    <div class="value" style="font-size:1.4rem">Early</div>
+    <div class="sub">preliminary results, active development</div>
   </div>
 </div>
-{% endif %}
 
 {# ── Experiments ───────────────────────────────────────────────────────── #}
 {% for exp in experiments %}
@@ -64,11 +59,10 @@
 {# ── Patching ── #}
 {% if exp.task == 'patching' %}
 <div id="patching" style="scroll-margin-top:70px">
-  <div class="section-title">🔧 Vulnerability Patching</div>
+  <div class="section-title">🔧 Patching (Baseline Task)</div>
   <p style="color:var(--text-muted);margin-bottom:1.5rem;font-size:.95rem;max-width:680px">
-    Given a crash-triggering input and the parser source, can the model produce a patch
-    that eliminates the crash, compiles, and passes the test suite?
-    Score is the fraction of patch pipeline stages cleared.
+    Given a known crash and the source, can the model produce a working patch?
+    This validates our scoring pipeline — the harder task is autonomous crash discovery below.
   </p>
 
   <div class="chart-grid-2">
@@ -163,10 +157,10 @@
 {# ── Fuzzing ── #}
 {% if exp.task == 'fuzzing' %}
 <div id="fuzzing" style="scroll-margin-top:70px;margin-top:1rem">
-  <div class="section-title">🔍 Crash Finding (Fuzzing)</div>
+  <div class="section-title">🔍 Autonomous Crash Discovery (The Hard Part)</div>
   <p style="color:var(--text-muted);margin-bottom:1.5rem;font-size:.95rem;max-width:680px">
-    Can an AI agent write a LibFuzzer harness, compile it against the target, and
-    autonomously discover crashes — all without human guidance?
+    Can an agent autonomously find crashes? This is the core research question
+    and the bottleneck to building an RL-ready red-blue loop.
   </p>
 
   <div class="card" style="border-color:rgba(251,191,36,.2)">
@@ -246,17 +240,17 @@
   <div class="card">
     <div class="card-title"><span class="icon">🗺</span> Roadmap</div>
     <p style="color:var(--text-muted);font-size:.88rem;margin-bottom:1.5rem">
-      The eval framework and scoring pipeline are validated.
-      The next phases close the red-blue loop and scale compute.
+      Scoring pipeline is validated. Next: make the red-team agent actually find crashes,
+      then close the loop into an RL-ready environment.
     </p>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem">
       {% set items = [
-        {"issue": 54,  "icon": "🐝", "title": "Swarm Scaling",
-         "desc": "Multiple agents cooperate on one target — each exploring a different input region and sharing coverage feedback in real time."},
-        {"issue": 76,  "icon": "🔄", "title": "Detect-Patch-Detect",
-         "desc": "Close the red-blue loop: a red-team agent finds a crash, blue-team patches it, and the red-team retries on the patched code. Repeat."},
-        {"issue": 77,  "icon": "✂",  "title": "Crash Minimization",
-         "desc": "Automatically shrink crash-triggering inputs to minimal reproducers — smaller inputs are easier to triage, understand, and patch."},
+        {"issue": 54,  "icon": "🐝", "title": "Better Fuzz Agents",
+         "desc": "The core bottleneck: get agents to reliably discover crashes. Swarm scaling, better harness strategies, longer time budgets."},
+        {"issue": 76,  "icon": "🔄", "title": "Red-Blue Loop",
+         "desc": "Red-team finds a crash, blue-team patches it, red-team retries. This adversarial cycle is the natural RL training signal."},
+        {"issue": 77,  "icon": "🧬", "title": "RL Environment",
+         "desc": "Package the red-blue loop as a post-training environment. The long-term goal: models that get better at writing secure code through self-play."},
       ] %}
       {% for item in items %}
       <a href="https://github.com/for-all-dev/parser-security-eval/issues/{{ item.issue }}"
