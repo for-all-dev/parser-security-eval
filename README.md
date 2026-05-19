@@ -104,7 +104,7 @@ uv run parser-security-eval verify libpng ARVO-42498959 path/to/patch.diff
 parser-security-eval/
   benchmark/              Curated vulnerability dataset
     metadata.json           209 records with IDs, targets, severities, paths
-    arvo/ARVO-{id}/         Per-vulnerability artifacts
+    arvo/ARVO-{id}/         Per-vulnerability artifacts (gitignored — run steps 1–3 below)
       crash_report.txt        Full ASAN/MSAN crash output
       crash_input             Triggering input bytes (from ARVO Docker images)
       reference_patch.diff    Ground-truth fix (from upstream git)

@@ -1,3 +1,0 @@
-crash_type: Heap-buffer-overflow WRITE 4
-sanitizer: address
-target: libxml2
