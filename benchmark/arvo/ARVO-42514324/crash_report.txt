@@ -1,3 +1,0 @@
-crash_type: UNKNOWN WRITE
-sanitizer: address
-target: libjpeg-turbo

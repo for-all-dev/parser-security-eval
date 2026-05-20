@@ -72,11 +72,12 @@ parser-security-eval/
 │   ├── pcre2/                       # Tier 2
 │   └── fetch_corpora.py             # Idempotent seed corpus generator (stdlib only)
 ├── benchmark/                       # ARVO vulnerability benchmark
-│   ├── dataset.jsonl                # 145 vulnerability records
+│   ├── dataset.jsonl                # 209 records (145 usable ARVO + 64 OSV stubs)
 │   ├── metadata.json
 │   ├── summary.json
 │   └── arvo/                        # ARVO-XXXXXXXX/ dirs: crash_input, crash_report.txt,
 │                                    #   reference_patch.diff, vulnerable_src/
+│                                    #   ** gitignored — run fetch pipeline to populate **
 ├── docs/                            # Architecture docs, lit review, direction notes
 │   ├── 00-synthesis-and-recommendation.md
 │   ├── fuzzing-litreview-recommendations.md  # 22 recs from 8+ papers
@@ -207,8 +208,27 @@ Per-target persistent memory stored in `targets/<name>/memory.json`:
 
 ## Benchmark Dataset
 
-- **145 ARVO records** from OSS-Fuzz corpus
-- Breakdown: primarily libxml2 (~115), libjpeg-turbo (~22), libpng (~5), zlib (~3)
+**Data lineage:** OSS-Fuzz (discovers bugs via continuous fuzzing) → ARVO (reproducibility layer: packages crash inputs, ASAN reports, fix commits, Docker images) → this benchmark. OSV (Open Source Vulnerabilities, osv.dev) is a separate Google project that aggregates vulnerability metadata from OSS-Fuzz and other sources but stores no crash artifacts.
+
+**Effective benchmark size: 145 usable records** (all `ARVO-` prefixed). `metadata.json` shows 209 total because the ingestion pipeline also pulls from OSV, producing 64 `OSV-` prefixed stubs with metadata only — no crash input, no crash report, no reference patch. Those stubs are not usable for patching or fuzzing evals.
+
+**Tier 1 ARVO breakdown** (these are the only ARVO records available for these targets — the upstream index has been fully exhausted):
+- libxml2: 112, libjpeg-turbo: 25, libpng: 5, zlib: 3
+
+**Tier 2 ARVO availability** (not yet ingested, for expansion planning):
+- freetype2: 95, pcre2: 57, libarchive: 56, expat: 3 → 211 additional usable records
+
+**Tier 1 vs Tier 2** is an internal distinction, not from ARVO. Tier 1 targets have battle-tested Docker builds, committed seed corpora, and format dictionaries. Tier 2 targets have Dockerfiles/build scripts but no corpus/dictionary and have not been verified end-to-end.
+
+**Seed corpora and dictionaries** (`targets/*/corpus/`, `targets/*/dictionary/`) were hand-crafted by this project via `targets/fetch_corpora.py` — not fetched from ARVO or OSS-Fuzz. Keep them committed; they are work product, not derived artifacts.
+
+**benchmark/arvo/ is gitignored.** Run the fetch pipeline to populate it:
+```bash
+uv run parser-security-eval curate arvo
+uv run parser-security-eval fetch-artifacts
+uv run parser-security-eval enrich-dataset
+```
+
 - Each record: `crash_input` (binary), `crash_report.txt` (ASAN output), `reference_patch.diff`, `vulnerable_src/`
 - `_extract_affected_file()` priority: `database_specific.affected_file` → crash-state filename → `/blob/` URL reference → `affected[].package.name`
 

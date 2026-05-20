@@ -1,3 +1,0 @@
-crash_type: Dynamic-stack-buffer-overflow WRITE {*}
-sanitizer: address
-target: libpng
