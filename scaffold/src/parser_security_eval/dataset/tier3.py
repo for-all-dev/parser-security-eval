@@ -228,7 +228,7 @@ def build_audit_list(
     Returns
     -------
     list[ProjectAuditEntry]
-        Sorted by project name.
+        Sorted by total_records descending (highest first).
     """
     from parser_security_eval.dataset.arvo import is_parser_project
 
@@ -260,7 +260,7 @@ def build_audit_list(
     for project in sorted(groups):
         fuzz_target_profiles: list[FuzzTargetProfile] = []
         total = 0
-        for ft_name in sorted(groups[project]):
+        for ft_name in groups[project]:
             records = groups[project][ft_name]
             count = len(records)
             total += count
@@ -276,6 +276,8 @@ def build_audit_list(
                     include=include,
                 )
             )
+        # Sort fuzz targets by record count descending
+        fuzz_target_profiles.sort(key=lambda ft: ft.record_count, reverse=True)
         entries.append(
             ProjectAuditEntry(
                 name=project,
@@ -284,6 +286,8 @@ def build_audit_list(
             )
         )
 
+    # Sort projects by total records descending
+    entries.sort(key=lambda e: e.total_records, reverse=True)
     return entries
 
 
