@@ -18,85 +18,85 @@ total_records = 620
   name = "ffmpeg_AV_CODEC_ID_HEVC_fuzzer"
   record_count = 28
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ffmpeg_AV_CODEC_ID_TIFF_fuzzer"
   record_count = 17
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ffmpeg_AV_CODEC_ID_MPEG4_fuzzer"
   record_count = 16
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ffmpeg_AV_CODEC_ID_LIBFDK_AAC_fuzzer"
   record_count = 14
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ffmpeg_AV_CODEC_ID_CFHD_fuzzer"
   record_count = 12
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ffmpeg_AV_CODEC_ID_AAC_LATM_fuzzer"
   record_count = 11
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ffmpeg_AV_CODEC_ID_H264_fuzzer"
   record_count = 11
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ffmpeg_AV_CODEC_ID_AGM_fuzzer"
   record_count = 11
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ffmpeg_AV_CODEC_ID_IFF_ILBM_fuzzer"
   record_count = 9
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ffmpeg_AV_CODEC_ID_HYMT_fuzzer"
   record_count = 9
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ffmpeg_AV_CODEC_ID_MOBICLIP_fuzzer"
   record_count = 8
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ffmpeg_AV_CODEC_ID_SPEEDHQ_fuzzer"
   record_count = 8
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ffmpeg_AV_CODEC_ID_SCPR_fuzzer"
   record_count = 7
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ffmpeg_AV_CODEC_ID_MAGICYUV_fuzzer"
   record_count = 7
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ffmpeg_BSF_TRACE_HEADERS_fuzzer"
@@ -1343,19 +1343,19 @@ total_records = 607
   name = "encoder_heic_fuzzer"
   record_count = 61
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_mvg_fuzzer"
   record_count = 57
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_label_fuzzer"
   record_count = 37
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ping_mvg_fuzzer"
@@ -1367,13 +1367,13 @@ total_records = 607
   name = "encoder_dng_fuzzer"
   record_count = 25
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_miff_fuzzer"
   record_count = 21
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "crop_fuzzer"
@@ -1385,19 +1385,19 @@ total_records = 607
   name = "encoder_wpg_fuzzer"
   record_count = 17
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_psd_fuzzer"
   record_count = 15
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_pict_fuzzer"
   record_count = 14
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ping_dng_fuzzer"
@@ -1415,13 +1415,13 @@ total_records = 607
   name = "encoder_tiff_fuzzer"
   record_count = 11
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_tiff64_fuzzer"
   record_count = 9
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "rotate_fuzzer"
@@ -1433,19 +1433,19 @@ total_records = 607
   name = "encoder_mng_fuzzer"
   record_count = 8
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_dcm_fuzzer"
   record_count = 8
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_ttf_fuzzer"
   record_count = 8
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ping_ttf_fuzzer"
@@ -1463,181 +1463,181 @@ total_records = 607
   name = "encoder_gif_fuzzer"
   record_count = 6
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_inline_fuzzer"
   record_count = 6
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ping_icon_fuzzer"
   record_count = 5
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ping_mng_fuzzer"
   record_count = 5
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ping_jng_fuzzer"
   record_count = 5
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_ptif_fuzzer"
   record_count = 5
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_mpc_fuzzer"
   record_count = 5
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_eps_fuzzer"
   record_count = 5
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_palm_fuzzer"
   record_count = 5
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_jxl_fuzzer"
   record_count = 5
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ping_tiff_fuzzer"
   record_count = 4
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_ept2_fuzzer"
   record_count = 4
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_jpg_fuzzer"
   record_count = 4
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_viff_fuzzer"
   record_count = 4
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_icon_fuzzer"
   record_count = 3
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_png_fuzzer"
   record_count = 3
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ping_dcm_fuzzer"
   record_count = 3
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_ept_fuzzer"
   record_count = 3
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ping_heic_fuzzer"
   record_count = 3
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ping_pcl_fuzzer"
   record_count = 3
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_xpm_fuzzer"
   record_count = 3
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ping_wpg_fuzzer"
   record_count = 3
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_pdb_fuzzer"
   record_count = 3
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_pcx_fuzzer"
   record_count = 3
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_epsi_fuzzer"
   record_count = 3
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_plasma_fuzzer"
   record_count = 3
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_dxt5_fuzzer"
   record_count = 3
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_j2k_fuzzer"
   record_count = 3
   relevance = "not_parser"
-  include = false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ping_pict_fuzzer"
   record_count = 3
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ping_jps_fuzzer"
   record_count = 2
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_tim_fuzzer"
@@ -1715,13 +1715,13 @@ total_records = 607
   name = "ping_miff_fuzzer"
   record_count = 2
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ping_jpg_fuzzer"
   record_count = 2
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_bmp_fuzzer"
@@ -1733,7 +1733,7 @@ total_records = 607
   name = "ping_ps_fuzzer"
   record_count = 2
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_pjpeg_fuzzer"
@@ -1751,7 +1751,7 @@ total_records = 607
   name = "ping_tiff64_fuzzer"
   record_count = 2
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_j2c_fuzzer"
@@ -1775,7 +1775,7 @@ total_records = 607
   name = "ping_bayer_fuzzer"
   record_count = 2
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_png00_fuzzer"
@@ -1787,7 +1787,7 @@ total_records = 607
   name = "ping_mat_fuzzer"
   record_count = 1
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_sfw_fuzzer"
@@ -1799,13 +1799,13 @@ total_records = 607
   name = "ping_png_fuzzer"
   record_count = 1
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ping_png48_fuzzer"
   record_count = 1
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_pix_fuzzer"
@@ -1817,7 +1817,7 @@ total_records = 607
   name = "ping_webp_fuzzer"
   record_count = 1
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "imagemagick_rotate_fuzzer"
@@ -1913,19 +1913,19 @@ total_records = 607
   name = "ping_gif_fuzzer"
   record_count = 1
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ping_ept2_fuzzer"
   record_count = 1
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ping_sfw_fuzzer"
   record_count = 1
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_jnx_fuzzer"
@@ -1937,13 +1937,13 @@ total_records = 607
   name = "ping_epi_fuzzer"
   record_count = 1
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ping_eps_fuzzer"
   record_count = 1
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_pdf_fuzzer"
@@ -1955,7 +1955,7 @@ total_records = 607
   name = "ping_sixel_fuzzer"
   record_count = 1
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_ept3_fuzzer"
@@ -1967,13 +1967,13 @@ total_records = 607
   name = "ping_cals_fuzzer"
   record_count = 1
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ping_pwp_fuzzer"
   record_count = 1
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_dxt1_fuzzer"
@@ -2003,13 +2003,13 @@ total_records = 607
   name = "ping_png32_fuzzer"
   record_count = 1
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "ping_jpe_fuzzer"
   record_count = 1
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_vips_fuzzer"
@@ -2039,7 +2039,7 @@ total_records = 607
   name = "ping_qoi_fuzzer"
   record_count = 1
   relevance = "uncertain"
-  # include =    # set true or false
+  include = true
 
   [[projects.fuzz_targets]]
   name = "encoder_caption_fuzzer"
