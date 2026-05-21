@@ -374,6 +374,36 @@ def parse_arvo_entry(entry: dict) -> VulnerabilityRecord | None:
     )
 
 
+def _parse_arvo_entry_unchecked(entry: dict) -> VulnerabilityRecord | None:
+    """Parse an ARVO entry without checking ``is_parser_project``.
+
+    Used for Tier 3 local_id-based inclusion where the project may not
+    pass the parser heuristic but individual samples have been reviewed.
+    """
+    local_id = entry.get("localId")
+    if local_id is None:
+        return None
+
+    project = entry.get("project", "")
+    crash_type = entry.get("crash_type", "unknown")
+    severity_raw = entry.get("severity", "medium")
+    sanitizer_raw = entry.get("sanitizer", "address")
+    job_type = entry.get("job_type", "")
+    fuzz_target = entry.get("fuzz_target")
+
+    return VulnerabilityRecord(
+        id=f"ARVO-{local_id}",
+        target=project,
+        severity=_map_severity(severity_raw),
+        difficulty=_estimate_difficulty(crash_type),
+        crash_type=crash_type,
+        sanitizer=_map_sanitizer(sanitizer_raw),
+        affected_file=_extract_affected_file(job_type, fuzz_target),
+        affected_function=None,
+        tags=_build_tags(entry),
+    )
+
+
 def _build_tags(entry: dict) -> list[str]:
     """Derive useful tags from an ARVO entry."""
     tags: list[str] = []
@@ -397,6 +427,7 @@ def ingest_arvo(
     output_dir: Path,
     limit: int | None = None,
     targets: set[str] | None = None,
+    local_ids: set[int] | None = None,
 ) -> list[VulnerabilityRecord]:
     """Ingest ARVO dataset, filter for parser vulns, write to output_dir.
 
@@ -406,10 +437,14 @@ def ingest_arvo(
         If provided, only ingest records whose ``target`` (lowercased)
         is in this set.  This avoids creating thousands of artifact stub
         directories for projects that will be filtered out downstream.
+    local_ids:
+        If provided, records whose ARVO ``localId`` is in this set are
+        also included (union with *targets*).  This enables Tier 3
+        per-sample inclusion.
 
     Steps:
     1. Clone/update the ARVO repo and locate ``metadata.jsonl``.
-    2. Stream entries, filter for parser-related projects (and *targets*).
+    2. Stream entries, filter for parser-related projects (and *targets*/*local_ids*).
     3. Convert each to a ``VulnerabilityRecord``.
     4. Write ``records.jsonl``, ``crash_report.txt``, and ``reference_patch.diff``
        stubs per vulnerability into *output_dir*.
@@ -426,13 +461,29 @@ def ingest_arvo(
             if not line:
                 continue
             entry = json.loads(line)
-            record = parse_arvo_entry(entry)
+
+            # Check if this record is included via local_ids (Tier 3).
+            # If so, bypass the normal is_parser_project filter.
+            entry_local_id = entry.get("localId")
+            included_by_local_id = (
+                local_ids is not None
+                and entry_local_id is not None
+                and entry_local_id in local_ids
+            )
+
+            if included_by_local_id:
+                # Force-parse even if is_parser_project would reject it
+                record = _parse_arvo_entry_unchecked(entry)
+            else:
+                record = parse_arvo_entry(entry)
+
             if record is None:
                 continue
 
-            # Skip records not matching requested targets
-            if targets is not None and record.target.lower() not in targets:
-                continue
+            # Skip records not matching requested targets (unless included by local_id)
+            if not included_by_local_id:
+                if targets is not None and record.target.lower() not in targets:
+                    continue
 
             # Write per-vulnerability artifact stubs
             vuln_dir = output_dir / record.id
