@@ -263,3 +263,36 @@ uv run parser-security-eval enrich-dataset
 - Never push to main without asking first
 - Never open PRs before local testing (especially UI changes)
 - `uv run ruff check --fix && uv run ruff format && uv run ty check && uv run pytest` before any commit
+
+## External SSD Development
+
+The repo may live on an external SSD (e.g. `/Volumes/Ellas_ssd/`). macOS creates `._` AppleDouble resource fork files when copying to filesystems that don't natively support extended attributes. These break `uv sync` because the spurious `._` files inside installed wheels don't match the wheel's RECORD manifest.
+
+**Environment variables** (should be set globally in shell config):
+```bash
+# fish: ~/.config/fish/config.fish
+set -gx COPYFILE_DISABLE 1     # prevent ._  files during copy
+set -gx UV_LINK_MODE copy       # uv: copy instead of hardlink across filesystems
+```
+
+**If `uv sync` still fails** with RECORD mismatch or `._` errors:
+```bash
+uv cache clean          # wipe cached wheels that already contain ._ files
+rm -rf .venv
+uv sync
+```
+
+**If `.venv` must be on the internal drive** (last resort): symlink it to `/tmp` or another local path before `uv sync`:
+```bash
+rm -rf .venv
+ln -s /tmp/my-project-venv .venv
+uv sync
+```
+
+**ARVO clone and git-lfs**: The ARVO repo references git-lfs. If `git-lfs` is not installed, `fetch_arvo_index()` will fail on sparse-checkout. Fix by disabling lfs filters in the local clone:
+```bash
+git -C ~/.cache/parser-security-eval/ARVO config --local filter.lfs.smudge ""
+git -C ~/.cache/parser-security-eval/ARVO config --local filter.lfs.process ""
+git -C ~/.cache/parser-security-eval/ARVO config --local filter.lfs.required false
+```
+Or nuke the clone (`rm -rf ~/.cache/parser-security-eval/ARVO`) and re-clone with `-c filter.lfs.smudge= -c filter.lfs.process= -c filter.lfs.required=false`.

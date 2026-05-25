@@ -80,12 +80,21 @@ from parser_security_eval.experiments.cli import app as experiment_app  # noqa: 
 
 app.add_typer(experiment_app, name="experiment")
 
+# Register tier3 sub-commands
+tier3_app = typer.Typer(
+    name="tier3", help="Tier 3 dataset: per-sample parser classification."
+)
+app.add_typer(tier3_app, name="tier3")
+
 logger = logging.getLogger(__name__)
 
 _DEFAULT_CACHE = Path.home() / ".cache" / "parser-security-eval"
 
 # Tier 1 parser targets for the initial benchmark.
 TIER1_TARGETS: list[str] = ["libpng", "libjpeg-turbo", "libxml2", "zlib"]
+
+# Tier 2 parser targets (Dockerfiles exist, not yet battle-tested).
+TIER2_TARGETS: list[str] = ["freetype2", "libarchive", "expat", "pcre2"]
 
 
 def _format_summary(summary: dict) -> str:
@@ -119,6 +128,7 @@ def run_curation_pipeline(
     targets: list[str],
     cache_dir: Path,
     limit: int | None = None,
+    local_ids: set[int] | None = None,
 ) -> dict:
     """Run the full curation pipeline and return the summary.
 
@@ -142,6 +152,8 @@ def run_curation_pipeline(
         Directory for caching downloaded data.
     limit:
         Optional cap on total vulnerabilities to ingest per source.
+    local_ids:
+        Optional set of ARVO localIds to include (Tier 3 per-sample inclusion).
 
     Returns
     -------
@@ -157,7 +169,7 @@ def run_curation_pipeline(
         logger.info("Ingesting from ARVO (targets: %s)", targets)
         arvo_output = output / "arvo"
         arvo_records = ingest_arvo(
-            cache_dir, arvo_output, limit=limit, targets=target_set
+            cache_dir, arvo_output, limit=limit, targets=target_set, local_ids=local_ids
         )
         logger.info("ARVO: %d records matching targets", len(arvo_records))
         all_records.extend(arvo_records)
@@ -225,6 +237,11 @@ def curate(
     limit: int | None = typer.Option(
         None, help="Max vulnerabilities to ingest per source"
     ),
+    tier3_registry: Path | None = typer.Option(
+        None,
+        help="Path to a Tier 3 sample registry JSON. "
+        "When provided, those ARVO localIds are included alongside target-based filtering.",
+    ),
 ) -> None:
     """Ingest and curate vulnerability data from ARVO, oss-fuzz, or both.
 
@@ -235,6 +252,18 @@ def curate(
 
     target_list = [t.strip() for t in targets.split(",") if t.strip()]
 
+    # Load Tier 3 registry if provided
+    local_ids: set[int] | None = None
+    if tier3_registry is not None:
+        from parser_security_eval.dataset.tier3 import load_registry
+
+        registry = load_registry(tier3_registry)
+        local_ids = registry.local_ids
+        typer.echo(
+            f"Loaded Tier 3 registry: {registry.total_samples} samples "
+            f"from {registry.projects} projects"
+        )
+
     typer.echo(f"Curating from source={source.value} for targets={target_list}")
     typer.echo(f"Output directory: {output}")
 
@@ -244,6 +273,7 @@ def curate(
         targets=target_list,
         cache_dir=cache_dir,
         limit=limit,
+        local_ids=local_ids,
     )
 
     typer.echo("\n" + _format_summary(summary))
@@ -737,3 +767,180 @@ def preprocess(
 
     result_json = asyncio.run(_run())
     typer.echo(result_json)
+
+
+# ---------------------------------------------------------------------------
+# tier3 sub-commands
+# ---------------------------------------------------------------------------
+
+
+@tier3_app.command()
+def audit(
+    output: Path = typer.Option(
+        Path("../benchmark/tier3_audit.toml"),
+        help="Path for the generated TOML audit file",
+    ),
+    cache_dir: Path = typer.Option(
+        _DEFAULT_CACHE, help="Cache directory for ARVO clone"
+    ),
+) -> None:
+    """Generate a TOML audit file listing candidate Tier 3 projects.
+
+    Scans the ARVO metadata index, excludes Tier 1 and Tier 2 projects,
+    groups entries by (project, fuzz_target), and applies keyword-based
+    heuristic classification.  The resulting TOML file is intended for
+    human review.
+    """
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+
+    from parser_security_eval.dataset.arvo import fetch_arvo_index
+    from parser_security_eval.dataset.tier3 import (
+        build_audit_list,
+        write_audit_toml,
+    )
+
+    typer.echo("Fetching ARVO index...")
+    metadata_path = fetch_arvo_index(cache_dir)
+
+    exclude = set(TIER1_TARGETS + TIER2_TARGETS)
+    typer.echo(f"Building audit list (excluding {len(exclude)} Tier 1/2 targets)...")
+    entries = build_audit_list(metadata_path, exclude_projects=exclude)
+
+    write_audit_toml(entries, output)
+
+    # Summary statistics
+    total_projects = len(entries)
+    total_records = sum(e.total_records for e in entries)
+    parser_fts = sum(
+        1 for e in entries for ft in e.fuzz_targets if ft.relevance.value == "parser"
+    )
+    uncertain_fts = sum(
+        1 for e in entries for ft in e.fuzz_targets if ft.relevance.value == "uncertain"
+    )
+    not_parser_fts = sum(
+        1
+        for e in entries
+        for ft in e.fuzz_targets
+        if ft.relevance.value == "not_parser"
+    )
+
+    typer.echo(f"\nAudit file written to {output}")
+    typer.echo(f"  Projects: {total_projects}")
+    typer.echo(f"  Total ARVO records: {total_records}")
+    typer.echo(
+        f"  Fuzz targets — parser: {parser_fts}, uncertain: {uncertain_fts}, not_parser: {not_parser_fts}"
+    )
+    typer.echo("\nReview the TOML file and set include = true/false for each target.")
+
+
+@tier3_app.command()
+def classify(
+    audit_file: Path = typer.Option(
+        Path("../benchmark/tier3_audit.toml"),
+        help="Path to the TOML audit file to update",
+    ),
+    cache_dir: Path = typer.Option(
+        _DEFAULT_CACHE, help="Cache directory for LLM classification results"
+    ),
+    model: str = typer.Option(
+        "anthropic/claude-sonnet-4-6",
+        help="Model to use for LLM classification of uncertain targets",
+    ),
+) -> None:
+    """Run LLM classification on uncertain fuzz targets in the audit file.
+
+    Reads the TOML audit file, sends uncertain fuzz targets to an LLM for
+    classification, and writes the updated audit file back.
+    """
+    import os
+
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+
+    from parser_security_eval.dataset.tier3 import (
+        classify_uncertain_targets,
+        read_audit_toml,
+        write_audit_toml,
+    )
+
+    if not audit_file.exists():
+        typer.echo(f"Error: audit file not found: {audit_file}", err=True)
+        raise typer.Exit(1)
+
+    entries = read_audit_toml(audit_file)
+    os.environ.setdefault("INSPECT_EVAL_MODEL", model)
+
+    classification_cache = cache_dir / "tier3_classification_cache.json"
+    classified = 0
+
+    async def _run() -> list:
+        nonlocal classified
+        updated_entries = []
+        for entry in entries:
+            uncertain_count = sum(
+                1 for ft in entry.fuzz_targets if ft.relevance.value == "uncertain"
+            )
+            if uncertain_count == 0:
+                updated_entries.append(entry)
+                continue
+
+            updated_fts = await classify_uncertain_targets(
+                profiles=entry.fuzz_targets,
+                project=entry.name,
+                cache_path=classification_cache,
+            )
+            classified += uncertain_count
+            updated_entries.append(
+                entry.model_copy(update={"fuzz_targets": updated_fts})
+            )
+        return updated_entries
+
+    typer.echo(f"Classifying uncertain targets in {audit_file}...")
+    updated_entries = asyncio.run(_run())
+
+    write_audit_toml(updated_entries, audit_file)
+    typer.echo(f"Classified {classified} uncertain fuzz targets.")
+    typer.echo(f"Updated audit file: {audit_file}")
+
+
+@tier3_app.command("compile")
+def compile_cmd(
+    audit_file: Path = typer.Option(
+        Path("../benchmark/tier3_audit.toml"),
+        help="Path to the reviewed TOML audit file",
+    ),
+    output: Path = typer.Option(
+        Path("../benchmark/tier3_samples.json"),
+        help="Path for the compiled sample registry JSON",
+    ),
+    cache_dir: Path = typer.Option(
+        _DEFAULT_CACHE, help="Cache directory containing the ARVO clone"
+    ),
+) -> None:
+    """Compile the reviewed audit file into a Tier 3 sample registry.
+
+    Reads the TOML audit file (after human review), collects all ARVO
+    localIds for included fuzz targets, and writes a JSON registry suitable
+    for ``curate --tier3-registry``.
+    """
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+
+    from parser_security_eval.dataset.arvo import fetch_arvo_index
+    from parser_security_eval.dataset.tier3 import (
+        compile_registry,
+        read_audit_toml,
+        save_registry,
+    )
+
+    if not audit_file.exists():
+        typer.echo(f"Error: audit file not found: {audit_file}", err=True)
+        raise typer.Exit(1)
+
+    entries = read_audit_toml(audit_file)
+    metadata_path = fetch_arvo_index(cache_dir)
+    registry = compile_registry(entries, metadata_path)
+
+    save_registry(registry, output)
+    typer.echo(
+        f"\nTier 3 registry: {registry.total_samples} samples from {registry.projects} projects"
+    )
+    typer.echo(f"Written to {output}")

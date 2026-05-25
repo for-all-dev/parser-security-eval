@@ -1,0 +1,6 @@
+Project: {{ project }}
+Fuzz target: {{ fuzz_target }}
+ARVO records matching this target: {{ record_count }}
+Crash types observed: {{ crash_types }}
+
+Is this fuzz target parser-related? Respond with JSON only.
