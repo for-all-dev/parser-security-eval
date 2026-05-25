@@ -4,6 +4,10 @@ AI agents attack and defend parsers. Red-team agents fuzz C/C++ parser targets; 
 
 **Core crux**: what is the incidence of vulns per unit walltime of fuzzing in targeted parsers, as a function of model and agent architecture?
 
+## IMPORTANT: SEE @./docs/SoW.md FOR MILESTONES.
+
+Keep us on track to those milestones. 
+
 ## Repository Structure
 
 ```
