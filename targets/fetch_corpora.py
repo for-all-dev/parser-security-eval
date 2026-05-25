@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Seed corpus and dictionary management for Tier 1 parser targets.
+"""Seed corpus and dictionary management for Category 1 parser targets.
 
 Generates minimal valid seed files for libpng, libjpeg-turbo, libxml2, and zlib.
 Optionally downloads oss-fuzz corpora from GCS if gsutil is available.
@@ -425,7 +425,7 @@ def print_minimization_hints() -> None:
 
 
 def main() -> None:
-    print("Seed corpus fetch/generate for Tier 1 targets")
+    print("Seed corpus fetch/generate for Category 1 targets")
     print(f"Targets directory: {TARGETS_DIR}")
     print()
 

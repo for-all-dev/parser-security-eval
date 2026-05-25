@@ -2,7 +2,7 @@
   "experiment_name": "patching-model-sweep",
   "config": {
     "name": "patching-model-sweep",
-    "description": "Compare patching performance across models on tier-1 targets",
+    "description": "Compare patching performance across models on category-1 targets",
     "task": "patching",
     "output_dir": "results/patching-model-sweep-v2",
     "defaults": {

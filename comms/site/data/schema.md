@@ -13,7 +13,7 @@ run. Copy or symlink it into `data/` to populate the Overview and Results pages.
   "experiment_name": "fuzzing-baseline",
   "config": {
     "name": "fuzzing-baseline",
-    "description": "Baseline fuzzing runs on Tier 1 parser targets",
+    "description": "Baseline fuzzing runs on Category 1 parser targets",
     "task": "fuzzing",
     "output_dir": "results/fuzzing-baseline",
     "repetitions": 1,

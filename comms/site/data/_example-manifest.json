@@ -3,7 +3,7 @@
   "experiment_name": "fuzzing-baseline",
   "config": {
     "name": "fuzzing-baseline",
-    "description": "Baseline fuzzing runs: single-agent live fuzzing on Tier 1 parser targets (issue #53)",
+    "description": "Baseline fuzzing runs: single-agent live fuzzing on Category 1 parser targets (issue #53)",
     "task": "fuzzing",
     "output_dir": "results/fuzzing-baseline",
     "repetitions": 1,

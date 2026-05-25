@@ -377,7 +377,7 @@ def parse_arvo_entry(entry: dict) -> VulnerabilityRecord | None:
 def _parse_arvo_entry_unchecked(entry: dict) -> VulnerabilityRecord | None:
     """Parse an ARVO entry without checking ``is_parser_project``.
 
-    Used for Tier 3 local_id-based inclusion where the project may not
+    Used for Category 3 local_id-based inclusion where the project may not
     pass the parser heuristic but individual samples have been reviewed.
     """
     local_id = entry.get("localId")
@@ -439,7 +439,7 @@ def ingest_arvo(
         directories for projects that will be filtered out downstream.
     local_ids:
         If provided, records whose ARVO ``localId`` is in this set are
-        also included (union with *targets*).  This enables Tier 3
+        also included (union with *targets*).  This enables Category 3
         per-sample inclusion.
 
     Steps:
@@ -462,7 +462,7 @@ def ingest_arvo(
                 continue
             entry = json.loads(line)
 
-            # Check if this record is included via local_ids (Tier 3).
+            # Check if this record is included via local_ids (Category 3).
             # If so, bypass the normal is_parser_project filter.
             entry_local_id = entry.get("localId")
             included_by_local_id = (

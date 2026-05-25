@@ -1,4 +1,4 @@
-"""Tests for Tier 3 dataset classification."""
+"""Tests for Category 3 dataset classification."""
 
 from __future__ import annotations
 
@@ -6,12 +6,12 @@ import json
 from pathlib import Path
 from unittest.mock import patch
 
-from parser_security_eval.dataset.tier3 import (
+from parser_security_eval.dataset.category3 import (
     FuzzTargetProfile,
     ParserRelevance,
     ProjectAuditEntry,
     SampleRegistryEntry,
-    Tier3SampleRegistry,
+    Category3SampleRegistry,
     build_audit_list,
     classify_fuzz_target,
     compile_registry,
@@ -158,7 +158,7 @@ class TestBuildAuditList:
         assert encoder.record_count == 1
         assert encoder.relevance == ParserRelevance.NOT_PARSER
 
-    def test_excludes_tier1_projects(self, tmp_path: Path) -> None:
+    def test_excludes_category1_projects(self, tmp_path: Path) -> None:
         metadata = tmp_path / "metadata.jsonl"
         entries = [
             _make_entry(project="ffmpeg", local_id=1),
@@ -435,7 +435,7 @@ class TestCompileRegistry:
 
 class TestRegistryPersistence:
     def test_save_and_load(self, tmp_path: Path) -> None:
-        registry = Tier3SampleRegistry(
+        registry = Category3SampleRegistry(
             generated="2026-05-20T00:00:00+00:00",
             total_samples=2,
             projects=1,
