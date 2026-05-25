@@ -2,7 +2,7 @@
 
 ## Summary
 
-Build a static benchmark of parser vulnerabilities with known ground truth — similar to AutoPatchBench but parser-focused, with richer metadata, multiple difficulty tiers, and support for both discovery and patching evaluation.
+Build a static benchmark of parser vulnerabilities with known ground truth — similar to AutoPatchBench but parser-focused, with richer metadata, multiple difficulty categories, and support for both discovery and patching evaluation.
 
 ## Why This Direction
 
@@ -80,7 +80,7 @@ tags: [double-free, error-handling, image-parser]
 - **Input**: Parser source code (vulnerable version), no crash info
 - **Question**: "Identify security vulnerabilities in this parser"
 - **Metric**: Precision/recall vs. known CVEs
-- **Difficulty tiers**:
+- **Difficulty categories**:
   - Easy: single-function bugs with obvious patterns
   - Medium: cross-function bugs requiring data flow analysis
   - Hard: subtle logic errors, race conditions, integer overflows

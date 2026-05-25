@@ -3,7 +3,7 @@
     "name": "Baseline: Vulns per CPU-Hour",
     "issue": 53,
     "date": "2026-03-01",
-    "description": "Single-agent live fuzzing on each Tier 1 parser target. Establishes the baseline crash discovery rate before scaling to swarm configurations.",
+    "description": "Single-agent live fuzzing on each Category 1 parser target. Establishes the baseline crash discovery rate before scaling to swarm configurations.",
     "targets": ["libpng", "libjpeg-turbo", "libxml2", "zlib"],
     "models": ["claude-sonnet-4-6", "claude-opus-4-6", "gpt-4o"],
     "engines": ["libFuzzer", "AFL++"],

@@ -1,15 +1,15 @@
-"""Tier 3 dataset: per-sample parser classification.
+"""Category 3 dataset: per-sample parser classification.
 
-Tier 3 covers OSS-Fuzz projects that are not purely parsers but contain
-parser components (ffmpeg, imagemagick, curl, etc.).  Unlike Tiers 1/2,
+Category 3 covers OSS-Fuzz projects that are not purely parsers but contain
+parser components (ffmpeg, imagemagick, curl, etc.).  Unlike Categories 1/2,
 this requires per-sample filtering — not all bugs in a project like ffmpeg
 exercise parser code.
 
 The workflow is a 3-command pipeline:
 
-1. ``tier3 audit``    — generate a TOML audit file with heuristic pre-classification
-2. ``tier3 classify`` — run LLM classification on uncertain fuzz targets
-3. ``tier3 compile``  — compile the reviewed audit into a sample registry JSON
+1. ``category3 audit``    — generate a TOML audit file with heuristic pre-classification
+2. ``category3 classify`` — run LLM classification on uncertain fuzz targets
+3. ``category3 compile``  — compile the reviewed audit into a sample registry JSON
 """
 
 from __future__ import annotations
@@ -70,15 +70,15 @@ class ProjectAuditEntry(BaseModel):
 
 
 class SampleRegistryEntry(BaseModel):
-    """A single ARVO sample included in the Tier 3 registry."""
+    """A single ARVO sample included in the Category 3 registry."""
 
     local_id: int
     project: str
     fuzz_target: str
 
 
-class Tier3SampleRegistry(BaseModel):
-    """Registry of ARVO localIds included in the Tier 3 dataset."""
+class Category3SampleRegistry(BaseModel):
+    """Registry of ARVO localIds included in the Category 3 dataset."""
 
     version: str = "0.1.0"
     generated: str = ""
@@ -216,14 +216,14 @@ def build_audit_list(
     """Parse ARVO metadata.jsonl and build a grouped audit list.
 
     Groups entries by (project, fuzz_target), runs heuristic classification,
-    and filters out projects in *exclude_projects* (Tier 1/2).
+    and filters out projects in *exclude_projects* (Category 1/2).
 
     Parameters
     ----------
     metadata_path:
         Path to the ARVO ``metadata.jsonl`` file.
     exclude_projects:
-        Project names to exclude (e.g. Tier 1 and Tier 2 targets).
+        Project names to exclude (e.g. Category 1 and Category 2 targets).
 
     Returns
     -------
@@ -304,7 +304,7 @@ def write_audit_toml(entries: list[ProjectAuditEntry], output_path: Path) -> Non
     """
     lines: list[str] = []
     now = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d")
-    lines.append(f"# Tier 3 Audit — generated {now}")
+    lines.append(f"# Category 3 Audit — generated {now}")
     lines.append("# Review each project. Set include = true or false.")
     lines.append('# Fuzz targets with relevance = "parser" are pre-included.')
     lines.append('# Fuzz targets with relevance = "uncertain" need your judgement.')
@@ -524,7 +524,7 @@ async def classify_uncertain_targets(
 def compile_registry(
     audit_entries: list[ProjectAuditEntry],
     metadata_path: Path,
-) -> Tier3SampleRegistry:
+) -> Category3SampleRegistry:
     """Compile reviewed audit entries into a sample registry.
 
     For each included fuzz target (or project-level include), collects all
@@ -539,7 +539,7 @@ def compile_registry(
 
     Returns
     -------
-    Tier3SampleRegistry
+    Category3SampleRegistry
         Registry ready for JSON persistence.
     """
     # Build lookup: (project, fuzz_target) -> include?
@@ -593,7 +593,7 @@ def compile_registry(
     now = datetime.now(tz=timezone.utc).isoformat()
     projects_included = len({s.project for s in samples})
 
-    return Tier3SampleRegistry(
+    return Category3SampleRegistry(
         generated=now,
         total_samples=len(samples),
         projects=projects_included,
@@ -606,19 +606,19 @@ def compile_registry(
 # ---------------------------------------------------------------------------
 
 
-def save_registry(registry: Tier3SampleRegistry, output_path: Path) -> None:
-    """Write a Tier3SampleRegistry to JSON."""
+def save_registry(registry: Category3SampleRegistry, output_path: Path) -> None:
+    """Write a Category3SampleRegistry to JSON."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(registry.model_dump_json(indent=2))
     logger.info(
-        "Saved Tier 3 registry: %d samples from %d projects to %s",
+        "Saved Category 3 registry: %d samples from %d projects to %s",
         registry.total_samples,
         registry.projects,
         output_path,
     )
 
 
-def load_registry(registry_path: Path) -> Tier3SampleRegistry:
-    """Load a Tier3SampleRegistry from JSON."""
+def load_registry(registry_path: Path) -> Category3SampleRegistry:
+    """Load a Category3SampleRegistry from JSON."""
     data = json.loads(registry_path.read_text())
-    return Tier3SampleRegistry(**data)
+    return Category3SampleRegistry(**data)

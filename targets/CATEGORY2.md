@@ -1,4 +1,4 @@
-# Tier 2 Parser Targets
+# Category 2 Parser Targets
 
 ## Added Targets
 
@@ -22,10 +22,10 @@ All four targets were chosen because they satisfy:
 
 3. **Diverse format types** — the set covers binary font rendering (freetype), multi-format
    archive unpacking (libarchive), XML/text-markup parsing (expat), and regular expression
-   compilation/matching (pcre2). This is orthogonal to the Tier 1 set (image formats, XML,
+   compilation/matching (pcre2). This is orthogonal to the Category 1 set (image formats, XML,
    compression) and exercises different code paths and attack surfaces.
 
-4. **Different bug classes than Tier 1** — freetype surfaces integer overflow and OOB reads in
+4. **Different bug classes than Category 1** — freetype surfaces integer overflow and OOB reads in
    glyph rendering; libarchive surfaces path-traversal and decompression-bomb conditions;
    expat is historically susceptible to entity-expansion and billion-laughs style attacks;
    pcre2 surfaces backtracking super-linear complexity and JIT compiler bugs.

@@ -66,14 +66,14 @@ parser-security-eval/
 │           └── views/               # overview, breakdown, samples, patching, trajectory, diff_viewer, usage
 ├── targets/                         # OSS-Fuzz parser targets
 │   ├── _template/                   # Dockerfile, build.sh, metadata.yaml templates
-│   ├── libpng/                      # Tier 1: corpus/, dictionary/png.dict
-│   ├── libxml2/                     # Tier 1: corpus/, dictionary/xml.dict
-│   ├── libjpeg-turbo/               # Tier 1: corpus/, dictionary/jpeg.dict
-│   ├── zlib/                        # Tier 1: corpus/, dictionary/zlib.dict
-│   ├── freetype/                    # Tier 2 (created, not battle-tested)
-│   ├── libarchive/                  # Tier 2
-│   ├── expat/                       # Tier 2
-│   ├── pcre2/                       # Tier 2
+│   ├── libpng/                      # Category 1: corpus/, dictionary/png.dict
+│   ├── libxml2/                     # Category 1: corpus/, dictionary/xml.dict
+│   ├── libjpeg-turbo/               # Category 1: corpus/, dictionary/jpeg.dict
+│   ├── zlib/                        # Category 1: corpus/, dictionary/zlib.dict
+│   ├── freetype/                    # Category 2 (created, not battle-tested)
+│   ├── libarchive/                  # Category 2
+│   ├── expat/                       # Category 2
+│   ├── pcre2/                       # Category 2
 │   └── fetch_corpora.py             # Idempotent seed corpus generator (stdlib only)
 ├── benchmark/                       # ARVO vulnerability benchmark
 │   ├── dataset.jsonl                # 209 records (145 usable ARVO + 64 OSV stubs)
@@ -216,13 +216,13 @@ Per-target persistent memory stored in `targets/<name>/memory.json`:
 
 **Effective benchmark size: 145 usable records** (all `ARVO-` prefixed). `metadata.json` shows 209 total because the ingestion pipeline also pulls from OSV, producing 64 `OSV-` prefixed stubs with metadata only — no crash input, no crash report, no reference patch. Those stubs are not usable for patching or fuzzing evals.
 
-**Tier 1 ARVO breakdown** (these are the only ARVO records available for these targets — the upstream index has been fully exhausted):
+**Category 1 ARVO breakdown** (these are the only ARVO records available for these targets — the upstream index has been fully exhausted):
 - libxml2: 112, libjpeg-turbo: 25, libpng: 5, zlib: 3
 
-**Tier 2 ARVO availability** (not yet ingested, for expansion planning):
+**Category 2 ARVO availability** (not yet ingested, for expansion planning):
 - freetype2: 95, pcre2: 57, libarchive: 56, expat: 3 → 211 additional usable records
 
-**Tier 1 vs Tier 2** is an internal distinction, not from ARVO. Tier 1 targets have battle-tested Docker builds, committed seed corpora, and format dictionaries. Tier 2 targets have Dockerfiles/build scripts but no corpus/dictionary and have not been verified end-to-end.
+**Category 1 vs Category 2** is an internal distinction, not from ARVO. Category 1 targets have battle-tested Docker builds, committed seed corpora, and format dictionaries. Category 2 targets have Dockerfiles/build scripts but no corpus/dictionary and have not been verified end-to-end.
 
 **Seed corpora and dictionaries** (`targets/*/corpus/`, `targets/*/dictionary/`) were hand-crafted by this project via `targets/fetch_corpora.py` — not fetched from ARVO or OSS-Fuzz. Keep them committed; they are work product, not derived artifacts.
 

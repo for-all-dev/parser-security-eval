@@ -14,7 +14,7 @@ from unittest.mock import patch
 
 
 from parser_security_eval.cli import (
-    TIER1_TARGETS,
+    CATEGORY1_TARGETS,
     _format_summary,
     run_curation_pipeline,
 )
@@ -76,19 +76,19 @@ def _make_osv_bug(
 
 
 # ---------------------------------------------------------------------------
-# Tests: TIER1_TARGETS constant
+# Tests: CATEGORY1_TARGETS constant
 # ---------------------------------------------------------------------------
 
 
-class TestTier1Targets:
+class TestCategory1Targets:
     def test_contains_expected_targets(self) -> None:
-        assert "libpng" in TIER1_TARGETS
-        assert "libjpeg-turbo" in TIER1_TARGETS
-        assert "libxml2" in TIER1_TARGETS
-        assert "zlib" in TIER1_TARGETS
+        assert "libpng" in CATEGORY1_TARGETS
+        assert "libjpeg-turbo" in CATEGORY1_TARGETS
+        assert "libxml2" in CATEGORY1_TARGETS
+        assert "zlib" in CATEGORY1_TARGETS
 
     def test_exactly_four_targets(self) -> None:
-        assert len(TIER1_TARGETS) == 4
+        assert len(CATEGORY1_TARGETS) == 4
 
 
 # ---------------------------------------------------------------------------
@@ -144,7 +144,7 @@ class TestRunCurationPipeline:
                         ][j % 3],
                     )
                 )
-        # Also include some non-tier1 records to test filtering
+        # Also include some non-category1 records to test filtering
         records.append(
             _make_record(id="ARVO-999", target="ffmpeg", crash_type="timeout")
         )
@@ -167,11 +167,11 @@ class TestRunCurationPipeline:
 
     def test_arvo_source(self, tmp_path: Path) -> None:
         """Pipeline with source='arvo' should only call ARVO ingestion."""
-        mock_records = self._mock_arvo_records(TIER1_TARGETS)
+        mock_records = self._mock_arvo_records(CATEGORY1_TARGETS)
         # ingest_arvo now filters by targets internally, so the mock
         # should only return matching records (simulating that behavior).
-        tier1_set = {t.lower() for t in TIER1_TARGETS}
-        filtered_records = [r for r in mock_records if r.target.lower() in tier1_set]
+        cat1_set = {t.lower() for t in CATEGORY1_TARGETS}
+        filtered_records = [r for r in mock_records if r.target.lower() in cat1_set]
 
         with patch(
             "parser_security_eval.cli.ingest_arvo", return_value=filtered_records
@@ -179,7 +179,7 @@ class TestRunCurationPipeline:
             summary = run_curation_pipeline(
                 source="arvo",
                 output=tmp_path,
-                targets=TIER1_TARGETS,
+                targets=CATEGORY1_TARGETS,
                 cache_dir=tmp_path / "cache",
             )
 
@@ -210,7 +210,7 @@ class TestRunCurationPipeline:
             summary = run_curation_pipeline(
                 source="ossfuzz",
                 output=tmp_path,
-                targets=TIER1_TARGETS,
+                targets=CATEGORY1_TARGETS,
                 cache_dir=tmp_path / "cache",
             )
 
@@ -241,7 +241,7 @@ class TestRunCurationPipeline:
             summary = run_curation_pipeline(
                 source="all",
                 output=tmp_path,
-                targets=TIER1_TARGETS,
+                targets=CATEGORY1_TARGETS,
                 cache_dir=tmp_path / "cache",
             )
 
@@ -370,7 +370,7 @@ class TestRunCurationPipeline:
             run_curation_pipeline(
                 source="arvo",
                 output=tmp_path,
-                targets=TIER1_TARGETS,
+                targets=CATEGORY1_TARGETS,
                 cache_dir=tmp_path / "cache",
             )
 
@@ -413,7 +413,7 @@ class TestRunCurationPipeline:
             run_curation_pipeline(
                 source="arvo",
                 output=tmp_path,
-                targets=TIER1_TARGETS,
+                targets=CATEGORY1_TARGETS,
                 cache_dir=tmp_path / "cache",
             )
 
@@ -428,7 +428,7 @@ class TestRunCurationPipeline:
             summary = run_curation_pipeline(
                 source="arvo",
                 output=tmp_path,
-                targets=TIER1_TARGETS,
+                targets=CATEGORY1_TARGETS,
                 cache_dir=tmp_path / "cache",
             )
 
@@ -494,7 +494,7 @@ class TestSummaryStatistics:
             summary = run_curation_pipeline(
                 source="arvo",
                 output=tmp_path,
-                targets=TIER1_TARGETS,
+                targets=CATEGORY1_TARGETS,
                 cache_dir=tmp_path / "cache",
             )
 
@@ -515,7 +515,7 @@ class TestSummaryStatistics:
             summary = run_curation_pipeline(
                 source="arvo",
                 output=tmp_path,
-                targets=TIER1_TARGETS,
+                targets=CATEGORY1_TARGETS,
                 cache_dir=tmp_path / "cache",
             )
 
@@ -534,7 +534,7 @@ class TestSummaryStatistics:
             summary = run_curation_pipeline(
                 source="arvo",
                 output=tmp_path,
-                targets=TIER1_TARGETS,
+                targets=CATEGORY1_TARGETS,
                 cache_dir=tmp_path / "cache",
             )
 
@@ -553,7 +553,7 @@ class TestSummaryStatistics:
             summary = run_curation_pipeline(
                 source="arvo",
                 output=tmp_path,
-                targets=TIER1_TARGETS,
+                targets=CATEGORY1_TARGETS,
                 cache_dir=tmp_path / "cache",
             )
 

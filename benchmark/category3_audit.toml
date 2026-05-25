@@ -1,4 +1,4 @@
-# Tier 3 Audit — generated 2026-05-21
+# Category 3 Audit — generated 2026-05-21
 # Review each project. Set include = true or false.
 # Fuzz targets with relevance = "parser" are pre-included.
 # Fuzz targets with relevance = "uncertain" need your judgement.

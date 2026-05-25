@@ -19,7 +19,7 @@ uv sync
 
 ### 1. Curate the benchmark dataset
 
-Ingest vulnerability metadata from ARVO and/or oss-fuzz, filter to Tier 1 targets, deduplicate, and export `benchmark/metadata.json`:
+Ingest vulnerability metadata from ARVO and/or oss-fuzz, filter to Category 1 targets, deduplicate, and export `benchmark/metadata.json`:
 
 ```bash
 uv run parser-security-eval curate arvo
@@ -51,7 +51,7 @@ uv run parser-security-eval enrich-dataset --crash-inputs
 
 ### 4. Build parser targets
 
-Build the Tier 1 parser targets in Docker (oss-fuzz base-builder images with AddressSanitizer):
+Build the Category 1 parser targets in Docker (oss-fuzz base-builder images with AddressSanitizer):
 
 ```bash
 uv run parser-security-eval build-target libpng

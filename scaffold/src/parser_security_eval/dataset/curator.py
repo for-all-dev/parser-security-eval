@@ -26,7 +26,7 @@ class DatasetCurator:
         return [r for r in self.records if r.target == target]
 
     def filter_by_difficulty(self, difficulty: str) -> list[VulnerabilityRecord]:
-        """Filter records by difficulty tier."""
+        """Filter records by difficulty category."""
         return [r for r in self.records if r.difficulty == difficulty]
 
     def validate(self) -> list[str]:

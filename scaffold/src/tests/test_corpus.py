@@ -1,4 +1,4 @@
-"""Tests that Tier 1 target corpus directories are populated with valid seed files."""
+"""Tests that Category 1 target corpus directories are populated with valid seed files."""
 
 from __future__ import annotations
 

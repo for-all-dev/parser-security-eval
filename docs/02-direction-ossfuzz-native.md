@@ -82,7 +82,7 @@ Start with parsers that have:
 2. **Existing oss-fuzz integration** — no setup work needed
 3. **Variety of formats** — binary, text, protocol
 
-### Tier 1 (Start Here)
+### Category 1 (Start Here)
 | Target | Format Type | OSS-Fuzz? | Historical CVEs |
 |--------|------------|-----------|-----------------|
 | libpng | Binary image | Yes | 50+ |
@@ -91,7 +91,7 @@ Start with parsers that have:
 | openssl | Crypto/TLS | Yes | 200+ |
 | zlib / libzip | Archive | Yes | 20+ |
 
-### Tier 2 (Expand)
+### Category 2 (Expand)
 | Target | Format Type | OSS-Fuzz? |
 |--------|------------|-----------|
 | curl | Protocol | Yes |
@@ -100,7 +100,7 @@ Start with parsers that have:
 | libpcap | Network capture | Yes |
 | sqlite | Query language | Yes |
 
-### Tier 3 (Stretch)
+### Category 3 (Stretch)
 - Custom parsers written specifically for the eval (with planted bugs)
 - Rust/Go parsers (memory-safe languages — different attack surface)
 
