@@ -1,4 +1,4 @@
-name: freetype
+name: freetype2
 format_type: binary-font
 language: c
 ossfuzz_project: freetype2

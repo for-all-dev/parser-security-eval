@@ -106,14 +106,12 @@ def _git_diff_for_commit(repo_dir: Path, commit: str) -> str | None:
     result = subprocess.run(
         ["git", "-C", str(repo_dir), "diff", f"{commit}~1..{commit}"],
         capture_output=True,
-        text=True,
     )
     if result.returncode != 0:
-        logger.warning(
-            "git diff failed for %s in %s: %s", commit, repo_dir, result.stderr
-        )
+        stderr = result.stderr.decode(errors="replace")
+        logger.warning("git diff failed for %s in %s: %s", commit, repo_dir, stderr)
         return None
-    return result.stdout
+    return result.stdout.decode(errors="replace")
 
 
 def _repo_cache_key(repo_url: str) -> str:

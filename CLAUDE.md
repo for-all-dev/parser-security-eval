@@ -70,7 +70,7 @@ parser-security-eval/
 │   ├── libxml2/                     # Category 1: corpus/, dictionary/xml.dict
 │   ├── libjpeg-turbo/               # Category 1: corpus/, dictionary/jpeg.dict
 │   ├── zlib/                        # Category 1: corpus/, dictionary/zlib.dict
-│   ├── freetype/                    # Category 2 (created, not battle-tested)
+│   ├── freetype2/                   # Category 2 (created, not battle-tested)
 │   ├── libarchive/                  # Category 2
 │   ├── expat/                       # Category 2
 │   ├── pcre2/                       # Category 2
