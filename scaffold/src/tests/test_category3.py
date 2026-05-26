@@ -218,6 +218,34 @@ class TestBuildAuditList:
         assert ft.include is False
         assert ft.relevance == ParserRelevance.NOT_PARSER
 
+    def test_filters_projects_not_in_ossfuzz(self, tmp_path: Path) -> None:
+        metadata = tmp_path / "metadata.jsonl"
+        entries = [
+            _make_entry(project="ffmpeg", local_id=1),
+            _make_entry(project="libtiff", local_id=2, fuzz_target="tiff_fuzzer"),
+        ]
+        _write_metadata_jsonl(metadata, entries)
+
+        # Only ffmpeg exists in our mock oss-fuzz project set
+        result = build_audit_list(metadata, ossfuzz_projects={"ffmpeg"})
+        projects = [e.name for e in result]
+        assert "ffmpeg" in projects
+        assert "libtiff" not in projects
+
+    def test_ossfuzz_projects_none_skips_filter(self, tmp_path: Path) -> None:
+        metadata = tmp_path / "metadata.jsonl"
+        entries = [
+            _make_entry(project="ffmpeg", local_id=1),
+            _make_entry(project="libtiff", local_id=2, fuzz_target="tiff_fuzzer"),
+        ]
+        _write_metadata_jsonl(metadata, entries)
+
+        # When ossfuzz_projects is None, no filtering occurs
+        result = build_audit_list(metadata, ossfuzz_projects=None)
+        projects = [e.name for e in result]
+        assert "ffmpeg" in projects
+        assert "libtiff" in projects
+
 
 # ---------------------------------------------------------------------------
 # TOML round-trip

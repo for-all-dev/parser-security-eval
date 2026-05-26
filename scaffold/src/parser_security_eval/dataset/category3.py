@@ -212,6 +212,7 @@ def classify_fuzz_target(project: str, fuzz_target: str) -> ParserRelevance:
 def build_audit_list(
     metadata_path: Path,
     exclude_projects: set[str] | None = None,
+    ossfuzz_projects: set[str] | None = None,
 ) -> list[ProjectAuditEntry]:
     """Parse ARVO metadata.jsonl and build a grouped audit list.
 
@@ -224,6 +225,10 @@ def build_audit_list(
         Path to the ARVO ``metadata.jsonl`` file.
     exclude_projects:
         Project names to exclude (e.g. Category 1 and Category 2 targets).
+    ossfuzz_projects:
+        If provided, only include projects whose name appears in this set
+        (i.e. projects that actually exist in ``google/oss-fuzz``).  Projects
+        not in this set are silently dropped.
 
     Returns
     -------
@@ -238,6 +243,7 @@ def build_audit_list(
 
     # Group: project -> fuzz_target -> list[entry]
     groups: dict[str, dict[str, list[dict]]] = defaultdict(lambda: defaultdict(list))
+    skipped_not_in_ossfuzz: set[str] = set()
 
     with metadata_path.open() as fh:
         for line in fh:
@@ -252,8 +258,18 @@ def build_audit_list(
                 continue
             if not is_parser_project(project):
                 continue
+            if ossfuzz_projects is not None and project not in ossfuzz_projects:
+                skipped_not_in_ossfuzz.add(project)
+                continue
             fuzz_target = entry.get("fuzz_target") or "unknown"
             groups[project][fuzz_target].append(entry)
+
+    if skipped_not_in_ossfuzz:
+        logger.warning(
+            "Skipped %d project(s) not found in oss-fuzz: %s",
+            len(skipped_not_in_ossfuzz),
+            ", ".join(sorted(skipped_not_in_ossfuzz)),
+        )
 
     # Build audit entries
     entries: list[ProjectAuditEntry] = []

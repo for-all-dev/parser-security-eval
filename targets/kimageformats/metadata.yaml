@@ -1,0 +1,13 @@
+name: kimageformats
+language: c++
+sanitizers:
+  - address
+  - memory
+  - undefined
+engines:
+  - libfuzzer
+format_type: binary-image
+ossfuzz_project: kimageformats
+has_corpus: False
+has_dictionary: False
+build_sh_source: dockerfile

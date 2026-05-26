@@ -1,0 +1,13 @@
+name: libconfig
+language: c
+sanitizers:
+  - address
+engines:
+  - libfuzzer
+  - afl
+  - honggfuzz
+format_type: unknown
+ossfuzz_project: libconfig
+has_corpus: False
+has_dictionary: False
+build_sh_source: dockerfile
