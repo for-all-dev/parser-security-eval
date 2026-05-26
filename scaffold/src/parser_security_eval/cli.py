@@ -946,3 +946,158 @@ def compile_cmd(
         f"\nCategory 3 registry: {registry.total_samples} samples from {registry.projects} projects"
     )
     typer.echo(f"Written to {output}")
+
+
+@category3_app.command()
+def bootstrap(
+    registry_path: Path = typer.Option(
+        Path("../benchmark/category3_samples.json"),
+        help="Path to the Category 3 sample registry JSON",
+    ),
+    targets_root: Path = typer.Option(
+        Path("../targets"), help="Root targets directory"
+    ),
+    cache_dir: Path = typer.Option(
+        _DEFAULT_CACHE, help="Cache directory for the oss-fuzz clone"
+    ),
+    force: bool = typer.Option(False, help="Overwrite existing target directories"),
+    projects: str | None = typer.Option(
+        None,
+        help="Comma-separated project names to bootstrap (default: all from registry)",
+    ),
+) -> None:
+    """Bootstrap Docker target directories from oss-fuzz for Category 3 projects.
+
+    Clones (or updates) google/oss-fuzz, extracts unique project names from
+    the Category 3 sample registry, and imports Dockerfile + build.sh +
+    metadata.yaml for each project into targets/.
+    """
+    import subprocess as _sp
+
+    from parser_security_eval.dataset.category3 import load_registry
+    from parser_security_eval.dataset.ossfuzz import (
+        bootstrap_targets,
+        clone_ossfuzz_repo,
+    )
+
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+
+    if not registry_path.exists():
+        typer.echo(f"Error: registry not found: {registry_path}", err=True)
+        raise typer.Exit(1)
+
+    registry = load_registry(registry_path)
+    typer.echo(
+        f"Loaded registry: {registry.total_samples} samples, "
+        f"{registry.projects} projects"
+    )
+
+    # Determine which projects to bootstrap.
+    if projects is not None:
+        project_list = [p.strip() for p in projects.split(",") if p.strip()]
+    else:
+        project_list = sorted({s.project for s in registry.samples})
+
+    # Exclude Category 1 and Category 2 targets.
+    exclude = set(CATEGORY1_TARGETS + CATEGORY2_TARGETS)
+    project_list = [p for p in project_list if p not in exclude]
+
+    typer.echo(f"Projects to bootstrap: {len(project_list)}")
+
+    typer.echo("Cloning/updating google/oss-fuzz …")
+    try:
+        ossfuzz_repo = clone_ossfuzz_repo(cache_dir)
+    except _sp.CalledProcessError as exc:
+        typer.echo(f"Error cloning oss-fuzz: {exc}", err=True)
+        raise typer.Exit(1) from exc
+
+    typer.echo(f"Bootstrapping into {targets_root} …")
+    result = bootstrap_targets(project_list, ossfuzz_repo, targets_root, force=force)
+    typer.echo(result.summary)
+
+
+@category3_app.command()
+def validate(
+    targets_root: Path = typer.Option(
+        Path("../targets"), help="Root targets directory"
+    ),
+    registry_path: Path = typer.Option(
+        Path("../benchmark/category3_samples.json"),
+        help="Path to the Category 3 sample registry JSON",
+    ),
+    build: bool = typer.Option(
+        False, help="Attempt `docker build` for each target (slow)"
+    ),
+    projects: str | None = typer.Option(
+        None,
+        help="Comma-separated project names to validate (default: all from registry)",
+    ),
+) -> None:
+    """Validate bootstrapped Category 3 target directories.
+
+    Checks that each target has a valid Dockerfile, build.sh, and
+    metadata.yaml.  With ``--build``, also runs ``docker build``.
+    """
+    import subprocess as _sp
+
+    from parser_security_eval.dataset.category3 import load_registry
+    from parser_security_eval.sandbox.build import validate_target_layout
+
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+
+    if not registry_path.exists():
+        typer.echo(f"Error: registry not found: {registry_path}", err=True)
+        raise typer.Exit(1)
+
+    registry = load_registry(registry_path)
+
+    if projects is not None:
+        project_list = [p.strip() for p in projects.split(",") if p.strip()]
+    else:
+        project_list = sorted({s.project for s in registry.samples})
+
+    exclude = set(CATEGORY1_TARGETS + CATEGORY2_TARGETS)
+    project_list = [p for p in project_list if p not in exclude]
+
+    ok_count = 0
+    invalid_count = 0
+    missing_count = 0
+
+    for project in project_list:
+        target_dir = targets_root / project
+        if not target_dir.exists():
+            typer.echo(f"  MISSING  {project}")
+            missing_count += 1
+            continue
+
+        errors = validate_target_layout(target_dir)
+        if errors:
+            typer.echo(f"  INVALID  {project}")
+            for err in errors:
+                typer.echo(f"           {err}")
+            invalid_count += 1
+        else:
+            typer.echo(f"  OK       {project}")
+            ok_count += 1
+
+        if build and not errors:
+            tag = f"parser-eval-{project}:latest"
+            typer.echo(f"           Building {tag} …")
+            try:
+                _sp.run(
+                    ["docker", "build", "-t", tag, str(target_dir)],
+                    check=True,
+                    capture_output=True,
+                    timeout=600,
+                )
+                typer.echo("           Build OK")
+            except _sp.CalledProcessError as exc:
+                stderr = exc.stderr.decode(errors="replace") if exc.stderr else ""
+                typer.echo(f"           Build FAILED: {stderr[:200]}")
+            except _sp.TimeoutExpired:
+                typer.echo("           Build TIMEOUT (600s)")
+
+    typer.echo(
+        f"\nSummary: {ok_count} OK, {invalid_count} invalid, {missing_count} missing "
+        f"(of {len(project_list)} projects)"
+    )

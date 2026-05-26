@@ -10,6 +10,7 @@ from unittest.mock import patch
 import pytest
 
 from parser_security_eval.dataset.ossfuzz import (
+    BootstrapResult,
     _detect_format_type,
     _estimate_difficulty,
     _extract_affected_file,
@@ -18,6 +19,8 @@ from parser_security_eval.dataset.ossfuzz import (
     _extract_severity,
     _is_parser_project,
     _read_project_yaml,
+    bootstrap_targets,
+    clone_ossfuzz_repo,
     fetch_ossfuzz_bugs,
     import_ossfuzz_target,
     list_parser_projects,
@@ -538,6 +541,10 @@ class TestImportOssfuzzTarget:
         assert "language: c" in metadata_text
         assert "address" in metadata_text
         assert "undefined" in metadata_text
+        assert "format_type: binary-image" in metadata_text
+        assert "ossfuzz_project: libpng" in metadata_text
+        assert "has_corpus: True" in metadata_text
+        assert "has_dictionary: True" in metadata_text
 
     def test_minimal_project(self, ossfuzz_repo: Path, tmp_path: Path) -> None:
         """Import a project with no corpus/dict."""
@@ -666,3 +673,129 @@ class TestReadProjectYaml:
         yaml_file.write_text("# A comment\nlanguage: cpp\n\n# Another\n")
         result = _read_project_yaml(yaml_file)
         assert result["language"] == "cpp"
+
+
+# ---------------------------------------------------------------------------
+# Tests: clone_ossfuzz_repo
+# ---------------------------------------------------------------------------
+
+
+class TestCloneOssfuzzRepo:
+    def test_clones_fresh_repo(self, tmp_path: Path) -> None:
+        """First call should run git clone."""
+        cache_dir = tmp_path / "cache"
+        repo_dir = cache_dir / "oss-fuzz"
+
+        with patch("parser_security_eval.dataset.ossfuzz.subprocess.run") as mock_run:
+            # After clone, create the expected directory structure.
+            def _side_effect(*args: Any, **kwargs: Any) -> None:
+                (repo_dir / "projects").mkdir(parents=True, exist_ok=True)
+                (repo_dir / ".git").mkdir(parents=True, exist_ok=True)
+
+            mock_run.side_effect = _side_effect
+
+            result = clone_ossfuzz_repo(cache_dir)
+
+        assert result == repo_dir
+        # Should have called clone (first call) then sparse-checkout (second call).
+        assert mock_run.call_count == 2
+        first_call_args = mock_run.call_args_list[0][0][0]
+        assert "clone" in first_call_args
+
+    def test_pulls_existing_repo(self, tmp_path: Path) -> None:
+        """Second call (repo exists) should run git pull."""
+        cache_dir = tmp_path / "cache"
+        repo_dir = cache_dir / "oss-fuzz"
+        (repo_dir / ".git").mkdir(parents=True)
+        (repo_dir / "projects").mkdir(parents=True)
+
+        with patch("parser_security_eval.dataset.ossfuzz.subprocess.run") as mock_run:
+            result = clone_ossfuzz_repo(cache_dir)
+
+        assert result == repo_dir
+        assert mock_run.call_count == 1
+        call_args = mock_run.call_args_list[0][0][0]
+        assert "pull" in call_args
+
+    def test_raises_if_projects_missing(self, tmp_path: Path) -> None:
+        """Should raise if projects/ dir doesn't exist after clone."""
+        cache_dir = tmp_path / "cache"
+        repo_dir = cache_dir / "oss-fuzz"
+
+        with patch("parser_security_eval.dataset.ossfuzz.subprocess.run") as mock_run:
+            # Create .git but NOT projects/
+            def _side_effect(*args: Any, **kwargs: Any) -> None:
+                (repo_dir / ".git").mkdir(parents=True, exist_ok=True)
+
+            mock_run.side_effect = _side_effect
+
+            with pytest.raises(FileNotFoundError, match="projects/"):
+                clone_ossfuzz_repo(cache_dir)
+
+
+# ---------------------------------------------------------------------------
+# Tests: bootstrap_targets
+# ---------------------------------------------------------------------------
+
+
+class TestBootstrapTargets:
+    def test_success(self, ossfuzz_repo: Path, tmp_path: Path) -> None:
+        targets_dir = tmp_path / "targets"
+        result = bootstrap_targets(["libpng", "libxml2"], ossfuzz_repo, targets_dir)
+        assert result.succeeded == ["libpng", "libxml2"]
+        assert result.skipped == []
+        assert result.failed == {}
+        assert (targets_dir / "libpng" / "Dockerfile").exists()
+        assert (targets_dir / "libxml2" / "Dockerfile").exists()
+
+    def test_skip_existing(self, ossfuzz_repo: Path, tmp_path: Path) -> None:
+        targets_dir = tmp_path / "targets"
+        (targets_dir / "libpng").mkdir(parents=True)
+
+        result = bootstrap_targets(["libpng"], ossfuzz_repo, targets_dir)
+        assert result.skipped == ["libpng"]
+        assert result.succeeded == []
+
+    def test_force_overwrite(self, ossfuzz_repo: Path, tmp_path: Path) -> None:
+        targets_dir = tmp_path / "targets"
+        (targets_dir / "libpng").mkdir(parents=True)
+
+        result = bootstrap_targets(["libpng"], ossfuzz_repo, targets_dir, force=True)
+        assert result.succeeded == ["libpng"]
+        assert result.skipped == []
+        assert (targets_dir / "libpng" / "Dockerfile").exists()
+
+    def test_missing_project_failure(self, ossfuzz_repo: Path, tmp_path: Path) -> None:
+        targets_dir = tmp_path / "targets"
+        result = bootstrap_targets(["nonexistent_project"], ossfuzz_repo, targets_dir)
+        assert result.succeeded == []
+        assert "nonexistent_project" in result.failed
+
+    def test_deduplication(self, ossfuzz_repo: Path, tmp_path: Path) -> None:
+        targets_dir = tmp_path / "targets"
+        result = bootstrap_targets(
+            ["libpng", "libpng", "libpng"], ossfuzz_repo, targets_dir
+        )
+        assert result.succeeded == ["libpng"]
+        assert len(result.skipped) == 0
+
+    def test_executable_bit(self, ossfuzz_repo: Path, tmp_path: Path) -> None:
+        targets_dir = tmp_path / "targets"
+        bootstrap_targets(["libpng"], ossfuzz_repo, targets_dir)
+        import stat
+
+        build_sh = targets_dir / "libpng" / "build.sh"
+        mode = build_sh.stat().st_mode
+        assert mode & stat.S_IXUSR
+
+    def test_summary_property(self) -> None:
+        result = BootstrapResult(
+            succeeded=["a", "b"],
+            skipped=["c"],
+            failed={"d": "some error"},
+        )
+        summary = result.summary
+        assert "2 succeeded" in summary
+        assert "1 skipped" in summary
+        assert "1 failed" in summary
+        assert "d: some error" in summary

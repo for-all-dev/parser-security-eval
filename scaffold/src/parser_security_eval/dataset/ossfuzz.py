@@ -13,7 +13,9 @@ import json
 import logging
 import re
 import shutil
+import subprocess
 import urllib.request
+from dataclasses import dataclass, field as dataclass_field
 from pathlib import Path
 from typing import Any
 
@@ -139,6 +141,132 @@ _SANITIZER_MAP: dict[str, Sanitizer] = {
 
 # Default format_type when we cannot determine from project metadata.
 _DEFAULT_FORMAT_TYPE = "unknown"
+
+OSSFUZZ_REPO_URL = "https://github.com/google/oss-fuzz.git"
+
+
+def clone_ossfuzz_repo(cache_dir: Path) -> Path:
+    """Clone or update the google/oss-fuzz repository.
+
+    Performs a shallow clone into ``cache_dir/oss-fuzz`` (or ``git pull
+    --ff-only`` if it already exists).  Returns the path to the repo root.
+    """
+    repo_dir = cache_dir / "oss-fuzz"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+
+    if (repo_dir / ".git").is_dir():
+        logger.info("Updating existing oss-fuzz clone at %s", repo_dir)
+        subprocess.run(
+            ["git", "-C", str(repo_dir), "pull", "--ff-only"],
+            check=True,
+            capture_output=True,
+        )
+    else:
+        logger.info("Cloning oss-fuzz repo into %s (shallow)", repo_dir)
+        subprocess.run(
+            [
+                "git",
+                "clone",
+                "--depth",
+                "1",
+                "--filter=blob:none",
+                "--sparse",
+                OSSFUZZ_REPO_URL,
+                str(repo_dir),
+            ],
+            check=True,
+            capture_output=True,
+        )
+        # Sparse-checkout to only materialise the projects/ directory.
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(repo_dir),
+                "sparse-checkout",
+                "set",
+                "--skip-checks",
+                "projects",
+            ],
+            check=True,
+            capture_output=True,
+        )
+
+    projects_dir = repo_dir / "projects"
+    if not projects_dir.is_dir():
+        msg = f"projects/ directory not found at {projects_dir}"
+        raise FileNotFoundError(msg)
+    return repo_dir
+
+
+@dataclass
+class BootstrapResult:
+    """Summary of a bulk target bootstrap operation."""
+
+    succeeded: list[str] = dataclass_field(default_factory=list)
+    skipped: list[str] = dataclass_field(default_factory=list)
+    failed: dict[str, str] = dataclass_field(default_factory=dict)
+
+    @property
+    def summary(self) -> str:
+        lines = [
+            f"Bootstrap complete: {len(self.succeeded)} succeeded, "
+            f"{len(self.skipped)} skipped, {len(self.failed)} failed"
+        ]
+        if self.succeeded:
+            lines.append(f"  Succeeded: {', '.join(self.succeeded)}")
+        if self.skipped:
+            lines.append(f"  Skipped (already exist): {', '.join(self.skipped)}")
+        if self.failed:
+            lines.append("  Failed:")
+            for name, err in self.failed.items():
+                lines.append(f"    {name}: {err}")
+        return "\n".join(lines)
+
+
+def bootstrap_targets(
+    projects: list[str],
+    ossfuzz_repo: Path,
+    targets_dir: Path,
+    *,
+    force: bool = False,
+) -> BootstrapResult:
+    """Import multiple oss-fuzz projects into ``targets_dir``.
+
+    Parameters
+    ----------
+    projects:
+        List of oss-fuzz project names to import.
+    ossfuzz_repo:
+        Path to the cloned ``google/oss-fuzz`` repository.
+    targets_dir:
+        Destination directory (e.g. ``targets/``).
+    force:
+        If *True*, overwrite existing target directories.
+    """
+    result = BootstrapResult()
+
+    for project in sorted(set(projects)):
+        dst = targets_dir / project
+        if dst.exists() and not force:
+            result.skipped.append(project)
+            continue
+
+        try:
+            import_ossfuzz_target(project, ossfuzz_repo, targets_dir)
+            # Ensure build.sh is executable.
+            build_sh = dst / "build.sh"
+            if build_sh.exists():
+                build_sh.chmod(build_sh.stat().st_mode | 0o111)
+            result.succeeded.append(project)
+        except Exception as exc:
+            logger.exception("Failed to import %s", project)
+            # Clean up partial directory so it isn't wrongly skipped on retry.
+            if dst.exists():
+                shutil.rmtree(dst)
+            result.failed[project] = str(exc)
+
+    return result
 
 
 def _osv_query(project: str, page_token: str | None = None) -> dict[str, Any]:
@@ -522,15 +650,7 @@ def import_ossfuzz_target(
     language = project_meta.get("language", "c")
     sanitizers = project_meta.get("sanitizers", ["address"])
     engines = project_meta.get("fuzzing_engines", ["libfuzzer"])
-
-    # Write our metadata.yaml
-    metadata = {
-        "name": project,
-        "language": language,
-        "sanitizers": sanitizers if isinstance(sanitizers, list) else [sanitizers],
-        "engines": engines if isinstance(engines, list) else [engines],
-    }
-    _write_metadata_yaml(dst_dir / "metadata.yaml", metadata)
+    format_type = _detect_format_type(project)
 
     # Copy corpus directory if present
     corpus_dir: Path | None = None
@@ -549,9 +669,22 @@ def import_ossfuzz_target(
         dictionary_path = Path(dict_candidate.name)
         break  # take the first one
 
+    # Write our metadata.yaml (after corpus/dict so we can record their presence)
+    metadata: dict[str, Any] = {
+        "name": project,
+        "language": language,
+        "sanitizers": sanitizers if isinstance(sanitizers, list) else [sanitizers],
+        "engines": engines if isinstance(engines, list) else [engines],
+        "format_type": format_type,
+        "ossfuzz_project": project,
+        "has_corpus": corpus_dir is not None,
+        "has_dictionary": dictionary_path is not None,
+    }
+    _write_metadata_yaml(dst_dir / "metadata.yaml", metadata)
+
     return ParserTarget(
         name=project,
-        format_type=_detect_format_type(project),
+        format_type=format_type,
         language=language,
         ossfuzz_project=project,
         dockerfile_path=Path("Dockerfile"),
