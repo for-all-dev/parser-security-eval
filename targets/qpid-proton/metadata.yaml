@@ -1,0 +1,14 @@
+name: qpid-proton
+language: c++
+sanitizers:
+  - address
+  - memory
+  - undefined
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: binary-serialization
+ossfuzz_project: qpid-proton
+has_corpus: False
+has_dictionary: False

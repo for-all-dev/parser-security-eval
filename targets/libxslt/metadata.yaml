@@ -1,0 +1,14 @@
+name: libxslt
+language: c++
+sanitizers:
+  - address
+  - memory
+  - undefined
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: text-markup
+ossfuzz_project: libxslt
+has_corpus: False
+has_dictionary: False

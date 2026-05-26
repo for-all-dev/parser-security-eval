@@ -1,0 +1,12 @@
+name: libheif
+language: c++
+sanitizers:
+  - address
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: unknown
+ossfuzz_project: libheif
+has_corpus: False
+has_dictionary: False

@@ -1,0 +1,14 @@
+name: wasm3
+language: c
+sanitizers:
+  - address
+  - undefined
+  - memory
+engines:
+  - libfuzzer
+  - afl
+  - honggfuzz
+format_type: unknown
+ossfuzz_project: wasm3
+has_corpus: False
+has_dictionary: False

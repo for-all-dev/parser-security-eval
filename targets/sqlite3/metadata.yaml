@@ -1,0 +1,14 @@
+name: sqlite3
+language: c++
+sanitizers:
+  - address
+  - memory
+  - undefined
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: database
+ossfuzz_project: sqlite3
+has_corpus: False
+has_dictionary: True

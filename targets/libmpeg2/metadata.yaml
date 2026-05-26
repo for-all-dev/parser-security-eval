@@ -1,0 +1,14 @@
+name: libmpeg2
+language: c++
+sanitizers:
+  - address
+  - memory
+  - undefined
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: unknown
+ossfuzz_project: libmpeg2
+has_corpus: False
+has_dictionary: False

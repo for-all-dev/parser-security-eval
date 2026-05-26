@@ -1,0 +1,14 @@
+name: lldpd
+language: c
+sanitizers:
+  - address
+  - memory
+  - undefined
+engines:
+  - libfuzzer
+  - afl
+  - honggfuzz
+format_type: unknown
+ossfuzz_project: lldpd
+has_corpus: False
+has_dictionary: False

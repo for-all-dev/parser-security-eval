@@ -1,0 +1,14 @@
+name: knot-dns
+language: c++
+sanitizers:
+  - address
+  - memory
+  - undefined
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: unknown
+ossfuzz_project: knot-dns
+has_corpus: False
+has_dictionary: False

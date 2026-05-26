@@ -1,0 +1,11 @@
+name: jbig2dec
+language: c++
+sanitizers:
+  - address
+  - memory
+engines:
+  - libfuzzer
+format_type: unknown
+ossfuzz_project: jbig2dec
+has_corpus: False
+has_dictionary: True

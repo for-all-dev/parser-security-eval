@@ -1,0 +1,11 @@
+name: libressl
+language: c++
+sanitizers:
+  - address
+  - undefined
+engines:
+  - libfuzzer
+format_type: protocol
+ossfuzz_project: libressl
+has_corpus: False
+has_dictionary: False

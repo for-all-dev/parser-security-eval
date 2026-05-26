@@ -1,0 +1,11 @@
+name: lodepng
+language: c++
+sanitizers:
+  - address
+  - undefined
+engines:
+  - libfuzzer
+format_type: binary-image
+ossfuzz_project: lodepng
+has_corpus: False
+has_dictionary: False

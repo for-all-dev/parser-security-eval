@@ -1,0 +1,11 @@
+name: gnupg
+language: c++
+sanitizers:
+  - address
+engines:
+  - libfuzzer
+  - honggfuzz
+format_type: unknown
+ossfuzz_project: gnupg
+has_corpus: False
+has_dictionary: False

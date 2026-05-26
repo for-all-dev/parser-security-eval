@@ -1,0 +1,12 @@
+name: libwebp
+language: c++
+sanitizers:
+  - address
+  - undefined
+  - memory
+engines:
+  - libfuzzer
+format_type: binary-image
+ossfuzz_project: libwebp
+has_corpus: False
+has_dictionary: False

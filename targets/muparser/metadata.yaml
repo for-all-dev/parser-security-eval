@@ -1,0 +1,13 @@
+name: muparser
+language: c++
+sanitizers:
+  - address
+  - undefined
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: unknown
+ossfuzz_project: muparser
+has_corpus: False
+has_dictionary: False

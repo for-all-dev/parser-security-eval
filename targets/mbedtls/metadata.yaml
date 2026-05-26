@@ -1,0 +1,10 @@
+name: mbedtls
+language: c++
+sanitizers:
+  - address
+engines:
+  - libfuzzer
+format_type: protocol
+ossfuzz_project: mbedtls
+has_corpus: False
+has_dictionary: False

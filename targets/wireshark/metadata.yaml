@@ -1,0 +1,12 @@
+name: wireshark
+language: c++
+sanitizers:
+  - address
+engines:
+  - libfuzzer
+  - honggfuzz
+  - afl
+format_type: unknown
+ossfuzz_project: wireshark
+has_corpus: False
+has_dictionary: False

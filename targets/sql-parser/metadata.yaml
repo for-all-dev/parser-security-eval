@@ -1,0 +1,12 @@
+name: sql-parser
+language: c++
+sanitizers:
+  - address
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: database
+ossfuzz_project: sql-parser
+has_corpus: False
+has_dictionary: False

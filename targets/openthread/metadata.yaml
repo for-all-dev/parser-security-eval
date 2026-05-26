@@ -1,0 +1,13 @@
+name: openthread
+language: c++
+sanitizers:
+  - address
+  - undefined
+engines:
+  - libfuzzer
+  - afl
+  - honggfuzz
+format_type: unknown
+ossfuzz_project: openthread
+has_corpus: False
+has_dictionary: False

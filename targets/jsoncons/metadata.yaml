@@ -1,0 +1,12 @@
+name: jsoncons
+language: c++
+sanitizers:
+  - address
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: text-data
+ossfuzz_project: jsoncons
+has_corpus: False
+has_dictionary: False

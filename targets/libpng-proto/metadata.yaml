@@ -1,0 +1,11 @@
+name: libpng-proto
+language: c++
+sanitizers:
+  - undefined
+  - address
+engines:
+  - libfuzzer
+format_type: binary-image
+ossfuzz_project: libpng-proto
+has_corpus: False
+has_dictionary: False

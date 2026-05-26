@@ -1,0 +1,12 @@
+name: libaom
+language: c++
+sanitizers:
+  - address
+  - memory
+  - undefined
+engines:
+  - libfuzzer
+format_type: unknown
+ossfuzz_project: libaom
+has_corpus: False
+has_dictionary: False

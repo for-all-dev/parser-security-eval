@@ -1,0 +1,14 @@
+name: libvpx
+language: c++
+sanitizers:
+  - address
+  - memory
+  - undefined
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: media
+ossfuzz_project: libvpx
+has_corpus: False
+has_dictionary: True

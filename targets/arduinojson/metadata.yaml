@@ -1,0 +1,12 @@
+name: arduinojson
+language: c++
+sanitizers:
+  - address
+  - memory
+  - undefined
+engines:
+  - libfuzzer
+format_type: text-data
+ossfuzz_project: arduinojson
+has_corpus: False
+has_dictionary: False

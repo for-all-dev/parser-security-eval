@@ -1,0 +1,14 @@
+name: curl
+language: c++
+sanitizers:
+  - address
+  - undefined
+  - memory
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: unknown
+ossfuzz_project: curl
+has_corpus: False
+has_dictionary: False

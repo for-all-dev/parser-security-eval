@@ -1,0 +1,11 @@
+name: file
+language: c++
+sanitizers:
+  - address
+  - undefined
+engines:
+  - libfuzzer
+format_type: unknown
+ossfuzz_project: file
+has_corpus: False
+has_dictionary: False

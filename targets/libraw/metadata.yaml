@@ -1,0 +1,14 @@
+name: libraw
+language: c++
+sanitizers:
+  - address
+  - memory
+  - undefined
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: binary-image
+ossfuzz_project: libraw
+has_corpus: False
+has_dictionary: False

@@ -1,0 +1,13 @@
+name: simdjson
+language: c++
+sanitizers:
+  - address
+  - undefined
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: text-data
+ossfuzz_project: simdjson
+has_corpus: False
+has_dictionary: False

@@ -1,0 +1,14 @@
+name: nghttp2
+language: c++
+sanitizers:
+  - address
+  - undefined
+  - memory
+engines:
+  - libfuzzer
+  - afl
+  - honggfuzz
+format_type: unknown
+ossfuzz_project: nghttp2
+has_corpus: False
+has_dictionary: False

@@ -1,0 +1,13 @@
+name: json-c
+language: c++
+sanitizers:
+  - address
+  - undefined
+engines:
+  - libfuzzer
+  - afl
+  - honggfuzz
+format_type: text-data
+ossfuzz_project: json-c
+has_corpus: False
+has_dictionary: False

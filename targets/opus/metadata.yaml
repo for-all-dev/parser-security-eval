@@ -1,0 +1,14 @@
+name: opus
+language: c++
+sanitizers:
+  - address
+  - undefined
+  - memory
+engines:
+  - libfuzzer
+  - afl
+  - honggfuzz
+format_type: unknown
+ossfuzz_project: opus
+has_corpus: False
+has_dictionary: False

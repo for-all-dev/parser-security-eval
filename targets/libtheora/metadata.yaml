@@ -1,0 +1,14 @@
+name: libtheora
+language: c++
+sanitizers:
+  - address
+  - undefined
+  - memory
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: unknown
+ossfuzz_project: libtheora
+has_corpus: False
+has_dictionary: False

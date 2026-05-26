@@ -1,0 +1,12 @@
+name: imagemagick
+language: c++
+sanitizers:
+  - address
+  - memory
+  - undefined
+engines:
+  - libfuzzer
+format_type: binary-image
+ossfuzz_project: imagemagick
+has_corpus: False
+has_dictionary: False

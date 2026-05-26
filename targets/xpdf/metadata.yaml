@@ -1,0 +1,12 @@
+name: xpdf
+language: c++
+sanitizers:
+  - address
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: document
+ossfuzz_project: xpdf
+has_corpus: False
+has_dictionary: False

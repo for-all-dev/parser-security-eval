@@ -1,0 +1,14 @@
+name: wabt
+language: c++
+sanitizers:
+  - address
+  - memory
+  - undefined
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: unknown
+ossfuzz_project: wabt
+has_corpus: False
+has_dictionary: False

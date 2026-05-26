@@ -1,0 +1,12 @@
+name: picotls
+language: c++
+sanitizers:
+  - address
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: protocol
+ossfuzz_project: picotls
+has_corpus: False
+has_dictionary: False

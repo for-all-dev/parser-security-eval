@@ -1,0 +1,12 @@
+name: ntopng
+language: c++
+sanitizers:
+  - address
+engines:
+  - libfuzzer
+  - afl
+  - honggfuzz
+format_type: binary-image
+ossfuzz_project: ntopng
+has_corpus: False
+has_dictionary: False

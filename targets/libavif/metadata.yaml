@@ -1,0 +1,12 @@
+name: libavif
+language: c++
+sanitizers:
+  - address
+  - memory
+  - undefined
+engines:
+  - libfuzzer
+format_type: media
+ossfuzz_project: libavif
+has_corpus: False
+has_dictionary: False

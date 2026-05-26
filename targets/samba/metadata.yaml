@@ -1,0 +1,12 @@
+name: samba
+language: c
+sanitizers:
+  - address
+  - undefined
+engines:
+  - libfuzzer
+  - honggfuzz
+format_type: unknown
+ossfuzz_project: samba
+has_corpus: False
+has_dictionary: False

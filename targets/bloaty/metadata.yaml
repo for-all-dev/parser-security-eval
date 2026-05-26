@@ -1,0 +1,10 @@
+name: bloaty
+language: c++
+sanitizers:
+  - address
+engines:
+  - libfuzzer
+format_type: unknown
+ossfuzz_project: bloaty
+has_corpus: False
+has_dictionary: False

@@ -1,0 +1,14 @@
+name: dav1d
+language: c++
+sanitizers:
+  - address
+  - memory
+  - undefined
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: unknown
+ossfuzz_project: dav1d
+has_corpus: False
+has_dictionary: False
