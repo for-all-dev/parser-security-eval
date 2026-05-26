@@ -798,15 +798,26 @@ def audit(
         build_audit_list,
         write_audit_toml,
     )
+    from parser_security_eval.dataset.ossfuzz import clone_ossfuzz_repo
 
     typer.echo("Fetching ARVO index...")
     metadata_path = fetch_arvo_index(cache_dir)
+
+    typer.echo("Cloning/updating google/oss-fuzz (to verify project existence)...")
+    ossfuzz_repo = clone_ossfuzz_repo(cache_dir)
+    ossfuzz_projects = {
+        p.name for p in (ossfuzz_repo / "projects").iterdir() if p.is_dir()
+    }
 
     exclude = set(CATEGORY1_TARGETS + CATEGORY2_TARGETS)
     typer.echo(
         f"Building audit list (excluding {len(exclude)} Category 1/2 targets)..."
     )
-    entries = build_audit_list(metadata_path, exclude_projects=exclude)
+    entries = build_audit_list(
+        metadata_path,
+        exclude_projects=exclude,
+        ossfuzz_projects=ossfuzz_projects,
+    )
 
     write_audit_toml(entries, output)
 
