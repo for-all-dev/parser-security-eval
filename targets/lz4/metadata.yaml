@@ -1,0 +1,14 @@
+name: lz4
+language: c++
+sanitizers:
+  - address
+  - memory
+  - undefined
+engines:
+  - libfuzzer
+  - afl
+  - honggfuzz
+format_type: compression
+ossfuzz_project: lz4
+has_corpus: False
+has_dictionary: False

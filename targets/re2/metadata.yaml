@@ -1,0 +1,14 @@
+name: re2
+language: c++
+sanitizers:
+  - address
+  - memory
+  - undefined
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: regex
+ossfuzz_project: re2
+has_corpus: False
+has_dictionary: False

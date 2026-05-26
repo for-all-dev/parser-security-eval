@@ -1,0 +1,10 @@
+name: lua
+language: c
+sanitizers:
+  - address
+engines:
+  - libfuzzer
+format_type: unknown
+ossfuzz_project: lua
+has_corpus: False
+has_dictionary: False

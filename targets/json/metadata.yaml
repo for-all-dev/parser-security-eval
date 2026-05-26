@@ -1,0 +1,14 @@
+name: json
+language: c++
+sanitizers:
+  - address
+  - undefined
+  - memory
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: text-data
+ossfuzz_project: json
+has_corpus: False
+has_dictionary: True

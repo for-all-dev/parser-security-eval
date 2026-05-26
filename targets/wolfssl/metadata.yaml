@@ -1,0 +1,13 @@
+name: wolfssl
+language: c++
+sanitizers:
+  - address
+  - memory
+  - undefined
+engines:
+  - libfuzzer
+  - honggfuzz
+format_type: protocol
+ossfuzz_project: wolfssl
+has_corpus: False
+has_dictionary: False

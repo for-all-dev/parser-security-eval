@@ -1,0 +1,10 @@
+name: readstat
+language: c++
+sanitizers:
+  - address
+engines:
+  - libfuzzer
+format_type: unknown
+ossfuzz_project: readstat
+has_corpus: False
+has_dictionary: True

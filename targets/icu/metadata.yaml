@@ -1,0 +1,13 @@
+name: icu
+language: c++
+sanitizers:
+  - address
+  - undefined
+engines:
+  - libfuzzer
+  - honggfuzz
+  - afl
+format_type: unknown
+ossfuzz_project: icu
+has_corpus: False
+has_dictionary: False

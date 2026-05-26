@@ -1,0 +1,13 @@
+name: freeimage
+language: c++
+sanitizers:
+  - address
+  - undefined
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: binary-image
+ossfuzz_project: freeimage
+has_corpus: False
+has_dictionary: False

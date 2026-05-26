@@ -1,0 +1,13 @@
+name: xmlsec
+language: c++
+sanitizers:
+  - address
+  - undefined
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: text-markup
+ossfuzz_project: xmlsec
+has_corpus: False
+has_dictionary: False

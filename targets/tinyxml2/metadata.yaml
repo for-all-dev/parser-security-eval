@@ -1,0 +1,14 @@
+name: tinyxml2
+language: c++
+sanitizers:
+  - address
+  - memory
+  - undefined
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: text-markup
+ossfuzz_project: tinyxml2
+has_corpus: False
+has_dictionary: True

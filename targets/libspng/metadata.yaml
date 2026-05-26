@@ -1,0 +1,13 @@
+name: libspng
+language: c++
+sanitizers:
+  - address
+  - undefined
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: binary-image
+ossfuzz_project: libspng
+has_corpus: False
+has_dictionary: False

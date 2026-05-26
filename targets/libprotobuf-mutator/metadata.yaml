@@ -1,0 +1,12 @@
+name: libprotobuf-mutator
+language: c++
+sanitizers:
+  - address
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: binary-serialization
+ossfuzz_project: libprotobuf-mutator
+has_corpus: False
+has_dictionary: True

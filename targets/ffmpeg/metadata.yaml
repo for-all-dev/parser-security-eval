@@ -1,0 +1,14 @@
+name: ffmpeg
+language: c++
+sanitizers:
+  - address
+  - memory
+  - undefined
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: media
+ossfuzz_project: ffmpeg
+has_corpus: False
+has_dictionary: False

@@ -1,0 +1,13 @@
+name: qpdf
+language: c++
+sanitizers:
+  - address
+  - undefined
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: document
+ossfuzz_project: qpdf
+has_corpus: False
+has_dictionary: False

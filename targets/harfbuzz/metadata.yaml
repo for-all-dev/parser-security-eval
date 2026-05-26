@@ -1,0 +1,14 @@
+name: harfbuzz
+language: c++
+sanitizers:
+  - address
+  - undefined
+  - memory
+engines:
+  - libfuzzer
+  - afl
+  - honggfuzz
+format_type: font
+ossfuzz_project: harfbuzz
+has_corpus: False
+has_dictionary: False

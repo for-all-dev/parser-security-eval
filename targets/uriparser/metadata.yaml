@@ -1,0 +1,11 @@
+name: uriparser
+language: c++
+sanitizers:
+  - address
+  - undefined
+engines:
+  - libfuzzer
+format_type: unknown
+ossfuzz_project: uriparser
+has_corpus: False
+has_dictionary: False

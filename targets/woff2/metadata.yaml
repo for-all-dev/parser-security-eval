@@ -1,0 +1,14 @@
+name: woff2
+language: c++
+sanitizers:
+  - address
+  - memory
+  - undefined
+engines:
+  - libfuzzer
+  - afl
+  - centipede
+format_type: font
+ossfuzz_project: woff2
+has_corpus: True
+has_dictionary: False

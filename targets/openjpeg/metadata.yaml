@@ -1,0 +1,13 @@
+name: openjpeg
+language: c++
+sanitizers:
+  - address
+  - memory
+engines:
+  - libfuzzer
+  - afl
+  - honggfuzz
+format_type: binary-image
+ossfuzz_project: openjpeg
+has_corpus: False
+has_dictionary: False

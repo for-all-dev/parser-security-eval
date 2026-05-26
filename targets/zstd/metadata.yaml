@@ -1,0 +1,14 @@
+name: zstd
+language: c++
+sanitizers:
+  - address
+  - memory
+  - undefined
+engines:
+  - libfuzzer
+  - afl
+  - honggfuzz
+format_type: compression
+ossfuzz_project: zstd
+has_corpus: False
+has_dictionary: False

@@ -1,0 +1,14 @@
+name: libpcap
+language: c++
+sanitizers:
+  - address
+  - memory
+  - undefined
+engines:
+  - libfuzzer
+  - afl
+  - honggfuzz
+format_type: network-capture
+ossfuzz_project: libpcap
+has_corpus: False
+has_dictionary: False

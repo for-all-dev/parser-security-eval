@@ -1,0 +1,13 @@
+name: quickjs
+language: c
+sanitizers:
+  - address
+  - memory
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: unknown
+ossfuzz_project: quickjs
+has_corpus: False
+has_dictionary: False

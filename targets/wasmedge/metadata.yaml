@@ -1,0 +1,11 @@
+name: wasmedge
+language: c++
+sanitizers:
+  - address
+  - memory:
+engines:
+  - libfuzzer
+format_type: unknown
+ossfuzz_project: wasmedge
+has_corpus: False
+has_dictionary: False

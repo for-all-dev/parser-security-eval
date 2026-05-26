@@ -1,0 +1,13 @@
+name: libtiff
+language: c++
+sanitizers:
+  - address
+  - undefined
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: binary-image
+ossfuzz_project: libtiff
+has_corpus: False
+has_dictionary: False

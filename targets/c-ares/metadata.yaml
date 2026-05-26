@@ -1,0 +1,14 @@
+name: c-ares
+language: c++
+sanitizers:
+  - address
+  - memory
+  - undefined
+engines:
+  - afl
+  - libfuzzer
+  - honggfuzz
+format_type: unknown
+ossfuzz_project: c-ares
+has_corpus: False
+has_dictionary: False

@@ -1,0 +1,14 @@
+name: binutils
+language: c++
+sanitizers:
+  - address
+  - undefined
+  - memory
+engines:
+  - libfuzzer
+  - honggfuzz
+  - centipede
+format_type: unknown
+ossfuzz_project: binutils
+has_corpus: False
+has_dictionary: False

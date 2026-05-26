@@ -1,0 +1,13 @@
+name: mupdf
+language: c++
+sanitizers:
+  - address
+  - memory
+engines:
+  - libfuzzer
+  - afl
+  - honggfuzz
+format_type: document
+ossfuzz_project: mupdf
+has_corpus: False
+has_dictionary: False

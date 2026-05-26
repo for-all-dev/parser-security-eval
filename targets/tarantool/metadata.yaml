@@ -1,0 +1,11 @@
+name: tarantool
+language: c
+sanitizers:
+  - address
+  - undefined
+engines:
+  - libfuzzer
+format_type: compression
+ossfuzz_project: tarantool
+has_corpus: False
+has_dictionary: False

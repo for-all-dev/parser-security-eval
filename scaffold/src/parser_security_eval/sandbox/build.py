@@ -119,8 +119,15 @@ def validate_target_layout(target_dir: Path) -> list[str]:
     if not dockerfile_path.exists():
         errors.append(f"Missing Dockerfile in {target_dir}")
     else:
-        first_line = dockerfile_path.read_text().split("\n", maxsplit=1)[0]
-        if not first_line.startswith("FROM "):
+        # Find the first non-comment, non-blank line (oss-fuzz Dockerfiles
+        # typically start with a license comment block).
+        first_instruction = ""
+        for line in dockerfile_path.read_text().splitlines():
+            stripped = line.strip()
+            if stripped and not stripped.startswith("#"):
+                first_instruction = stripped
+                break
+        if not first_instruction.startswith("FROM "):
             errors.append(
                 f"Dockerfile in {target_dir} must start with a FROM instruction"
             )

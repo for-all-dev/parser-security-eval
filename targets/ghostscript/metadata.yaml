@@ -1,0 +1,11 @@
+name: ghostscript
+language: c++
+sanitizers:
+  - address
+engines:
+  - libfuzzer
+  - honggfuzz
+format_type: unknown
+ossfuzz_project: ghostscript
+has_corpus: False
+has_dictionary: False

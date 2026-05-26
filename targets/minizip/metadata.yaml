@@ -1,0 +1,12 @@
+name: minizip
+language: c++
+sanitizers:
+  - address
+  - memory
+  - undefined
+engines:
+  - libfuzzer
+format_type: compression
+ossfuzz_project: minizip
+has_corpus: False
+has_dictionary: False

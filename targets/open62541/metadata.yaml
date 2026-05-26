@@ -1,0 +1,13 @@
+name: open62541
+language: c++
+sanitizers:
+  - address
+  - undefined
+  - memory
+engines:
+  - libfuzzer
+  - afl
+format_type: unknown
+ossfuzz_project: open62541
+has_corpus: False
+has_dictionary: False

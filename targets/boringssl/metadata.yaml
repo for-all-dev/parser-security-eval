@@ -1,0 +1,12 @@
+name: boringssl
+language: c++
+sanitizers:
+  - address
+  - undefined
+  - memory
+engines:
+  - libfuzzer
+format_type: protocol
+ossfuzz_project: boringssl
+has_corpus: False
+has_dictionary: False

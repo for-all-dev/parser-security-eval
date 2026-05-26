@@ -1,0 +1,13 @@
+name: libzip
+language: c++
+sanitizers:
+  - address
+  - undefined
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: compression
+ossfuzz_project: libzip
+has_corpus: False
+has_dictionary: False

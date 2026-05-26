@@ -1,0 +1,14 @@
+name: gnutls
+language: c++
+sanitizers:
+  - address
+  - memory
+  - undefined
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: protocol
+ossfuzz_project: gnutls
+has_corpus: False
+has_dictionary: False
