@@ -1,0 +1,15 @@
+name: valijson
+language: c++
+sanitizers:
+  - address
+  - undefined
+  - memory
+engines:
+  - afl
+  - honggfuzz
+  - libfuzzer
+format_type: text-data
+ossfuzz_project: valijson
+has_corpus: False
+has_dictionary: False
+build_sh_source: dockerfile

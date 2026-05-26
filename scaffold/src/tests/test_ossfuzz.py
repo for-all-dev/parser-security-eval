@@ -12,6 +12,7 @@ import pytest
 from parser_security_eval.dataset.ossfuzz import (
     BootstrapResult,
     _detect_format_type,
+    _dockerfile_creates_build_sh,
     _estimate_difficulty,
     _extract_affected_file,
     _extract_crash_type,
@@ -120,6 +121,16 @@ def ossfuzz_repo(tmp_path: Path) -> Path:
     jsonlib.mkdir(parents=True)
     (jsonlib / "Dockerfile").write_text("FROM gcr.io/oss-fuzz-base/base-builder\n")
     (jsonlib / "build.sh").write_text("#!/bin/bash\nmake\n")
+
+    # embedded_build — has Dockerfile that creates build.sh, but no static build.sh
+    embedded = projects_dir / "embedded_build"
+    embedded.mkdir(parents=True)
+    (embedded / "Dockerfile").write_text(
+        "FROM gcr.io/oss-fuzz-base/base-builder\n"
+        "RUN git clone --depth 1 https://example.com/embedded_build.git\n"
+        "RUN cp $SRC/embedded_build/fuzz/build_fuzzers.sh $SRC/build.sh\n"
+    )
+    (embedded / "project.yaml").write_text("language: c\n")
 
     return repo
 
@@ -572,6 +583,80 @@ class TestImportOssfuzzTarget:
         (proj / "Dockerfile").write_text("FROM base\n")
         with pytest.raises(FileNotFoundError, match="build.sh"):
             import_ossfuzz_target("bad", repo, tmp_path / "targets")
+
+    def test_dockerfile_embedded_build_sh(
+        self, ossfuzz_repo: Path, tmp_path: Path
+    ) -> None:
+        """Import a project whose Dockerfile creates build.sh at image build time."""
+        targets_dir = tmp_path / "targets"
+        target = import_ossfuzz_target("embedded_build", ossfuzz_repo, targets_dir)
+
+        assert target.name == "embedded_build"
+        dst = targets_dir / "embedded_build"
+        assert (dst / "Dockerfile").exists()
+        assert (dst / "build.sh").exists()
+        assert (dst / "metadata.yaml").exists()
+
+        # Stub build.sh should be executable and mention "stub"
+        build_sh_text = (dst / "build.sh").read_text()
+        assert "stub" in build_sh_text.lower()
+
+        # Metadata should record the source
+        metadata_text = (dst / "metadata.yaml").read_text()
+        assert "build_sh_source: dockerfile" in metadata_text
+
+    def test_dockerfile_embedded_build_sh_is_executable(
+        self, ossfuzz_repo: Path, tmp_path: Path
+    ) -> None:
+        import stat
+
+        targets_dir = tmp_path / "targets"
+        import_ossfuzz_target("embedded_build", ossfuzz_repo, targets_dir)
+        build_sh = targets_dir / "embedded_build" / "build.sh"
+        assert build_sh.stat().st_mode & stat.S_IXUSR
+
+
+# ---------------------------------------------------------------------------
+# Tests: _dockerfile_creates_build_sh
+# ---------------------------------------------------------------------------
+
+
+class TestDockerfileCreatesBuildSh:
+    def test_cp_pattern(self, tmp_path: Path) -> None:
+        df = tmp_path / "Dockerfile"
+        df.write_text(
+            "FROM gcr.io/oss-fuzz-base/base-builder\n"
+            "RUN cp $SRC/poppler/test/ossfuzz/build_fuzzers.sh $SRC/build.sh\n"
+        )
+        assert _dockerfile_creates_build_sh(df) is True
+
+    def test_no_build_sh_reference(self, tmp_path: Path) -> None:
+        df = tmp_path / "Dockerfile"
+        df.write_text("FROM gcr.io/oss-fuzz-base/base-builder\nRUN make\n")
+        assert _dockerfile_creates_build_sh(df) is False
+
+    def test_copy_instruction(self, tmp_path: Path) -> None:
+        df = tmp_path / "Dockerfile"
+        df.write_text("FROM gcr.io/oss-fuzz-base/base-builder\nCOPY build.sh $SRC/\n")
+        assert _dockerfile_creates_build_sh(df) is True
+
+    def test_mv_pattern(self, tmp_path: Path) -> None:
+        df = tmp_path / "Dockerfile"
+        df.write_text(
+            "FROM gcr.io/oss-fuzz-base/base-builder\n"
+            "RUN mv /tmp/build_fuzzers.sh $SRC/build.sh\n"
+        )
+        assert _dockerfile_creates_build_sh(df) is True
+
+    def test_cp_build_sh_to_src_dir(self, tmp_path: Path) -> None:
+        """Matches `cp .../build.sh $SRC/` (dest is directory, not full path)."""
+        df = tmp_path / "Dockerfile"
+        df.write_text(
+            "FROM gcr.io/oss-fuzz-base/base-builder\n"
+            "RUN git clone --depth 1 https://example.com/libconfig.git libconfig \\\n"
+            "        && cp libconfig/fuzz/build.sh $SRC/\n"
+        )
+        assert _dockerfile_creates_build_sh(df) is True
 
 
 # ---------------------------------------------------------------------------

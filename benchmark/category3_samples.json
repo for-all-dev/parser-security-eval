@@ -1,8 +1,8 @@
 {
   "version": "0.1.0",
   "generated": "2026-05-21T18:18:56.234403+00:00",
-  "total_samples": 3387,
-  "projects": 90,
+  "total_samples": 3348,
+  "projects": 88,
   "samples": [
     {
       "local_id": 42497314,
@@ -100,16 +100,6 @@
       "fuzz_target": "radio-receive-done-fuzzer"
     },
     {
-      "local_id": 42510129,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
-    },
-    {
-      "local_id": 42510086,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
-    },
-    {
       "local_id": 42509851,
       "project": "wireshark",
       "fuzz_target": "fuzzshark_ip"
@@ -125,44 +115,9 @@
       "fuzz_target": "fuzz_binary_message"
     },
     {
-      "local_id": 42509108,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
-    },
-    {
-      "local_id": 42508997,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
-    },
-    {
-      "local_id": 42508941,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
-    },
-    {
       "local_id": 42508818,
       "project": "open62541",
       "fuzz_target": "fuzz_binary_message"
-    },
-    {
-      "local_id": 42507875,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
-    },
-    {
-      "local_id": 42507864,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
-    },
-    {
-      "local_id": 42507852,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
-    },
-    {
-      "local_id": 42507841,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
     },
     {
       "local_id": 42507587,
@@ -175,16 +130,6 @@
       "fuzz_target": "magic_fuzzer"
     },
     {
-      "local_id": 42507454,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
-    },
-    {
-      "local_id": 42507199,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
-    },
-    {
       "local_id": 42507154,
       "project": "open62541",
       "fuzz_target": "fuzz_binary_decode"
@@ -195,34 +140,9 @@
       "fuzz_target": "fuzz_binary_message"
     },
     {
-      "local_id": 42506755,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
-    },
-    {
-      "local_id": 42506743,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
-    },
-    {
-      "local_id": 42506732,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
-    },
-    {
-      "local_id": 42506721,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
-    },
-    {
       "local_id": 42506644,
       "project": "open62541",
       "fuzz_target": "fuzz_binary_decode"
-    },
-    {
-      "local_id": 42506620,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
     },
     {
       "local_id": 42506598,
@@ -235,44 +155,9 @@
       "fuzz_target": "magic_fuzzer"
     },
     {
-      "local_id": 42506565,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
-    },
-    {
-      "local_id": 42506532,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
-    },
-    {
       "local_id": 42506498,
       "project": "file",
       "fuzz_target": "magic_fuzzer"
-    },
-    {
-      "local_id": 42506476,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
-    },
-    {
-      "local_id": 42506454,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
-    },
-    {
-      "local_id": 42506409,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
-    },
-    {
-      "local_id": 42506365,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
-    },
-    {
-      "local_id": 42506332,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
     },
     {
       "local_id": 42505165,
@@ -1760,11 +1645,6 @@
       "fuzz_target": "magic_fuzzer"
     },
     {
-      "local_id": 42541579,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
-    },
-    {
       "local_id": 42541548,
       "project": "mupdf",
       "fuzz_target": "pdf_fuzzer"
@@ -1888,11 +1768,6 @@
       "local_id": 42541002,
       "project": "mupdf",
       "fuzz_target": "pdf_fuzzer"
-    },
-    {
-      "local_id": 42540982,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
     },
     {
       "local_id": 42540922,
@@ -6085,11 +5960,6 @@
       "fuzz_target": "avif_decode_fuzzer"
     },
     {
-      "local_id": 42487640,
-      "project": "oniguruma",
-      "fuzz_target": "fuzzer"
-    },
-    {
       "local_id": 42487583,
       "project": "binutils",
       "fuzz_target": "fuzz_readelf"
@@ -6735,11 +6605,6 @@
       "fuzz_target": "set_eval_fuzzer"
     },
     {
-      "local_id": 42484344,
-      "project": "oniguruma",
-      "fuzz_target": "fuzzer"
-    },
-    {
       "local_id": 42484341,
       "project": "muparser",
       "fuzz_target": "set_eval_fuzzer"
@@ -6960,24 +6825,9 @@
       "fuzz_target": "gstoraster_fuzzer"
     },
     {
-      "local_id": 42483313,
-      "project": "oniguruma",
-      "fuzz_target": "fuzzer"
-    },
-    {
-      "local_id": 42483290,
-      "project": "oniguruma",
-      "fuzz_target": "fuzzer"
-    },
-    {
       "local_id": 42483273,
       "project": "imagemagick",
       "fuzz_target": "encoder_tiff64_fuzzer"
-    },
-    {
-      "local_id": 42483254,
-      "project": "oniguruma",
-      "fuzz_target": "fuzzer"
     },
     {
       "local_id": 42483223,
@@ -9645,16 +9495,6 @@
       "fuzz_target": "load_from_memory_fuzzer"
     },
     {
-      "local_id": 42494810,
-      "project": "oniguruma",
-      "fuzz_target": "fuzzer"
-    },
-    {
-      "local_id": 42494805,
-      "project": "oniguruma",
-      "fuzz_target": "fuzzer"
-    },
-    {
       "local_id": 42494736,
       "project": "lua",
       "fuzz_target": "fuzz_lua"
@@ -10515,29 +10355,9 @@
       "fuzz_target": "fuzz_compile"
     },
     {
-      "local_id": 42517801,
-      "project": "oniguruma",
-      "fuzz_target": "fuzzer"
-    },
-    {
-      "local_id": 42517796,
-      "project": "oniguruma",
-      "fuzz_target": "fuzzer"
-    },
-    {
       "local_id": 42517793,
       "project": "kimageformats",
       "fuzz_target": "kimgio_raw_fuzzer"
-    },
-    {
-      "local_id": 42517790,
-      "project": "oniguruma",
-      "fuzz_target": "fuzzer"
-    },
-    {
-      "local_id": 42517784,
-      "project": "oniguruma",
-      "fuzz_target": "fuzzer"
     },
     {
       "local_id": 42517640,
@@ -14170,11 +13990,6 @@
       "fuzz_target": "mux_demux_api_fuzzer@MuxDemuxApi.MuxDemuxApiTest"
     },
     {
-      "local_id": 382526743,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
-    },
-    {
       "local_id": 380927238,
       "project": "file",
       "fuzz_target": "magic_fuzzer_fd"
@@ -14303,11 +14118,6 @@
       "local_id": 369956900,
       "project": "tarantool",
       "fuzz_target": "luaL_loadbuffer_fuzzer"
-    },
-    {
-      "local_id": 368060016,
-      "project": "unrar",
-      "fuzz_target": "unrar_fuzzer"
     },
     {
       "local_id": 368729566,
@@ -15223,11 +15033,6 @@
       "local_id": 42534891,
       "project": "simdjson",
       "fuzz_target": "fuzz_dump"
-    },
-    {
-      "local_id": 42534875,
-      "project": "oniguruma",
-      "fuzz_target": "fuzzer"
     },
     {
       "local_id": 42534862,
