@@ -4,7 +4,7 @@
 
 | Name | Format Type | OSS-Fuzz Project | Fuzz Target |
 |------|-------------|-----------------|-------------|
-| freetype | binary-font | freetype2 | freetype_fuzzer |
+| freetype2 | binary-font | freetype2 | freetype_fuzzer |
 | libarchive | archive | libarchive | libarchive_fuzzer |
 | expat | text-markup | expat | expat_fuzzer |
 | pcre2 | regex | pcre2 | pcre2_fuzzer |
@@ -34,7 +34,7 @@ All four targets were chosen because they satisfy:
 
 ```
 targets/
-  freetype/
+  freetype2/
     Dockerfile
     build.sh
     metadata.yaml

@@ -40,4 +40,4 @@ $CXX $CXXFLAGS -I/src/libarchive/libarchive \
     -o $OUT/libarchive_fuzzer \
     $LIB_FUZZING_ENGINE \
     /src/libarchive/libarchive/libarchive.a \
-    -lz -lbz2 -llzma -lzstd
+    -lz -lbz2 -llzma -llz4 -lzstd -lcrypto -lxml2

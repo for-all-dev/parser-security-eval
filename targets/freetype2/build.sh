@@ -1,9 +1,11 @@
 #!/bin/bash -eu
 
-cd /src/freetype
+cd /src/freetype2
 
-# Configure with CMake for oss-fuzz
-cmake . \
+mkdir -p build && cd build
+
+# Configure with CMake for oss-fuzz (out-of-source build)
+cmake .. \
     -DCMAKE_BUILD_TYPE=Release \
     -DFT_DISABLE_ZLIB=FALSE \
     -DFT_DISABLE_BZIP2=FALSE \
@@ -41,9 +43,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 }
 EOF
 
-$CXX $CXXFLAGS -I/src/freetype/include \
+$CXX $CXXFLAGS -I/src/freetype2/include \
     /tmp/freetype_fuzzer.cc \
     -o $OUT/freetype_fuzzer \
     $LIB_FUZZING_ENGINE \
-    /src/freetype/libfreetype.a \
+    /src/freetype2/build/libfreetype.a \
     -lpng -lz -lbz2

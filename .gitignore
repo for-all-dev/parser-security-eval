@@ -15,5 +15,6 @@ scaffold/benchmark/
 
 .env
 benchmark/arvo/
+benchmark-cat*-smoke/
 
 logs/
