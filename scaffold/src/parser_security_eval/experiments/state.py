@@ -124,7 +124,7 @@ def extract_run_result(log: Any) -> RunResult:
                     str(log.stats.completed_at).replace("Z", "+00:00")
                 )
                 total_time = (completed - started).total_seconds()
-            except (ValueError, TypeError):
+            except ValueError, TypeError:
                 pass
 
     error_msg = None

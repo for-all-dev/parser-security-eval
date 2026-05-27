@@ -575,7 +575,8 @@ def enrich_dataset(
         False, help="Extract crash inputs from ARVO Docker images (slow, pulls images)"
     ),
     extract_sources: bool = typer.Option(
-        True, help="Extract vulnerable source files from cached git repos"
+        True,
+        help="Extract vulnerable source files (git with Docker fallback for non-git projects)",
     ),
     resolve_refs: bool = typer.Option(
         True, help="Resolve vulnerable_source_ref commit hashes from fix commits"
