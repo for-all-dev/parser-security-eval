@@ -132,7 +132,9 @@ def compute_callgraph_distances(
         FunctionDistance(function_name=name, distance=d)
         for name, d in sorted(dist.items())
     ]
-    return DistanceMap(target=callgraph.target, metric=DistanceMetric.CALLGRAPH, entries=entries)
+    return DistanceMap(
+        target=callgraph.target, metric=DistanceMetric.CALLGRAPH, entries=entries
+    )
 
 
 # ---------------------------------------------------------------------------
