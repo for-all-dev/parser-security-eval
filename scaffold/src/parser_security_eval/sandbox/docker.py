@@ -200,14 +200,26 @@ class DockerSandbox:
 
     # --- high-level operations ---
 
-    async def build_target(self) -> bool:
-        """Run build.sh inside the container. Returns True on success."""
+    async def build_target(self, allow_network: bool = False) -> bool:
+        """Run build.sh inside the container. Returns True on success.
+
+        When *allow_network* is True the build runs in a temporary
+        container **with** network access (for targets whose ``build.sh``
+        downloads dependencies at compile time).  The result is committed
+        back to the image and the main sandbox container is recreated
+        from the updated image with ``--network=none``.
+        """
         env = _build_env(self.config)
         env_flags = " ".join(f'{k}="{v}"' for k, v in env.items())
         command = f"export {env_flags} && bash /src/build.sh"
-        rc, stdout, stderr = await self.exec(
-            command, timeout=self.config.timeout_seconds
-        )
+
+        if allow_network:
+            rc, stdout, stderr = await self._build_with_network(command)
+        else:
+            rc, stdout, stderr = await self.exec(
+                command, timeout=self.config.timeout_seconds
+            )
+
         if rc != 0:
             logger.warning("build_target failed (rc=%d)", rc)
             if stderr:
@@ -217,6 +229,82 @@ class DockerSandbox:
                 for line in stdout.strip().splitlines()[-10:]:
                     logger.warning("  stdout: %s", line)
         return rc == 0
+
+    async def _build_with_network(self, command: str) -> tuple[int, str, str]:
+        """Run the build in a temporary container with network access.
+
+        Creates a transient container (with default bridge networking),
+        executes the build command, commits the result back to the image
+        tag, and recreates the main sandbox container (``--network=none``)
+        from the updated image.
+        """
+        if self._image_id is None:
+            raise RuntimeError(
+                "Must build_image() before build_target(allow_network=True)"
+            )
+
+        tag = self.image_tag
+
+        # Start temporary container with network access.
+        rc, stdout, stderr = await _run(
+            "docker",
+            "run",
+            "-d",
+            "--security-opt=no-new-privileges",
+            f"--memory={self.config.memory_limit}",
+            tag,
+            "sleep",
+            "infinity",
+        )
+        if rc != 0:
+            return rc, stdout, f"failed to start build container: {stderr}"
+        tmp_container = stdout.strip()
+
+        try:
+            # Execute build command.
+            rc, stdout, stderr = await _run(
+                "docker",
+                "exec",
+                tmp_container,
+                "bash",
+                "-c",
+                command,
+                timeout=self.config.timeout_seconds,
+            )
+            if rc != 0:
+                return rc, stdout, stderr
+
+            # Commit build artifacts back to the image.
+            rc_commit, _, err_commit = await _run(
+                "docker",
+                "commit",
+                tmp_container,
+                tag,
+            )
+            if rc_commit != 0:
+                return rc_commit, "", f"docker commit failed: {err_commit}"
+
+            # Update stored image ID to match the committed image.
+            rc_insp, image_id, _ = await _run(
+                "docker",
+                "image",
+                "inspect",
+                tag,
+                "--format",
+                "{{.Id}}",
+            )
+            if rc_insp == 0:
+                self._image_id = image_id.strip()
+
+        finally:
+            await _run("docker", "rm", "-f", tmp_container)
+
+        # Recreate the main container from the updated image.
+        if self._container_id is not None:
+            await self.stop()
+        await self.start()
+
+        return rc, stdout, stderr
 
     async def run_fuzzer(
         self,

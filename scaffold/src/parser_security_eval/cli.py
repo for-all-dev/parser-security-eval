@@ -389,6 +389,11 @@ def build_target(
     targets_root: Path = typer.Option(
         Path("../targets"), help="Targets root directory"
     ),
+    network: bool = typer.Option(
+        True,
+        help="Allow network access during the compile step. "
+        "Needed for targets whose build.sh downloads dependencies.",
+    ),
 ) -> None:
     """Build a parser target in Docker with the specified sanitizer and engine."""
     from parser_security_eval.sandbox.docker import DockerSandbox, SandboxConfig
@@ -407,7 +412,7 @@ def build_target(
 
     async def _run() -> bool:
         async with DockerSandbox(config) as sandbox:
-            return await sandbox.build_target()
+            return await sandbox.build_target(allow_network=network)
 
     typer.echo(
         f"Building {target} (sanitizer={sanitizer.value}, engine={engine.value})..."
