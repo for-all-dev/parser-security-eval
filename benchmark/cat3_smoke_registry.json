@@ -1,0 +1,1368 @@
+{
+  "version": "0.1.0",
+  "generated": "2026-05-21T18:18:56.234403+00:00",
+  "total_samples": 272,
+  "projects": 3,
+  "samples": [
+    {
+      "local_id": 42490869,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42512028,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_imap"
+    },
+    {
+      "local_id": 42505165,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-fuzzer"
+    },
+    {
+      "local_id": 42505099,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_ftp"
+    },
+    {
+      "local_id": 42504409,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-fuzzer"
+    },
+    {
+      "local_id": 42502820,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_http"
+    },
+    {
+      "local_id": 42498714,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer"
+    },
+    {
+      "local_id": 42498414,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-fuzzer"
+    },
+    {
+      "local_id": 42498403,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-fuzzer"
+    },
+    {
+      "local_id": 42492327,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-fuzzer"
+    },
+    {
+      "local_id": 42483539,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-fuzzer"
+    },
+    {
+      "local_id": 42479494,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-fuzzer"
+    },
+    {
+      "local_id": 42540606,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42540429,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42539764,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42501533,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42472557,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42472534,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42472478,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42472402,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_ftp"
+    },
+    {
+      "local_id": 42472107,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42471911,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42471893,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42471892,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42471867,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42471829,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42471685,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42471681,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42471515,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42471509,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42471492,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42471449,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42471441,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42471424,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42471394,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42471374,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42471192,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42471184,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42471169,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42471140,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42471118,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42471115,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42471105,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42471104,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42471091,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42471086,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42471052,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42471050,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42471044,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42471030,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42470994,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42470991,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42470990,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42470989,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42470972,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42470841,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42470799,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42470405,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42470395,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42470383,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-get-codepoints-fuzzer"
+    },
+    {
+      "local_id": 42470380,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-get-codepoints-fuzzer"
+    },
+    {
+      "local_id": 42470379,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42470275,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42470110,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42470096,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42470094,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42470093,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42470017,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_http"
+    },
+    {
+      "local_id": 42541338,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42540867,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42540434,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42539556,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_http"
+    },
+    {
+      "local_id": 42539540,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_rtsp"
+    },
+    {
+      "local_id": 42539533,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer"
+    },
+    {
+      "local_id": 42539527,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_rtsp"
+    },
+    {
+      "local_id": 42539525,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_http"
+    },
+    {
+      "local_id": 42539266,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_http"
+    },
+    {
+      "local_id": 42537800,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_rtsp"
+    },
+    {
+      "local_id": 42537566,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42537555,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42530888,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_rtsp"
+    },
+    {
+      "local_id": 42517205,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_ftp"
+    },
+    {
+      "local_id": 42479445,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42479443,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42479432,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42478821,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_http"
+    },
+    {
+      "local_id": 42478820,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_http"
+    },
+    {
+      "local_id": 42478455,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_http"
+    },
+    {
+      "local_id": 42478093,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42477670,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_smtp"
+    },
+    {
+      "local_id": 42477658,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_smb"
+    },
+    {
+      "local_id": 42477466,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_smb"
+    },
+    {
+      "local_id": 42477432,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_smtp"
+    },
+    {
+      "local_id": 42477426,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_pop3"
+    },
+    {
+      "local_id": 42477424,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_pop3"
+    },
+    {
+      "local_id": 42477423,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_rtmp"
+    },
+    {
+      "local_id": 42477413,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer"
+    },
+    {
+      "local_id": 42475449,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42475373,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42475364,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42475345,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42475301,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42475300,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42475141,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42475136,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42474135,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42472801,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42490798,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer"
+    },
+    {
+      "local_id": 42490732,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer"
+    },
+    {
+      "local_id": 42490242,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42490021,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42489807,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42486920,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42486664,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42486473,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42486146,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42486129,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42486102,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42486101,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42486098,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-draw-fuzzer"
+    },
+    {
+      "local_id": 42486094,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42486089,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42486080,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42485618,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42485154,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42484290,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_ftp"
+    },
+    {
+      "local_id": 42484287,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_imap"
+    },
+    {
+      "local_id": 42483351,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer"
+    },
+    {
+      "local_id": 42483059,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42482850,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42482308,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-draw-fuzzer"
+    },
+    {
+      "local_id": 42482235,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-draw-fuzzer"
+    },
+    {
+      "local_id": 42482143,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-draw-fuzzer"
+    },
+    {
+      "local_id": 42482121,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-draw-fuzzer"
+    },
+    {
+      "local_id": 42482115,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-draw-fuzzer"
+    },
+    {
+      "local_id": 42482101,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-draw-fuzzer"
+    },
+    {
+      "local_id": 42481452,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42481371,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42481343,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42481330,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42481135,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42481120,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42481119,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42481044,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42506534,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer"
+    },
+    {
+      "local_id": 42506523,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_tftp"
+    },
+    {
+      "local_id": 42506430,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_dict"
+    },
+    {
+      "local_id": 42506340,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer"
+    },
+    {
+      "local_id": 42506319,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_sftp"
+    },
+    {
+      "local_id": 42504870,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer"
+    },
+    {
+      "local_id": 42504855,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_sftp"
+    },
+    {
+      "local_id": 42504708,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_gopher"
+    },
+    {
+      "local_id": 42503911,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42503762,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42502450,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42502435,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42502063,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42501978,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42501484,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42500453,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42500374,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42500367,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42499979,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42499883,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42499493,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42499318,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42499133,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42498506,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42498363,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42497595,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42495573,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42495043,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42495027,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42494154,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42493302,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42493213,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42493147,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42493140,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42493112,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42493111,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42492895,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42492640,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42492607,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42491797,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42519396,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42518910,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42518552,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42518543,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42517213,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_http"
+    },
+    {
+      "local_id": 42517027,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_http"
+    },
+    {
+      "local_id": 42515685,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_rtsp"
+    },
+    {
+      "local_id": 42513759,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42513514,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42512034,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42511962,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42511936,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer"
+    },
+    {
+      "local_id": 42511397,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42508327,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer"
+    },
+    {
+      "local_id": 42508326,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_http"
+    },
+    {
+      "local_id": 42508325,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer"
+    },
+    {
+      "local_id": 42508045,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42508038,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42507989,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42507972,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42507617,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42507561,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42530920,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-draw-fuzzer"
+    },
+    {
+      "local_id": 42528604,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42527939,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_http"
+    },
+    {
+      "local_id": 42527642,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_ws"
+    },
+    {
+      "local_id": 42527438,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42526052,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42526043,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42525822,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42525789,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42525654,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42525070,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42524047,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42524038,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42524037,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42524035,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42523997,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42523777,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42523382,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42522572,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42522403,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_rtsp"
+    },
+    {
+      "local_id": 42522138,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42521970,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-draw-fuzzer"
+    },
+    {
+      "local_id": 42521648,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42521586,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42520290,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42519785,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42535797,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-draw-fuzzer"
+    },
+    {
+      "local_id": 42535423,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42532203,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer"
+    },
+    {
+      "local_id": 402476456,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_http"
+    },
+    {
+      "local_id": 399228599,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 399142890,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-draw-fuzzer"
+    },
+    {
+      "local_id": 398894523,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-draw-fuzzer"
+    },
+    {
+      "local_id": 394371778,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 42496338,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_pop3"
+    },
+    {
+      "local_id": 42516706,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_pop3"
+    },
+    {
+      "local_id": 42471049,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 42504287,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-fuzzer"
+    },
+    {
+      "local_id": 42480981,
+      "project": "sqlite3",
+      "fuzz_target": "libFuzzer_sqlite3_ossfuzz"
+    },
+    {
+      "local_id": 42477872,
+      "project": "sqlite3",
+      "fuzz_target": "libFuzzer_sqlite3_ossfuzz"
+    },
+    {
+      "local_id": 42479596,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42479476,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42490604,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42484557,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42482693,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42506850,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer"
+    },
+    {
+      "local_id": 42506822,
+      "project": "curl",
+      "fuzz_target": "curl_fuzzer_scp"
+    },
+    {
+      "local_id": 42505738,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42495986,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42495107,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42493255,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42510149,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42510126,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42510112,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42531086,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42526598,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42526593,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42526405,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42536775,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 42532504,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 434834668,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 433311403,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-shape-fuzzer"
+    },
+    {
+      "local_id": 433311398,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-draw-fuzzer"
+    },
+    {
+      "local_id": 431867896,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-subset-fuzzer"
+    },
+    {
+      "local_id": 429115413,
+      "project": "sqlite3",
+      "fuzz_target": "ossfuzz"
+    },
+    {
+      "local_id": 405454658,
+      "project": "harfbuzz",
+      "fuzz_target": "hb-draw-fuzzer"
+    }
+  ]
+}

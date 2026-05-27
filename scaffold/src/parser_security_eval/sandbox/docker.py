@@ -8,9 +8,12 @@ oss-fuzz conventions:
 """
 
 import asyncio
+import logging
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -202,9 +205,17 @@ class DockerSandbox:
         env = _build_env(self.config)
         env_flags = " ".join(f'{k}="{v}"' for k, v in env.items())
         command = f"export {env_flags} && bash /src/build.sh"
-        rc, _stdout, _stderr = await self.exec(
+        rc, stdout, stderr = await self.exec(
             command, timeout=self.config.timeout_seconds
         )
+        if rc != 0:
+            logger.warning("build_target failed (rc=%d)", rc)
+            if stderr:
+                for line in stderr.strip().splitlines()[-30:]:
+                    logger.warning("  stderr: %s", line)
+            if stdout:
+                for line in stdout.strip().splitlines()[-10:]:
+                    logger.warning("  stdout: %s", line)
         return rc == 0
 
     async def run_fuzzer(
