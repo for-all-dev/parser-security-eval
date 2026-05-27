@@ -5,6 +5,7 @@ following oss-fuzz conventions for Dockerfile + build.sh.
 """
 
 import os
+import re
 import textwrap
 from pathlib import Path
 
@@ -153,4 +154,51 @@ def validate_target_layout(target_dir: Path) -> list[str]:
         except yaml.YAMLError as e:
             errors.append(f"metadata.yaml in {target_dir} is not valid YAML: {e}")
 
+    # Check that all files referenced in COPY/ADD directives exist on disk.
+    if dockerfile_path.exists():
+        missing = find_missing_copy_targets(target_dir, dockerfile_path)
+        for f in missing:
+            errors.append(f"Missing COPY target: {f}")
+
     return errors
+
+
+def find_missing_copy_targets(target_dir: Path, dockerfile_path: Path) -> list[str]:
+    """Return filenames referenced by COPY/ADD in *dockerfile_path* that are missing.
+
+    Only checks local context files (not URLs or absolute paths).  Skips
+    ``$``-prefixed env-var references and known Docker build args.
+    """
+    missing: list[str] = []
+    text = dockerfile_path.read_text()
+
+    for line in text.splitlines():
+        stripped = line.strip()
+        # Skip comments and continuation lines (leading backslash handled by
+        # the preceding line).
+        if not stripped or stripped.startswith("#"):
+            continue
+
+        # Match COPY or ADD instructions.
+        m = re.match(r"^(?:COPY|ADD)\s+(?:--\S+\s+)*(.+)", stripped, re.IGNORECASE)
+        if not m:
+            continue
+
+        tokens = m.group(1).split()
+        if len(tokens) < 2:
+            continue
+
+        # Last token is the destination; everything else is a source.
+        sources = tokens[:-1]
+        for src in sources:
+            # Skip env-var references ($SRC, ${SRC}, etc.) and absolute paths.
+            if src.startswith("$") or src.startswith("/") or src.startswith("--"):
+                continue
+            # Skip URLs (ADD can fetch remote URLs).
+            if src.startswith("http://") or src.startswith("https://"):
+                continue
+            # Check if the source file/dir exists in the target directory.
+            if not (target_dir / src).exists():
+                missing.append(src)
+
+    return missing

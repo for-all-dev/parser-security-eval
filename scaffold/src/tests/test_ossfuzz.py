@@ -110,6 +110,22 @@ def ossfuzz_repo(tmp_path: Path) -> Path:
     (libxml2 / "build.sh").write_text("#!/bin/bash\nmake\n")
     (libxml2 / "project.yaml").write_text("language: c\n")
 
+    # file — project with extra fuzzer harness files referenced via COPY
+    file_proj = projects_dir / "file"
+    file_proj.mkdir(parents=True)
+    (file_proj / "Dockerfile").write_text(
+        "FROM gcr.io/oss-fuzz-base/base-builder\n"
+        "COPY build.sh fuzzer_temp_file.h magic_fuzzer.cc $SRC/\n"
+    )
+    (file_proj / "build.sh").write_text("#!/bin/bash\nmake\n")
+    (file_proj / "project.yaml").write_text("language: c\n")
+    (file_proj / "fuzzer_temp_file.h").write_text("#pragma once\n")
+    (file_proj / "magic_fuzzer.cc").write_text("int main() {}\n")
+    # Also include a subdirectory (like ghostscript's pdf_seeds/)
+    seeds = file_proj / "pdf_seeds"
+    seeds.mkdir()
+    (seeds / "sample.pdf").write_bytes(b"%PDF-1.4")
+
     # unrelated_project — should not be listed as parser
     unrelated = projects_dir / "unrelated_project"
     unrelated.mkdir(parents=True)
@@ -614,6 +630,22 @@ class TestImportOssfuzzTarget:
         import_ossfuzz_target("embedded_build", ossfuzz_repo, targets_dir)
         build_sh = targets_dir / "embedded_build" / "build.sh"
         assert build_sh.stat().st_mode & stat.S_IXUSR
+
+    def test_copies_extra_project_files(
+        self, ossfuzz_repo: Path, tmp_path: Path
+    ) -> None:
+        """Extra files (harnesses, headers, subdirs) are copied from oss-fuzz."""
+        targets_dir = tmp_path / "targets"
+        import_ossfuzz_target("file", ossfuzz_repo, targets_dir)
+
+        dst = targets_dir / "file"
+        assert (dst / "Dockerfile").exists()
+        assert (dst / "build.sh").exists()
+        assert (dst / "fuzzer_temp_file.h").exists()
+        assert (dst / "magic_fuzzer.cc").exists()
+        assert (dst / "pdf_seeds" / "sample.pdf").exists()
+        # project.yaml should NOT be copied (converted to metadata.yaml)
+        assert not (dst / "project.yaml").exists()
 
 
 # ---------------------------------------------------------------------------

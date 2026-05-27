@@ -5,6 +5,7 @@ from pathlib import Path
 
 
 from parser_security_eval.sandbox.build import (
+    find_missing_copy_targets,
     generate_build_sh,
     generate_dockerfile,
     validate_target_layout,
@@ -164,3 +165,89 @@ class TestValidateTargetLayout:
     def test_empty_directory(self, tmp_path: Path) -> None:
         errors = validate_target_layout(tmp_path)
         assert len(errors) == 3  # all three files missing
+
+    def test_missing_copy_targets_detected(self, tmp_path: Path) -> None:
+        self._create_valid_target(tmp_path)
+        (tmp_path / "Dockerfile").write_text(
+            "FROM gcr.io/oss-fuzz-base/base-builder\n"
+            "COPY build.sh fuzzer.cc helper.h $SRC/\n"
+        )
+        errors = validate_target_layout(tmp_path)
+        assert any("fuzzer.cc" in e for e in errors)
+        assert any("helper.h" in e for e in errors)
+        # build.sh exists, so it should NOT be flagged
+        assert not any("build.sh" in e for e in errors)
+
+    def test_no_false_positives_for_present_files(self, tmp_path: Path) -> None:
+        self._create_valid_target(tmp_path)
+        (tmp_path / "Dockerfile").write_text(
+            "FROM gcr.io/oss-fuzz-base/base-builder\nCOPY build.sh $SRC/\n"
+        )
+        errors = validate_target_layout(tmp_path)
+        assert errors == []
+
+
+class TestFindMissingCopyTargets:
+    def test_missing_files(self, tmp_path: Path) -> None:
+        df = tmp_path / "Dockerfile"
+        df.write_text("FROM base\nCOPY build.sh fuzzer.cc $SRC/\n")
+        (tmp_path / "build.sh").write_text("#!/bin/bash\n")
+        missing = find_missing_copy_targets(tmp_path, df)
+        assert missing == ["fuzzer.cc"]
+
+    def test_skips_env_vars(self, tmp_path: Path) -> None:
+        df = tmp_path / "Dockerfile"
+        df.write_text("FROM base\nCOPY $SRC/thing /dst/\n")
+        missing = find_missing_copy_targets(tmp_path, df)
+        assert missing == []
+
+    def test_skips_absolute_paths(self, tmp_path: Path) -> None:
+        df = tmp_path / "Dockerfile"
+        df.write_text("FROM base\nCOPY /usr/local/bin/tool /dst/\n")
+        missing = find_missing_copy_targets(tmp_path, df)
+        assert missing == []
+
+    def test_skips_urls(self, tmp_path: Path) -> None:
+        df = tmp_path / "Dockerfile"
+        df.write_text("FROM base\nADD https://example.com/file.tar.gz /dst/\n")
+        missing = find_missing_copy_targets(tmp_path, df)
+        assert missing == []
+
+    def test_handles_copy_flags(self, tmp_path: Path) -> None:
+        df = tmp_path / "Dockerfile"
+        df.write_text("FROM base\nCOPY --from=builder /app/bin /dst/\n")
+        missing = find_missing_copy_targets(tmp_path, df)
+        assert missing == []
+
+    def test_directories_counted(self, tmp_path: Path) -> None:
+        df = tmp_path / "Dockerfile"
+        df.write_text("FROM base\nCOPY seeds/ $SRC/seeds/\n")
+        (tmp_path / "seeds").mkdir()
+        missing = find_missing_copy_targets(tmp_path, df)
+        assert missing == []
+
+    def test_missing_directory(self, tmp_path: Path) -> None:
+        df = tmp_path / "Dockerfile"
+        df.write_text("FROM base\nCOPY pdf_seeds $SRC/\n")
+        missing = find_missing_copy_targets(tmp_path, df)
+        assert missing == ["pdf_seeds"]
+
+    def test_multiple_copy_lines(self, tmp_path: Path) -> None:
+        df = tmp_path / "Dockerfile"
+        df.write_text(
+            "FROM base\n"
+            "COPY build.sh $SRC/\n"
+            "COPY fuzzer.cc helper.h $SRC/\n"
+            "ADD proto.proto $SRC/\n"
+        )
+        (tmp_path / "build.sh").write_text("#!/bin/bash\n")
+        (tmp_path / "helper.h").write_text("#pragma once\n")
+        missing = find_missing_copy_targets(tmp_path, df)
+        assert sorted(missing) == ["fuzzer.cc", "proto.proto"]
+
+    def test_comments_ignored(self, tmp_path: Path) -> None:
+        df = tmp_path / "Dockerfile"
+        df.write_text("FROM base\n# COPY commented_out.cc $SRC/\nCOPY build.sh $SRC/\n")
+        (tmp_path / "build.sh").write_text("#!/bin/bash\n")
+        missing = find_missing_copy_targets(tmp_path, df)
+        assert missing == []
