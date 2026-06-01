@@ -647,9 +647,12 @@ def import_ossfuzz_target(
 ) -> ParserTarget:
     """Import an oss-fuzz project definition as a ParserTarget.
 
-    Copies Dockerfile, build.sh, corpus, and dictionary from the oss-fuzz
-    repo checkout into our ``targets/<project>/`` directory layout, and
-    converts ``project.yaml`` to ``metadata.yaml``.
+    Copies all project files from the oss-fuzz repo checkout into our
+    ``targets/<project>/`` directory layout, and converts ``project.yaml``
+    to ``metadata.yaml``.  This includes Dockerfile, build.sh, corpus,
+    dictionary, and any additional files (fuzzer harnesses, proto
+    definitions, seed archives, patches, etc.) that the Dockerfile may
+    reference via ``COPY``/``ADD`` directives.
     """
     src_dir = ossfuzz_repo / "projects" / project
     if not src_dir.is_dir():
@@ -706,6 +709,22 @@ def import_ossfuzz_target(
         shutil.copy2(dict_candidate, dst_dir / dict_candidate.name)
         dictionary_path = Path(dict_candidate.name)
         break  # take the first one
+
+    # Copy remaining project files (fuzzer harnesses, protos, seeds, patches,
+    # etc.) that Dockerfiles may reference via COPY/ADD directives.
+    _already_handled = {"Dockerfile", "build.sh", "project.yaml", "corpus"}
+    for item in sorted(src_dir.iterdir()):
+        if item.name in _already_handled:
+            continue
+        if item.suffix == ".dict":
+            continue  # already handled above
+        dst_item = dst_dir / item.name
+        if item.is_dir():
+            if dst_item.exists():
+                shutil.rmtree(dst_item)
+            shutil.copytree(item, dst_item)
+        else:
+            shutil.copy2(item, dst_item)
 
     # Write our metadata.yaml (after corpus/dict so we can record their presence)
     metadata: dict[str, Any] = {
