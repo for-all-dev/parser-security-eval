@@ -256,6 +256,61 @@ class TestDockerSandbox:
         assert result is False
 
     @pytest.mark.asyncio
+    async def test_build_target_allow_network(self) -> None:
+        """allow_network=True builds in a temp container, commits, and recreates."""
+        sandbox = DockerSandbox(_make_config())
+        sandbox._image_id = "sha256:old"
+        sandbox._container_id = "main_c"
+        with patch("parser_security_eval.sandbox.docker._run") as mock_run:
+            mock_run.side_effect = [
+                (0, "tmp_c\n", ""),  # docker run (temp container)
+                (0, "built ok", ""),  # docker exec (build)
+                (0, "", ""),  # docker commit
+                (0, "sha256:new\n", ""),  # docker image inspect
+                (0, "", ""),  # docker rm -f tmp_c (finally)
+                (0, "", ""),  # docker rm -f main_c (stop)
+                (0, "new_main_c\n", ""),  # docker run (start)
+            ]
+            result = await sandbox.build_target(allow_network=True)
+
+        assert result is True
+        assert sandbox._container_id == "new_main_c"
+        assert sandbox._image_id == "sha256:new"
+
+        # Verify temp container had network (no --network=none).
+        run_call_args = mock_run.call_args_list[0][0]
+        assert "--network=none" not in run_call_args
+
+        # Verify main container was recreated with --network=none.
+        restart_call_args = mock_run.call_args_list[6][0]
+        assert "--network=none" in restart_call_args
+
+    @pytest.mark.asyncio
+    async def test_build_target_allow_network_build_failure(self) -> None:
+        """allow_network=True still returns False on build failure."""
+        sandbox = DockerSandbox(_make_config())
+        sandbox._image_id = "sha256:old"
+        sandbox._container_id = "main_c"
+        with patch("parser_security_eval.sandbox.docker._run") as mock_run:
+            mock_run.side_effect = [
+                (0, "tmp_c\n", ""),  # docker run (temp container)
+                (1, "", "compile error"),  # docker exec (build fails)
+                (0, "", ""),  # docker rm -f tmp_c (finally)
+            ]
+            result = await sandbox.build_target(allow_network=True)
+
+        assert result is False
+        # Main container should be unchanged (no restart on build failure).
+        assert sandbox._container_id == "main_c"
+
+    @pytest.mark.asyncio
+    async def test_build_target_allow_network_no_image_raises(self) -> None:
+        """allow_network=True requires build_image() first."""
+        sandbox = DockerSandbox(_make_config())
+        with pytest.raises(RuntimeError, match="Must build_image"):
+            await sandbox.build_target(allow_network=True)
+
+    @pytest.mark.asyncio
     async def test_run_fuzzer_libfuzzer(self) -> None:
         sandbox = DockerSandbox(_make_config(engine="libfuzzer"))
         sandbox._container_id = "c123"
