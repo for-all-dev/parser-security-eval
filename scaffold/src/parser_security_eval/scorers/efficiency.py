@@ -68,6 +68,7 @@ undefined inverse.
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterable
 
 from pydantic import BaseModel
 from inspect_ai.scorer import Metric, SampleScore, Value, metric
@@ -125,38 +126,81 @@ def _field(sample_score: SampleScore, key: str) -> float:
     return 0.0
 
 
-def _pooled_totals(scores: list[SampleScore]) -> tuple[float, float, float, float]:
-    """Return pooled (vulns, tokens, model_seconds, fuzz_seconds) over samples."""
-    vulns = sum(_field(s, EFF_VULNS) for s in scores)
-    tokens = sum(_field(s, EFF_TOKENS) for s in scores)
-    model_seconds = sum(_field(s, EFF_MODEL_SECONDS) for s in scores)
-    fuzz_seconds = sum(_field(s, EFF_FUZZ_SECONDS) for s in scores)
-    return vulns, tokens, model_seconds, fuzz_seconds
-
-
 def _kappa(tokens: float, model_seconds: float, fallback: float = 0.0) -> float:
     """Token-generation rate (tokens/sec); ``fallback`` when no thinking time."""
     return tokens / model_seconds if model_seconds > 0 else fallback
 
 
-def token_equivalent_total(scores: list[SampleScore]) -> float:
+def pooled_token_equivalent(rows: Iterable[tuple[float, float, float]]) -> float:
     """Pooled token-equivalent denominator: sum_i (tokens_i + kappa_i * W_i).
 
-    Each sample is charged its fuzz-time at *its own* measured token rate; a
-    sample with no recorded thinking time falls back to the global pooled rate so
-    its fuzz-time is still charged rather than dropped.
+    ``rows`` yields ``(tokens, model_seconds, fuzz_seconds)`` per sample.  Each
+    sample is charged its fuzz-time at *its own* measured token rate; a sample
+    with no recorded thinking time falls back to the global pooled rate so its
+    fuzz-time is still charged rather than dropped.
+
+    This is the single source of truth for the token-equivalent math, shared by
+    the registered metric and the experiment leaderboard.
     """
-    _, total_tokens, total_model_seconds, _ = _pooled_totals(scores)
+    rows = list(rows)
+    total_tokens = sum(r[0] for r in rows)
+    total_model_seconds = sum(r[1] for r in rows)
     global_kappa = _kappa(total_tokens, total_model_seconds)
 
     total = 0.0
-    for s in scores:
-        tokens = _field(s, EFF_TOKENS)
-        model_seconds = _field(s, EFF_MODEL_SECONDS)
-        fuzz_seconds = _field(s, EFF_FUZZ_SECONDS)
+    for tokens, model_seconds, fuzz_seconds in rows:
         kappa = _kappa(tokens, model_seconds, fallback=global_kappa)
         total += tokens + kappa * fuzz_seconds
     return total
+
+
+def token_equivalent_total(scores: list[SampleScore]) -> float:
+    """Pooled token-equivalent denominator over Inspect ``SampleScore`` objects."""
+    return pooled_token_equivalent(
+        (
+            _field(s, EFF_TOKENS),
+            _field(s, EFF_MODEL_SECONDS),
+            _field(s, EFF_FUZZ_SECONDS),
+        )
+        for s in scores
+    )
+
+
+class EfficiencyRates(BaseModel):
+    """Pooled efficiency rates over a set of samples (one model, one eval, ...).
+
+    Mirrors the four registered metrics so the leaderboard reports identical
+    numbers without re-deriving the formulas.
+    """
+
+    vulns: float = 0.0
+    vulns_per_mtok: float = 0.0
+    vulns_per_fuzz_hour: float = 0.0
+    vulns_per_mtok_equiv: float = 0.0
+    token_rate: float = 0.0
+
+
+def pooled_efficiency_rates(inputs: Iterable[EfficiencyInputs]) -> EfficiencyRates:
+    """Compute all pooled efficiency rates from raw per-sample resource counts."""
+    rows = list(inputs)
+    vulns = sum(r.vulns for r in rows)
+    tokens = sum(r.total_tokens for r in rows)
+    model_seconds = sum(r.model_seconds for r in rows)
+    fuzz_seconds = sum(r.fuzz_seconds for r in rows)
+    denom_equiv = pooled_token_equivalent(
+        (r.total_tokens, r.model_seconds, r.fuzz_seconds) for r in rows
+    )
+    return EfficiencyRates(
+        vulns=vulns,
+        vulns_per_mtok=vulns / (tokens / _MILLION) if tokens > 0 else 0.0,
+        vulns_per_fuzz_hour=(
+            vulns / (fuzz_seconds / _SECONDS_PER_HOUR) if fuzz_seconds > 0 else 0.0
+        ),
+        vulns_per_mtok_equiv=vulns / (denom_equiv / _MILLION)
+        if denom_equiv > 0
+        else 0.0,
+        token_rate=_kappa(tokens, model_seconds),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -167,13 +211,25 @@ _MILLION = 1_000_000.0
 _SECONDS_PER_HOUR = 3_600.0
 
 
+def _sample_inputs(scores: list[SampleScore]) -> list[EfficiencyInputs]:
+    """Reconstruct per-sample resource counts from ``Score.metadata``."""
+    return [
+        EfficiencyInputs(
+            vulns=int(_field(s, EFF_VULNS)),
+            total_tokens=int(_field(s, EFF_TOKENS)),
+            model_seconds=_field(s, EFF_MODEL_SECONDS),
+            fuzz_seconds=_field(s, EFF_FUZZ_SECONDS),
+        )
+        for s in scores
+    ]
+
+
 @metric
 def vulns_per_mtok() -> Metric:
     """Pooled vulns per million tokens."""
 
     def metric_fn(scores: list[SampleScore]) -> Value:
-        vulns, tokens, _, _ = _pooled_totals(scores)
-        return vulns / (tokens / _MILLION) if tokens > 0 else 0.0
+        return pooled_efficiency_rates(_sample_inputs(scores)).vulns_per_mtok
 
     return metric_fn
 
@@ -183,8 +239,7 @@ def vulns_per_fuzz_hour() -> Metric:
     """Pooled vulns per fuzzer wall-clock hour (the core-crux rate)."""
 
     def metric_fn(scores: list[SampleScore]) -> Value:
-        vulns, _, _, fuzz_seconds = _pooled_totals(scores)
-        return vulns / (fuzz_seconds / _SECONDS_PER_HOUR) if fuzz_seconds > 0 else 0.0
+        return pooled_efficiency_rates(_sample_inputs(scores)).vulns_per_fuzz_hour
 
     return metric_fn
 
@@ -194,8 +249,7 @@ def token_rate() -> Metric:
     """Pooled kappa: tokens generated per second of model thinking (diagnostic)."""
 
     def metric_fn(scores: list[SampleScore]) -> Value:
-        _, tokens, model_seconds, _ = _pooled_totals(scores)
-        return _kappa(tokens, model_seconds)
+        return pooled_efficiency_rates(_sample_inputs(scores)).token_rate
 
     return metric_fn
 
@@ -210,9 +264,7 @@ def vulns_per_mtok_equiv() -> Metric:
     """
 
     def metric_fn(scores: list[SampleScore]) -> Value:
-        vulns, _, _, _ = _pooled_totals(scores)
-        denom = token_equivalent_total(scores)
-        return vulns / (denom / _MILLION) if denom > 0 else 0.0
+        return pooled_efficiency_rates(_sample_inputs(scores)).vulns_per_mtok_equiv
 
     return metric_fn
 

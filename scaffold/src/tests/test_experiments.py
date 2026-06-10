@@ -421,3 +421,46 @@ class TestAnalysis:
         libpng_a = [t for t in tb if t.model == "model-a" and t.target == "libpng"]
         assert len(libpng_a) == 1
         assert libpng_a[0].mean_score == pytest.approx(1.0)
+
+    @pytest.fixture
+    def fuzzing_df(self) -> pd.DataFrame:
+        # Two samples, one finding 2 crashes and one finding 0. Each spends 1M
+        # tokens over 100s of thinking (kappa = 10_000 tok/s) and one fuzz-hour.
+        common = {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_time": 100.0,
+            "eff_total_tokens": 1_000_000.0,
+            "eff_model_seconds": 100.0,
+            "eff_fuzz_seconds": 3_600.0,
+        }
+        return pd.DataFrame(
+            [
+                {
+                    "model": "m",
+                    "sample_id": "s1",
+                    "score": 0.8,
+                    "eff_vulns": 2.0,
+                    **common,
+                },
+                {
+                    "model": "m",
+                    "sample_id": "s2",
+                    "score": 0.0,
+                    "eff_vulns": 0.0,
+                    **common,
+                },
+            ]
+        )
+
+    def test_leaderboard_fuzzing_pooled_rates(self, fuzzing_df: pd.DataFrame):
+        lb = compute_model_leaderboard(fuzzing_df, "fuzzing")
+        assert len(lb) == 1
+        row = lb[0]
+        # Pooled: 2 vulns over 2M tokens and 2 fuzz-hours.
+        assert row.total_unique_crashes == pytest.approx(2.0)
+        assert row.vulns_per_mtok == pytest.approx(1.0)
+        assert row.vulns_per_fuzz_hour == pytest.approx(1.0)
+        assert row.token_rate == pytest.approx(10_000.0)
+        # Per-sample D = 1M + 10_000 * 3600 = 37M; pooled denom = 74M.
+        assert row.vulns_per_mtok_equiv == pytest.approx(2.0 / 74.0)
