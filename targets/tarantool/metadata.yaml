@@ -9,3 +9,4 @@ format_type: compression
 ossfuzz_project: tarantool
 has_corpus: False
 has_dictionary: False
+build_sh_source: static

@@ -9,3 +9,4 @@ format_type: binary-image
 ossfuzz_project: libpng-proto
 has_corpus: False
 has_dictionary: False
+build_sh_source: static

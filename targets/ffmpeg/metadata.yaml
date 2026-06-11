@@ -12,3 +12,4 @@ format_type: media
 ossfuzz_project: ffmpeg
 has_corpus: False
 has_dictionary: False
+build_sh_source: static

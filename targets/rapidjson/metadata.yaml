@@ -12,3 +12,4 @@ format_type: text-data
 ossfuzz_project: rapidjson
 has_corpus: False
 has_dictionary: False
+build_sh_source: static
