@@ -843,6 +843,8 @@ class TestLiveFuzzingScorer:
 
         state = MagicMock()
         state.metadata = {}  # no _session_state key
+        state.store.get.return_value = {}  # nothing stashed in the store either
+        state.token_usage = 12345  # resources still accounted (issue #135)
 
         target = MagicMock()
         target.text = "testparser"
@@ -850,6 +852,9 @@ class TestLiveFuzzingScorer:
         result = await score_fn(state, target)
         assert result.value == 0.0
         assert "No session state" in (result.explanation or "")
+        # Even with no session, the tokens spent are recorded for the rate metrics.
+        assert (result.metadata or {})["eff_total_tokens"] == 12345.0
+        assert (result.metadata or {})["eff_fuzz_seconds"] == 0.0
 
     @pytest.mark.asyncio
     async def test_scores_crashes_and_compiles(self) -> None:
@@ -870,6 +875,7 @@ class TestLiveFuzzingScorer:
             "fuzzing_cycles": [],
             "last_fuzz_result": None,
             "cycle_count": 1,
+            "total_fuzz_seconds": 300.0,
         }
 
         state = MagicMock()
@@ -877,6 +883,8 @@ class TestLiveFuzzingScorer:
             "target_name": "testparser",
             "_session_state": session_state,
         }
+        state.store.get.return_value = {}  # force fallback to metadata session_state
+        state.token_usage = 2_000_000
         target = MagicMock()
 
         result = await score_fn(state, target)
@@ -885,6 +893,11 @@ class TestLiveFuzzingScorer:
         # 5 crashes → crash_score=0.5; 1/1 first try compile → compile_score=1.0; no cov
         # 0.4*0.5 + 0.3*1.0 + 0.3*0.0 = 0.50
         assert float(result.value) == pytest.approx(0.50)
+        # Efficiency inputs are stashed for the registered metrics (issue #135).
+        md = result.metadata or {}
+        assert md["eff_vulns"] == 5.0
+        assert md["eff_total_tokens"] == 2_000_000.0
+        assert md["eff_fuzz_seconds"] == 300.0
 
 
 # ---------------------------------------------------------------------------

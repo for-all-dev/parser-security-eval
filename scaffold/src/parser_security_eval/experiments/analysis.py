@@ -19,6 +19,14 @@ from parser_security_eval.experiments.models import (
     TargetBreakdown,
 )
 from parser_security_eval.experiments.state import load_manifest
+from parser_security_eval.scorers.efficiency import (
+    EFF_FUZZ_SECONDS,
+    EFF_MODEL_SECONDS,
+    EFF_TOKENS,
+    EFF_VULNS,
+    EfficiencyInputs,
+    pooled_efficiency_rates,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -149,6 +157,43 @@ def _summary_to_row_triage(summary: Any, model: str) -> dict[str, Any]:
     }
 
 
+def _summary_to_row_fuzzing(summary: Any, model: str) -> dict[str, Any]:
+    meta = summary.metadata or {}
+    scores = summary.scores or {}
+
+    fuzz_obj = scores.get("_live_fuzzing_scorer")
+    score_val = fuzz_obj.as_float() if fuzz_obj else 0.0
+    smeta = (fuzz_obj.metadata or {}) if fuzz_obj else {}
+
+    inp, out, tot = _usage_from_summary(summary)
+
+    def _num(key: str) -> float:
+        value = smeta.get(key, 0.0)
+        return float(value) if isinstance(value, (int, float)) else 0.0
+
+    return {
+        "model": model,
+        "sample_id": str(summary.id),
+        "target": meta.get("target") or meta.get("target_name", ""),
+        "difficulty": meta.get("difficulty", ""),
+        "cwe": meta.get("cwe", ""),
+        "total_time": summary.total_time or 0.0,
+        "input_tokens": inp,
+        "output_tokens": out,
+        "total_tokens": tot,
+        "completed": summary.completed,
+        "score": score_val,
+        "unique_crashes": int(_num("unique_crashes")),
+        # Raw efficiency inputs (issue #135), read straight off the scorer
+        # metadata so the leaderboard's pooled rates match the registered
+        # metrics exactly. See scorers/efficiency.py.
+        "eff_vulns": _num(EFF_VULNS),
+        "eff_total_tokens": _num(EFF_TOKENS),
+        "eff_model_seconds": _num(EFF_MODEL_SECONDS),
+        "eff_fuzz_seconds": _num(EFF_FUZZ_SECONDS),
+    }
+
+
 # ---------------------------------------------------------------------------
 # DataFrame building
 # ---------------------------------------------------------------------------
@@ -177,6 +222,8 @@ def build_combined_dataframe(
                 rows.append(_summary_to_row_patching(s, run.model))
             elif task_type == "triage":
                 rows.append(_summary_to_row_triage(s, run.model))
+            elif task_type == "fuzzing":
+                rows.append(_summary_to_row_fuzzing(s, run.model))
 
     return pd.DataFrame(rows)
 
@@ -210,6 +257,29 @@ def compute_model_leaderboard(df: pd.DataFrame, task_type: str) -> list[ModelSco
             ):
                 if stage in group.columns:
                     kwargs[f"{stage}_rate"] = float(group[stage].mean())
+        elif task_type == "fuzzing" and "eff_vulns" in group.columns:
+            # Pooled efficiency rates (sum vulns / sum resource), computed via the
+            # same helper the registered metrics use — never a mean of per-sample
+            # ratios. See scorers/efficiency.py.
+            rates = pooled_efficiency_rates(
+                EfficiencyInputs(
+                    vulns=int(vulns),
+                    total_tokens=int(tokens),
+                    model_seconds=float(model_seconds),
+                    fuzz_seconds=float(fuzz_seconds),
+                )
+                for vulns, tokens, model_seconds, fuzz_seconds in zip(
+                    group["eff_vulns"],
+                    group["eff_total_tokens"],
+                    group["eff_model_seconds"],
+                    group["eff_fuzz_seconds"],
+                )
+            )
+            kwargs["total_unique_crashes"] = rates.vulns
+            kwargs["vulns_per_mtok"] = rates.vulns_per_mtok
+            kwargs["vulns_per_fuzz_hour"] = rates.vulns_per_fuzz_hour
+            kwargs["vulns_per_mtok_equiv"] = rates.vulns_per_mtok_equiv
+            kwargs["token_rate"] = rates.token_rate
 
         results.append(ModelScore(**kwargs))
 

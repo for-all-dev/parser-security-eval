@@ -149,6 +149,12 @@ class ModelScore(BaseModel):
     mean_output_tokens: float = 0.0
     mean_total_time: float = 0.0
     n_samples: int = 0
+    # Fuzzing resource-efficiency aggregates (issue #135); pooled, not averaged.
+    total_unique_crashes: float = 0.0
+    vulns_per_mtok: float = 0.0
+    vulns_per_fuzz_hour: float = 0.0
+    vulns_per_mtok_equiv: float = 0.0
+    token_rate: float = 0.0
 
 
 class CWEBreakdown(BaseModel):

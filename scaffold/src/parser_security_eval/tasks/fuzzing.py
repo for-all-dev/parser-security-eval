@@ -44,6 +44,11 @@ from inspect_ai.solver import (
 from inspect_ai.tool import Tool, tool
 
 from parser_security_eval import prompts
+from parser_security_eval.scorers.efficiency import (
+    EFFICIENCY_METRICS,
+    EfficiencyInputs,
+    model_thinking_seconds,
+)
 from parser_security_eval.models.fuzzing import (
     FuzzingCycle,
     FuzzingResult,
@@ -390,6 +395,12 @@ def _make_start_fuzzing_tool(
             )
             session_state["last_fuzz_result"] = fuzz_result
             session_state["cycle_count"] = session_state.get("cycle_count", 0) + 1
+            # Accumulate fuzzer wall-clock (W) for the efficiency metrics. We use
+            # the capped duration the campaign was asked to run for — a
+            # deterministic, single-core CPU-seconds proxy (issue #135).
+            session_state["total_fuzz_seconds"] = (
+                session_state.get("total_fuzz_seconds", 0.0) + capped
+            )
 
             summary_parts = [
                 f"Fuzzing run complete ({capped}s).",
@@ -679,6 +690,7 @@ def live_fuzzing_solver(
             "all_crash_hashes": {},
             "last_fuzz_result": None,
             "cycle_count": 0,
+            "total_fuzz_seconds": 0.0,  # accumulated fuzzer wall-clock (W, issue #135)
             "refinement_log": [],
             "harness_records": [],  # list[HarnessRecord] accumulated across cycles
             "fuzzing_cycles": [],  # list[FuzzingCycle]
@@ -828,7 +840,7 @@ def live_fuzzing_scorer(
     - Line coverage % from llvm-cov (0 if not available)
     """
 
-    @scorer(metrics=[mean()])
+    @scorer(metrics=[mean(), *EFFICIENCY_METRICS])
     def _live_fuzzing_scorer() -> Scorer:
         async def score(state: TaskState, target: object) -> Score:
             meta: dict[str, Any] = state.metadata or {}
@@ -840,16 +852,35 @@ def live_fuzzing_scorer(
             ) or meta.get("_session_state", {})
 
             if not session_state:
+                # Still record resources spent so per-token/-time rates are not
+                # silently inflated by samples that produced no session state.
+                empty_inputs = EfficiencyInputs(
+                    vulns=0,
+                    total_tokens=state.token_usage,
+                    model_seconds=model_thinking_seconds(),
+                    fuzz_seconds=0.0,
+                )
                 return Score(
                     value=0.0,
                     explanation=(
                         "No session state found — agent did not complete any cycles."
                     ),
+                    metadata=empty_inputs.as_metadata(),
                 )
 
             result = _build_session_result(target_name, fuzzing_engine, session_state)
 
             numeric = _compute_score(result)
+
+            # Resource accounting for the efficiency metrics (issue #135):
+            # vulns = deduplicated crashes; tokens = whole-sample LLM usage;
+            # model_seconds = thinking time (kappa denominator); fuzz_seconds = W.
+            eff_inputs = EfficiencyInputs(
+                vulns=result.total_unique_crashes,
+                total_tokens=state.token_usage,
+                model_seconds=model_thinking_seconds(),
+                fuzz_seconds=float(session_state.get("total_fuzz_seconds", 0.0)),
+            )
 
             explanation = (
                 f"unique_crashes={result.total_unique_crashes}, "
@@ -857,7 +888,9 @@ def live_fuzzing_scorer(
                 f"first_try_compile_rate={result.first_try_compile_rate:.2f}, "
                 f"mean_repair_iters={result.mean_repair_iterations:.1f}, "
                 f"line_coverage={result.final_line_coverage_pct:.1f}%, "
-                f"branch_coverage={result.final_branch_coverage_pct:.1f}%"
+                f"branch_coverage={result.final_branch_coverage_pct:.1f}%, "
+                f"tokens={eff_inputs.total_tokens}, "
+                f"fuzz_seconds={eff_inputs.fuzz_seconds:.0f}"
             )
 
             return Score(
@@ -872,6 +905,7 @@ def live_fuzzing_scorer(
                     "final_branch_coverage_pct": result.final_branch_coverage_pct,
                     "total_harnesses_attempted": result.total_harnesses_attempted,
                     "harnesses_compiled_first_try": result.harnesses_compiled_first_try,
+                    **eff_inputs.as_metadata(),
                 },
             )
 
