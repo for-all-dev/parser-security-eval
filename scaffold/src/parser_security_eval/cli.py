@@ -364,6 +364,10 @@ def evaluate(
     eval_kwargs: dict[str, object] = {"model": model, "limit": limit}
     if sample_id is not None:
         eval_kwargs["sample_id"] = sample_id
+
+    from parser_security_eval.telemetry import configure_telemetry
+
+    configure_telemetry()
     logs = inspect_eval(inspect_task, **eval_kwargs)
 
     for log in logs:
@@ -662,6 +666,10 @@ def fuzzing(
     )
 
     eval_kwargs: dict[str, object] = {"model": model, "limit": limit}
+
+    from parser_security_eval.telemetry import configure_telemetry
+
+    configure_telemetry()
     logs = inspect_eval(inspect_task, **eval_kwargs)
 
     for log in logs:

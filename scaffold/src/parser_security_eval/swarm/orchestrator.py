@@ -79,6 +79,13 @@ class SwarmOrchestrator:
         Returns:
             A :class:`SwarmResult` aggregating all agent outcomes.
         """
+        # Configure telemetry once, before fanning out — the per-agent evals run
+        # in worker threads, so configuring here avoids racing on the module-level
+        # guard (issue #138).
+        from parser_security_eval.telemetry import configure_telemetry
+
+        configure_telemetry()
+
         if diversity_config is None:
             diversity_config = DiversityConfig.default_portfolio(n_agents)
 
