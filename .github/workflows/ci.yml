@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancel superseded runs on the same ref (e.g. rapid pushes to a PR branch).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    # All Python tooling lives in the uv project under scaffold/.
+    working-directory: scaffold
+
+jobs:
+  quality:
+    name: lint · types · tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          # Key the cache on the project's lockfile.
+          cache-dependency-glob: scaffold/uv.lock
+
+      - name: Sync dependencies (locked)
+        # --locked fails if uv.lock is stale relative to pyproject.toml, so a
+        # forgotten `uv lock` is caught here rather than drifting silently.
+        run: uv sync --locked --dev
+
+      # Each check runs even if an earlier one failed, so a single CI run
+      # surfaces every class of problem at once.
+      - name: ruff format
+        if: ${{ !cancelled() }}
+        run: uv run ruff format --check
+
+      - name: ruff lint
+        if: ${{ !cancelled() }}
+        run: uv run ruff check
+
+      - name: ty (type check)
+        if: ${{ !cancelled() }}
+        # Non-blocking for now: ty reports ~166 pre-existing diagnostics, mostly
+        # Inspect-AI false positives (the `eval()` signature, `Score | None`
+        # unions). Flip to blocking once the pydantic-ai migration (#138) clears
+        # the bulk of these. Until then it runs for signal without gating merges.
+        continue-on-error: true
+        run: uv run ty check
+
+      - name: pytest
+        if: ${{ !cancelled() }}
+        run: uv run pytest
