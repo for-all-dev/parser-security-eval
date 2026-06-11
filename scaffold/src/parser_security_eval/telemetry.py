@@ -81,6 +81,195 @@ def configure_telemetry(*, service_name: str = "parser-security-eval") -> bool:
     except Exception as exc:  # pragma: no cover - defensive
         logger.debug("logfire.instrument_httpx() skipped: %s", exc)
 
+    _register_inspect_hooks()
+
     _configured = True
     logger.info("Logfire telemetry configured (service=%s)", service_name)
+    return True
+
+
+# ---------------------------------------------------------------------------
+# Route 2: Inspect hooks -> OTel span bridge (issue #138)
+# ---------------------------------------------------------------------------
+# The provider/httpx instrumentation above gives spans per LLM call but no eval
+# semantics (which sample, which target, what was scored). Inspect exposes a
+# ``hooks`` API with sample/task lifecycle callbacks; we bridge those into OTel
+# spans carrying target/score/crash/usage attributes so the dashboard (#114) can
+# query by run and target.
+#
+# Why detached spans (tracer.start_span) rather than ``logfire.span()``:
+# the hook callbacks are async and samples run *interleaved* (sample B may start
+# before sample A ends), so activating a span as the "current" context in
+# on_sample_start would tangle OTel's context stack across concurrent samples,
+# and provider spans run in a separate async task we cannot inject context into
+# anyway. start_span() creates a span WITHOUT activating context: we hold it in a
+# dict, enrich it on sample end, and end() it. These sample spans are therefore
+# top-level (provider spans are correlated by run/timing, not parented) — an
+# accepted limitation of bridging via hooks. Finer-grained per-cycle telemetry
+# is the #114 event stream's job, not this bridge.
+
+_HOOKS_REGISTERED = False
+
+
+def _otel_tracer():
+    """The OTel tracer backed by the Logfire-configured provider, or ``None``."""
+    try:
+        from opentelemetry import trace
+    except ImportError:  # pragma: no cover - opentelemetry ships with logfire
+        return None
+    return trace.get_tracer("parser-security-eval")
+
+
+class _SpanBridge:
+    """Mirrors Inspect sample lifecycle into detached OTel spans.
+
+    Holds spans started at sample-start, keyed by ``(eval_id, sample_id, epoch)``
+    — the tuple available at *both* callbacks (the sample uuid is only populated
+    at end). The tracer is resolved through ``tracer_factory`` at span-start so
+    the active provider is honoured (and so tests can inject a local provider
+    instead of fighting OTel's process-global, set-once tracer provider).
+    """
+
+    def __init__(self, tracer_factory=_otel_tracer) -> None:
+        self._tracer_factory = tracer_factory
+        self._spans: dict[str, object] = {}
+
+    @staticmethod
+    def _key(eval_id: object, sample_id: object, epoch: object) -> str:
+        return f"{eval_id}/{sample_id}/{epoch}"
+
+    def start(
+        self, eval_id: object, run_id: object, sample_id: object, epoch: object
+    ) -> None:
+        tracer = self._tracer_factory()
+        if tracer is None:  # pragma: no cover - provider torn down
+            return
+        span = tracer.start_span("eval sample")
+        span.set_attribute("run_id", str(run_id))
+        sid = _coerce_attr(sample_id)
+        if sid is not None:
+            span.set_attribute("sample.id", sid)
+        self._spans[self._key(eval_id, sample_id, epoch)] = span
+
+    def end(
+        self, eval_id: object, sample_id: object, epoch: object, sample: object
+    ) -> None:
+        span = self._spans.pop(self._key(eval_id, sample_id, epoch), None)
+        if span is None:
+            return
+        try:
+            for attr, value in _sample_attributes(sample).items():
+                span.set_attribute(attr, value)  # type: ignore[attr-defined]
+        finally:
+            span.end()  # type: ignore[attr-defined]
+
+
+def _coerce_attr(value: object) -> str | int | float | bool | None:
+    """Reduce a value to an OTel-legal attribute (or ``None`` to skip it)."""
+    if isinstance(value, (bool, int, float, str)):
+        return value
+    return None
+
+
+def _sample_attributes(sample: object) -> dict[str, str | int | float | bool]:
+    """Flatten an Inspect ``EvalSample`` into OTel span attributes.
+
+    Pulls target, timing, token usage, and every score (value + numeric score
+    metadata, which includes the issue #135 efficiency counts: ``eff_vulns``,
+    ``eff_fuzz_seconds`` and friends).
+    """
+    attrs: dict[str, str | int | float | bool] = {}
+
+    sid = _coerce_attr(getattr(sample, "id", None))
+    if sid is not None:
+        attrs["sample.id"] = sid
+    epoch = getattr(sample, "epoch", None)
+    if isinstance(epoch, int):
+        attrs["sample.epoch"] = epoch
+
+    metadata = getattr(sample, "metadata", None) or {}
+    target = metadata.get("target_name") or metadata.get("target")
+    if isinstance(target, str):
+        attrs["target"] = target
+
+    for field in ("total_time", "working_time"):
+        val = getattr(sample, field, None)
+        if isinstance(val, (int, float)):
+            attrs[f"sample.{field}"] = float(val)
+
+    error = getattr(sample, "error", None)
+    attrs["error"] = error is not None
+    if error is not None:
+        attrs["error.message"] = str(getattr(error, "message", error))[:500]
+
+    model_usage = getattr(sample, "model_usage", None) or {}
+    total_tokens = 0
+    for usage in model_usage.values():
+        tok = getattr(usage, "total_tokens", None)
+        if isinstance(tok, int):
+            total_tokens += tok
+    if total_tokens:
+        attrs["tokens.total"] = total_tokens
+
+    scores = getattr(sample, "scores", None) or {}
+    for name, score in scores.items():
+        as_float = getattr(score, "as_float", None)
+        if callable(as_float):
+            try:
+                attrs[f"score.{name}"] = float(as_float())
+            except Exception:  # non-numeric score value
+                pass
+        for mk, mv in (getattr(score, "metadata", None) or {}).items():
+            if isinstance(mv, (bool, int, float)):
+                attrs[f"score.{name}.{mk}"] = mv
+
+    return attrs
+
+
+def _register_inspect_hooks() -> bool:
+    """Register the Inspect hooks subscriber that mirrors samples into OTel.
+
+    Idempotent and best-effort: a missing/changed Inspect hooks API disables the
+    bridge rather than breaking telemetry setup. Returns whether the bridge is
+    active.
+    """
+    global _HOOKS_REGISTERED
+    if _HOOKS_REGISTERED:
+        return True
+
+    if _otel_tracer() is None:
+        return False
+
+    try:
+        from inspect_ai.hooks import Hooks, SampleEnd, SampleStart, hooks
+    except ImportError:  # pragma: no cover - Inspect missing/changed
+        logger.debug("inspect_ai.hooks unavailable; span bridge disabled")
+        return False
+
+    @hooks(
+        name="logfire_span_bridge",
+        description="Mirror Inspect samples to OTel/Logfire spans",
+    )
+    class _LogfireSpanBridge(Hooks):
+        def __init__(self) -> None:
+            self._bridge = _SpanBridge()
+
+        async def on_sample_start(self, data: SampleStart) -> None:
+            self._bridge.start(
+                data.eval_id,
+                data.run_id,
+                data.sample_id,
+                getattr(data.summary, "epoch", 0),
+            )
+
+        async def on_sample_end(self, data: SampleEnd) -> None:
+            self._bridge.end(
+                data.eval_id,
+                data.sample_id,
+                getattr(data.sample, "epoch", 0),
+                data.sample,
+            )
+
+    _HOOKS_REGISTERED = True
+    logger.info("Logfire span bridge registered (Inspect hooks)")
     return True
