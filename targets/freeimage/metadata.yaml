@@ -11,3 +11,4 @@ format_type: binary-image
 ossfuzz_project: freeimage
 has_corpus: False
 has_dictionary: False
+build_sh_source: static

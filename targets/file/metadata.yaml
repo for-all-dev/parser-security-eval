@@ -9,3 +9,4 @@ format_type: unknown
 ossfuzz_project: file
 has_corpus: False
 has_dictionary: False
+build_sh_source: static

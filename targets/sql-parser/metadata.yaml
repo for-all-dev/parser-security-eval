@@ -10,3 +10,4 @@ format_type: database
 ossfuzz_project: sql-parser
 has_corpus: False
 has_dictionary: False
+build_sh_source: static

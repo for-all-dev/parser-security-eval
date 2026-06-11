@@ -10,3 +10,4 @@ format_type: media
 ossfuzz_project: libavif
 has_corpus: False
 has_dictionary: False
+build_sh_source: static
