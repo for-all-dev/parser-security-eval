@@ -170,6 +170,10 @@ def run_experiment(
 
     from inspect_ai import eval as inspect_eval
 
+    from parser_security_eval.telemetry import configure_telemetry
+
+    configure_telemetry()
+
     log_dir = str(Path(config.output_dir) / "logs")
 
     with Progress(
