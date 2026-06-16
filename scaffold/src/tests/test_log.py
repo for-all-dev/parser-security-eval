@@ -217,3 +217,29 @@ def test_logfire_failure_falls_back_to_stdlib(facade, monkeypatch, caplog):
     with caplog.at_level(logging.INFO, logger="test.lffail"):
         log.info("still %s", "logged")
     assert "still logged" in caplog.text
+
+
+def test_logfire_active_tees_to_stdlib(facade, monkeypatch, caplog):
+    """When Logfire is active, the line goes to Logfire AND stdlib (a tee).
+
+    Console visibility must not be lost just because logs are also exported to
+    Logfire — with only a write token nobody can query Logfire live, so the
+    stdlib copy is how a run is watched locally.
+    """
+    calls: list[tuple[str, dict]] = []
+
+    class FakeLogfire:
+        def info(self, template, **kwargs):
+            calls.append((template, kwargs))
+
+    monkeypatch.setitem(__import__("sys").modules, "logfire", FakeLogfire())
+    facade.set_logfire_active(True)
+
+    log = facade.get_log("test.tee")
+    with caplog.at_level(logging.INFO, logger="test.tee"):
+        log.info("found %d in %s", 7, "zlib")
+
+    # Logfire received it...
+    assert calls == [("{message}", {"message": "found 7 in zlib"})]
+    # ...AND it is still visible on the local console (stdlib).
+    assert "found 7 in zlib" in caplog.text

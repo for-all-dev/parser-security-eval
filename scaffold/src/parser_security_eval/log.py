@@ -5,7 +5,11 @@ Every module in this package logs through :func:`get_log` instead of the stdlib
 
 * When Logfire is installed *and* credentialed (see ``telemetry.py``), the
   message is rendered and forwarded to Logfire so logs land in the observability
-  backend alongside the LLM/span telemetry from #138.
+  backend alongside the LLM/span telemetry from #138 — **and also** emitted to
+  stdlib so the line stays visible on the local console (a *tee*, not an
+  either/or). Logfire export and console visibility are not mutually exclusive;
+  when nobody can query Logfire live (e.g. only a write token is configured) the
+  console copy is how an operator watches a run.
 * Otherwise it degrades to vanilla stdlib :mod:`logging` so logs still reach the
   console. The facade itself *is* the degrade mechanism.
 
@@ -28,8 +32,10 @@ Design notes
   kwargs are appended to the rendered message as ``" key=value"`` pairs (so they
   are preserved and never raise), while genuine stdlib logging kwargs
   (``exc_info``, ``stack_info``, ``stacklevel``, ``extra``) are passed through.
-* **Never break a caller.** The Logfire path is wrapped in ``try/except`` and
-  falls through to stdlib on any failure.
+* **Never break a caller, and always tee.** The Logfire path is wrapped in
+  ``try/except``; whether it succeeds or fails, the call *always* continues on to
+  stdlib. So a Logfire outage degrades to console-only rather than losing the
+  line, and a healthy Logfire still leaves a console copy.
 * **Logs stay visible.** Because we removed the CLI ``logging.basicConfig``
   calls, the stdlib fallback path installs a sensible default handler once
   (lazily, idempotently) matching the old ``"%(levelname)s: %(message)s"`` /
@@ -142,8 +148,10 @@ class _Log:
 
     def exception(self, msg: str, *args: object, **kwargs: object) -> None:
         """Like ``error`` but includes the active exception's traceback."""
-        if _LOGFIRE_ACTIVE and self._to_logfire("exception", msg, args, kwargs):
-            return
+        # Tee: forward to Logfire when active (best-effort), then always fall
+        # through to stdlib so the line is also visible on the local console.
+        if _LOGFIRE_ACTIVE:
+            self._to_logfire("exception", msg, args, kwargs)
         _ensure_stdlib_configured()
         if not kwargs:
             # Fast path / byte-for-byte unchanged: let stdlib render %s args.
@@ -165,8 +173,10 @@ class _Log:
         args: tuple[object, ...],
         kwargs: dict[str, object],
     ) -> None:
-        if _LOGFIRE_ACTIVE and self._to_logfire(method, msg, args, kwargs):
-            return
+        # Tee: forward to Logfire when active (best-effort), then always fall
+        # through to stdlib so the line is also visible on the local console.
+        if _LOGFIRE_ACTIVE:
+            self._to_logfire(method, msg, args, kwargs)
         _ensure_stdlib_configured()
         if not kwargs:
             # Fast path / byte-for-byte unchanged: let stdlib render %s args.
@@ -185,7 +195,9 @@ class _Log:
     ) -> bool:
         """Forward a rendered message + attributes to Logfire.
 
-        Returns False on any failure. The rendered human text is always sent as
+        Returns whether the forward succeeded — informational only; callers tee
+        to stdlib regardless, so a False return just means Logfire missed this
+        line, not that it needs re-logging. The rendered human text is always sent as
         the ``message`` attribute of a fixed ``"{message}"`` template so Logfire
         never interprets literal braces in the text as a span template (which
         warns/raises). Structured attribute kwargs are forwarded as real Logfire
