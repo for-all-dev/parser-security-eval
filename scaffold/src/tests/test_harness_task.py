@@ -232,6 +232,7 @@ class TestHarnessScorer:
             "target_name": "testlib",
             "targets_dir": "/nonexistent",
         }
+        state.token_usage = 4321  # resources still accounted (issue #135)
 
         from inspect_ai.scorer import INCORRECT, Target
 
@@ -240,6 +241,108 @@ class TestHarnessScorer:
         assert result is not None
         assert result.value == INCORRECT
         assert "does not contain" in (result.explanation or "")
+
+    @pytest.mark.asyncio
+    async def test_records_efficiency_inputs_on_early_return(self) -> None:
+        """Even when no harness is produced, tokens spent are recorded (#135).
+
+        The agent burns tokens before failing to emit a harness; those must
+        feed the per-token efficiency rates rather than being silently dropped.
+        Vulns and fuzz wall-clock are zero because the fuzzer never ran.
+        """
+        from parser_security_eval.scorers.efficiency import (
+            EFF_FUZZ_SECONDS,
+            EFF_MODEL_SECONDS,
+            EFF_TOKENS,
+            EFF_VULNS,
+        )
+
+        s = harness_scorer(fuzz_duration=10, engine="libfuzzer")
+
+        state = MagicMock()
+        state.output.completion = "no harness here"
+        state.metadata = {"target_name": "testlib", "targets_dir": "/nonexistent"}
+        state.token_usage = 9999
+
+        from inspect_ai.scorer import Target
+
+        result = await s(state, Target("fuzz_testlib"))
+        assert result is not None
+        md = result.metadata or {}
+        assert md[EFF_TOKENS] == 9999.0
+        assert md[EFF_VULNS] == 0.0
+        assert md[EFF_FUZZ_SECONDS] == 0.0
+        # model_seconds is 0.0 outside a live transcript, but the key is present.
+        assert EFF_MODEL_SECONDS in md
+
+    @pytest.mark.asyncio
+    async def test_records_efficiency_inputs_on_success_path(
+        self, target_dir: Path
+    ) -> None:
+        """The success path records vulns (unique crashes) + fuzzer wall-clock.
+
+        The live Docker build/compile/fuzz is mocked so the test is hermetic;
+        what it pins down is that the efficiency inputs the registered #135
+        metrics consume are populated on the coverage-scoring return path:
+        ``eff_vulns`` from unique crashes and ``eff_fuzz_seconds`` from the
+        configured fuzz duration (the wall-clock the fuzzer burned).
+        """
+        from unittest.mock import AsyncMock, patch
+
+        import parser_security_eval.tasks.harness as harness_mod
+        from inspect_ai.scorer import Target
+        from parser_security_eval.scorers.coverage import CoverageResult
+        from parser_security_eval.scorers.efficiency import (
+            EFF_FUZZ_SECONDS,
+            EFF_TOKENS,
+            EFF_VULNS,
+        )
+
+        sandbox = MagicMock()
+        sandbox.copy_in = AsyncMock()
+        sandbox.build_target = AsyncMock(return_value=True)
+        sandbox.exec = AsyncMock(return_value=(0, "", ""))
+        sandbox_cm = MagicMock()
+        sandbox_cm.__aenter__ = AsyncMock(return_value=sandbox)
+        sandbox_cm.__aexit__ = AsyncMock(return_value=False)
+
+        fake_coverage = CoverageResult(
+            line_coverage_pct=42.0,
+            branch_coverage_pct=10.0,
+            function_coverage_pct=5.0,
+            unique_crashes=3,
+            total_executions=1000,
+            execs_per_sec=100.0,
+        )
+
+        state = MagicMock()
+        state.output.completion = (
+            "```c\nint LLVMFuzzerTestOneInput(const uint8_t *d, size_t s)"
+            " { return 0; }\n```"
+        )
+        state.metadata = {
+            "target_name": "testlib",
+            "targets_dir": str(target_dir.parent),
+        }
+        state.token_usage = 5000
+
+        s = harness_scorer(fuzz_duration=60, engine="libfuzzer")
+        with (
+            patch.object(harness_mod, "DockerSandbox", return_value=sandbox_cm),
+            patch.object(
+                harness_mod,
+                "run_fuzzer_and_measure",
+                AsyncMock(return_value=fake_coverage),
+            ),
+        ):
+            result = await s(state, Target("fuzz_testlib"))
+
+        assert result is not None
+        assert result.as_float() == pytest.approx(0.42)  # line_coverage / 100
+        md = result.metadata or {}
+        assert md[EFF_VULNS] == 3.0
+        assert md[EFF_TOKENS] == 5000.0
+        assert md[EFF_FUZZ_SECONDS] == 60.0
 
 
 # ---------------------------------------------------------------------------
