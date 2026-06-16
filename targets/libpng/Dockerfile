@@ -21,7 +21,9 @@ RUN apt-get update && \
 
 RUN git clone https://github.com/madler/zlib.git /src/zlib
 # Full clone of libpng so we can checkout vulnerable commits.
-RUN git clone https://github.com/glennrp/libpng /src/libpng
+# Pin libpng16: upstream's default branch moved to libpng18, whose static lib
+# (libpng18.a) build.sh doesn't locate -> "could not find libpng static library".
+RUN git clone -b libpng16 https://github.com/glennrp/libpng /src/libpng
 
 COPY build.sh $SRC/
 
