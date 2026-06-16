@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import itertools
+import sys
 import tomllib
 from pathlib import Path
 from typing import Any
@@ -181,6 +182,13 @@ def run_experiment(
         BarColumn(),
         MofNCompleteColumn(),
         TimeElapsedColumn(),
+        # Disable the live display when not attached to a TTY (background /
+        # piped overnight runs). Inspect-AI drives its own Rich Live for each
+        # eval inside this loop, and in non-interactive mode the shared console's
+        # live stack underflows on teardown -> "IndexError: pop from empty list".
+        # disable=True makes Progress skip live.stop(), avoiding the crash; the
+        # per-run log lines still report progress.
+        disable=not sys.stdout.isatty(),
     ) as progress:
         task_id = progress.add_task(f"Experiment: {config.name}", total=len(pending))
 
