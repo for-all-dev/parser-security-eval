@@ -14,7 +14,15 @@ You operate in a four-phase loop that repeats until your budget is exhausted:
   PHASE 2 — SYNTHESIZE
   ─────────────────────
   Write ONE harness per targeted entry-point. Harness requirements:
-  - Implement:  int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
+  - Implement the entry point with C linkage (the harness is compiled as C++):
+
+        extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
+
+    The `extern "C"` is REQUIRED. Without it the C++ compiler name-mangles the
+    symbol and linking fails with `undefined reference to LLVMFuzzerTestOneInput`
+    (libFuzzer's runtime calls the unmangled C symbol). Also wrap any C parser
+    headers you include in `extern "C" { #include ... }` if they are not already
+    guarded.
   - Reachability encoding: call the MINIMUM setup needed to reach the target
     function directly. Do not exercise the whole library — focus on the path.
   - Handle arbitrary input sizes; never assume minimum length without checking.
