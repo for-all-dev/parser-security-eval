@@ -115,6 +115,94 @@ def test_logfire_braces_in_text_are_not_a_template(facade, monkeypatch):
     assert captured["kwargs"] == {"message": "json was {not a template}"}
 
 
+def test_logfire_structured_kwargs_become_attributes(facade, monkeypatch):
+    """Structured kwargs reach Logfire as real attributes alongside the message."""
+    captured: dict[str, object] = {}
+
+    class FakeLogfire:
+        def info(self, template, **kwargs):
+            captured["template"] = template
+            captured["kwargs"] = kwargs
+
+    monkeypatch.setitem(__import__("sys").modules, "logfire", FakeLogfire())
+    facade.set_logfire_active(True)
+
+    facade.get_log("test.kw").info("fuzzer exited", exit_code=139, target="libpng")
+    assert captured["template"] == "{message}"
+    assert captured["kwargs"] == {
+        "message": "fuzzer exited",
+        "exit_code": 139,
+        "target": "libpng",
+    }
+
+
+def test_logfire_caller_message_kwarg_does_not_shadow(facade, monkeypatch):
+    """A caller kwarg named ``message`` must not overwrite the rendered message."""
+    captured: dict[str, object] = {}
+
+    class FakeLogfire:
+        def info(self, template, **kwargs):
+            captured["kwargs"] = kwargs
+
+    monkeypatch.setitem(__import__("sys").modules, "logfire", FakeLogfire())
+    facade.set_logfire_active(True)
+
+    facade.get_log("test.collide").info("real message", message="injected")
+    assert captured["kwargs"] == {"message": "real message"}
+
+
+def test_logfire_no_kwargs_unchanged(facade, monkeypatch):
+    """No-kwargs Logfire path is byte-for-byte unchanged (only the message attr)."""
+    captured: dict[str, object] = {}
+
+    class FakeLogfire:
+        def info(self, template, **kwargs):
+            captured["template"] = template
+            captured["kwargs"] = kwargs
+
+    monkeypatch.setitem(__import__("sys").modules, "logfire", FakeLogfire())
+    facade.set_logfire_active(True)
+
+    facade.get_log("test.nokw").info("found %d in %s", 2, "zlib")
+    assert captured["template"] == "{message}"
+    assert captured["kwargs"] == {"message": "found 2 in zlib"}
+
+
+def test_stdlib_fallback_structured_kwargs_preserved(facade, caplog):
+    """Structured kwargs must NOT raise on the stdlib path and ARE appended."""
+    log = facade.get_log("test.kwfallback")
+    with caplog.at_level(logging.INFO, logger="test.kwfallback"):
+        log.info("fuzzer exited", exit_code=139, target="libpng")
+    msg = caplog.records[-1].getMessage()
+    assert "fuzzer exited" in msg
+    assert "exit_code=139" in msg
+    assert "target=libpng" in msg
+
+
+def test_stdlib_fallback_mixes_args_and_kwargs(facade, caplog):
+    """%s args render and attribute kwargs append on the stdlib path."""
+    log = facade.get_log("test.mix")
+    with caplog.at_level(logging.INFO, logger="test.mix"):
+        log.info("collected %d crashes", 3, target="zlib")
+    msg = caplog.records[-1].getMessage()
+    assert "collected 3 crashes" in msg
+    assert "target=zlib" in msg
+
+
+def test_stdlib_fallback_passes_real_logging_kwargs(facade, caplog):
+    """Genuine stdlib log kwargs (exc_info) pass through, attrs still append."""
+    log = facade.get_log("test.exckw")
+    with caplog.at_level(logging.ERROR, logger="test.exckw"):
+        try:
+            raise ValueError("boom")
+        except ValueError:
+            log.error("op failed", exc_info=True, target="libxml2")
+    rec = caplog.records[-1]
+    assert "op failed" in rec.getMessage()
+    assert "target=libxml2" in rec.getMessage()
+    assert rec.exc_info is not None
+
+
 def test_logfire_failure_falls_back_to_stdlib(facade, monkeypatch, caplog):
     """If the Logfire call raises, the facade falls through to stdlib."""
 

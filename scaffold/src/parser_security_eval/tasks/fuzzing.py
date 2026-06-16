@@ -711,10 +711,10 @@ def live_fuzzing_solver(
 
         async with DockerSandbox(config) as sandbox:
             # Build the target so libraries are available for harness linking
-            log.info("Building target %s inside sandbox", target_name)
+            log.info("building target inside sandbox", target=target_name)
             build_ok = await sandbox.build_target()
             if not build_ok:
-                log.warn("Target build failed for %s", target_name)
+                log.warn("target build failed", target=target_name)
                 system_prompt = prompts.load(
                     "fuzzing.system",
                     max_repair=MAX_REPAIR_ITERS,

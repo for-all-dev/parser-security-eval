@@ -320,7 +320,7 @@ def _get_engine(engine_name: str) -> FuzzerEngine:
     """Return the engine implementation for the given name."""
     engine = _ENGINES.get(engine_name)
     if engine is None:
-        log.warn("Unknown engine %r, falling back to libfuzzer", engine_name)
+        log.warn("unknown engine, falling back to libfuzzer", engine=engine_name)
         return _ENGINES["libfuzzer"]
     return engine
 
@@ -357,10 +357,10 @@ class FuzzingCampaign:
         engine = _get_engine(engine_name)
 
         log.info(
-            "Starting fuzzing campaign: target=%s engine=%s duration=%ds",
-            self.fuzz_target,
-            engine_name,
-            self.duration_seconds,
+            "starting fuzzing campaign",
+            target=self.fuzz_target,
+            engine=engine_name,
+            duration_s=self.duration_seconds,
         )
 
         # 1. Ensure corpus dir and crash dir exist in container.
@@ -376,7 +376,7 @@ class FuzzingCampaign:
 
         # 3. Run the fuzzer with a safety margin timeout for OOM/hang detection.
         exec_timeout = self.duration_seconds + 60
-        log.debug("Running fuzzer command (exec timeout=%ds): %s", exec_timeout, cmd)
+        log.debug("running fuzzer command", exec_timeout_s=exec_timeout, command=cmd)
         rc, stdout, stderr = await self.sandbox.exec(cmd, timeout=exec_timeout)
         raw_log = stdout + "\n" + stderr
 
@@ -385,13 +385,11 @@ class FuzzingCampaign:
         timed_out = rc == -1
 
         if oom_killed:
-            log.warn(
-                "Fuzzer was OOM-killed (exit_code=137) for target=%s", self.fuzz_target
-            )
+            log.warn("fuzzer OOM-killed", exit_code=137, target=self.fuzz_target)
         elif timed_out:
-            log.warn("Fuzzer timed out (exit_code=-1) for target=%s", self.fuzz_target)
+            log.warn("fuzzer timed out", exit_code=-1, target=self.fuzz_target)
         else:
-            log.info("Fuzzer exited with code %d for target=%s", rc, self.fuzz_target)
+            log.info("fuzzer exited", exit_code=rc, target=self.fuzz_target)
 
         # 5. Parse stats from log output.
         stats = engine.parse_stats(raw_log)
@@ -400,11 +398,14 @@ class FuzzingCampaign:
         # 6. Collect crash files using the existing collect_crashes() method.
         crash_files = await self.sandbox.collect_crashes()
         stats.crashes_found = len(crash_files)
-        log.info("Collected %d crash file(s)", len(crash_files))
+        log.info("collected crash files", crash_files=len(crash_files))
 
         # 7. Collect .profraw coverage files.
         coverage_raw_profiles = await self._collect_profraw_files()
-        log.info("Collected %d coverage profile(s)", len(coverage_raw_profiles))
+        log.info(
+            "collected coverage profiles",
+            coverage_profiles=len(coverage_raw_profiles),
+        )
 
         return CampaignResult(
             target_name=self.sandbox.config.target_name,
@@ -440,6 +441,10 @@ class FuzzingCampaign:
                 await self.sandbox.copy_out(container_path, local_path)
                 profraw_files.append(local_path)
             except RuntimeError as e:
-                log.warn("Failed to copy profraw file %s: %s", container_path, e)
+                log.warn(
+                    "failed to copy profraw file",
+                    path=container_path,
+                    error=str(e),
+                )
 
         return profraw_files

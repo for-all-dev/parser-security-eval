@@ -19,7 +19,15 @@ Design notes
 * **Minimal-diff migration.** Methods keep the stdlib ``(msg, *args)``
   ``%s``-style signature, so the ~141 existing call sites need only a mechanical
   ``logger.`` -> ``log.`` rename (plus ``warning`` -> ``warn``, ``critical`` ->
-  ``fatal``). Converting to ``{}``/structured kwargs is a deliberate follow-up.
+  ``fatal``).
+* **Structured kwargs.** Call sites may also pass keyword attributes, e.g.
+  ``log.info("fuzzer exited", exit_code=rc, target=name)``. On the Logfire path
+  these are forwarded as real, queryable Logfire attributes alongside the
+  rendered human message (sent under a fixed ``"{message}"`` template so literal
+  braces in the text are never reparsed). On the stdlib fallback path, attribute
+  kwargs are appended to the rendered message as ``" key=value"`` pairs (so they
+  are preserved and never raise), while genuine stdlib logging kwargs
+  (``exc_info``, ``stack_info``, ``stacklevel``, ``extra``) are passed through.
 * **Never break a caller.** The Logfire path is wrapped in ``try/except`` and
   falls through to stdlib on any failure.
 * **Logs stay visible.** Because we removed the CLI ``logging.basicConfig``
@@ -77,6 +85,31 @@ def _render(msg: str, args: tuple[object, ...]) -> str:
         return f"{msg} {args}"
 
 
+# Genuine stdlib ``logging.Logger`` keyword arguments. These are passed straight
+# through on the fallback path; everything else is treated as a structured
+# attribute (forwarded to Logfire / appended to the message for stdlib).
+_STDLIB_LOG_KWARGS = frozenset({"exc_info", "stack_info", "stacklevel", "extra"})
+
+
+def _split_kwargs(
+    kwargs: dict[str, object],
+) -> tuple[dict[str, object], dict[str, object]]:
+    """Split caller kwargs into (genuine stdlib log kwargs, attribute kwargs)."""
+    stdlib: dict[str, object] = {}
+    attrs: dict[str, object] = {}
+    for key, value in kwargs.items():
+        (stdlib if key in _STDLIB_LOG_KWARGS else attrs)[key] = value
+    return stdlib, attrs
+
+
+def _append_attrs(message: str, attrs: dict[str, object]) -> str:
+    """Append ``key=value`` pairs to a rendered message for the stdlib path."""
+    if not attrs:
+        return message
+    rendered = " ".join(f"{key}={value}" for key, value in attrs.items())
+    return f"{message} {rendered}"
+
+
 class _Log:
     """A logger facade wrapping a stdlib logger and an optional Logfire route.
 
@@ -109,10 +142,18 @@ class _Log:
 
     def exception(self, msg: str, *args: object, **kwargs: object) -> None:
         """Like ``error`` but includes the active exception's traceback."""
-        if _LOGFIRE_ACTIVE and self._to_logfire("exception", msg, args):
+        if _LOGFIRE_ACTIVE and self._to_logfire("exception", msg, args, kwargs):
             return
         _ensure_stdlib_configured()
-        self._stdlib.exception(msg, *args, **kwargs)  # type: ignore[arg-type]
+        if not kwargs:
+            # Fast path / byte-for-byte unchanged: let stdlib render %s args.
+            self._stdlib.exception(msg, *args)
+            return
+        stdlib_kwargs, attrs = _split_kwargs(kwargs)
+        # Render args/attrs into the message ourselves so we can append the
+        # attribute kwargs; ``exception()`` implies ``exc_info=True`` by default.
+        message = _append_attrs(_render(msg, args), attrs)
+        self._stdlib.exception(message, **stdlib_kwargs)  # type: ignore[arg-type]
 
     # -- dispatch ---------------------------------------------------------
 
@@ -124,18 +165,36 @@ class _Log:
         args: tuple[object, ...],
         kwargs: dict[str, object],
     ) -> None:
-        if _LOGFIRE_ACTIVE and self._to_logfire(method, msg, args):
+        if _LOGFIRE_ACTIVE and self._to_logfire(method, msg, args, kwargs):
             return
         _ensure_stdlib_configured()
-        self._stdlib.log(level, msg, *args, **kwargs)  # type: ignore[arg-type]
+        if not kwargs:
+            # Fast path / byte-for-byte unchanged: let stdlib render %s args.
+            self._stdlib.log(level, msg, *args)
+            return
+        stdlib_kwargs, attrs = _split_kwargs(kwargs)
+        message = _append_attrs(_render(msg, args), attrs)
+        self._stdlib.log(level, message, **stdlib_kwargs)  # type: ignore[arg-type]
 
     @staticmethod
-    def _to_logfire(method: str, msg: str, args: tuple[object, ...]) -> bool:
-        """Forward a rendered message to Logfire. Returns False on any failure.
+    def _to_logfire(
+        method: str,
+        msg: str,
+        args: tuple[object, ...],
+        kwargs: dict[str, object],
+    ) -> bool:
+        """Forward a rendered message + attributes to Logfire.
 
-        The rendered text is passed as the ``message`` attribute of a fixed
-        ``"{message}"`` template so Logfire never tries to interpret literal
-        braces in the rendered text as a span template (which warns/raises).
+        Returns False on any failure. The rendered human text is always sent as
+        the ``message`` attribute of a fixed ``"{message}"`` template so Logfire
+        never interprets literal braces in the text as a span template (which
+        warns/raises). Structured attribute kwargs are forwarded as real Logfire
+        attributes alongside it. Genuine stdlib logging kwargs (``exc_info`` etc.)
+        are dropped here — Logfire captures the active exception automatically.
+
+        A caller kwarg literally named ``message`` would collide with the
+        rendered-message attribute; the rendered message always wins (the
+        caller's ``message`` value is dropped) so the human text is never lost.
         """
         try:
             import logfire
@@ -144,8 +203,10 @@ class _Log:
         fn = getattr(logfire, method, None)
         if fn is None:
             return False
+        _, attrs = _split_kwargs(kwargs)
+        attrs.pop("message", None)  # never let a caller kwarg shadow the message
         try:
-            fn("{message}", message=_render(msg, args))
+            fn("{message}", message=_render(msg, args), **attrs)
         except Exception:
             return False
         return True
