@@ -331,6 +331,7 @@ def _make_start_fuzzing_tool(
     sandbox: DockerSandbox,
     session_state: dict[str, Any],
     max_duration: int = CYCLE_CAP_SECONDS,
+    target_name: str = "unknown",
 ) -> Tool:
     """Tool: start the fuzzer for up to max_duration seconds."""
 
@@ -402,6 +403,26 @@ def _make_start_fuzzing_tool(
             # deterministic, single-core CPU-seconds proxy (issue #135).
             session_state["total_fuzz_seconds"] = (
                 session_state.get("total_fuzz_seconds", 0.0) + capped
+            )
+
+            # Emit one structured record per completed cycle so Logfire owns the
+            # live research curves (execs/s, crashes, coverage over time) for the
+            # #114 dashboard (issue #147). Static message template so Logfire
+            # groups by message; the per-cycle numbers ride as attributes.
+            # `fuzz_seconds` for this cycle is `capped` — the wall-clock the
+            # campaign was asked to run for (same CPU-seconds proxy accumulated
+            # into total_fuzz_seconds above).
+            log.info(
+                "fuzz cycle complete",
+                target=target_name,
+                cycle=session_state["cycle_count"],
+                execs_per_sec=result.stats.execs_per_sec,
+                total_execs=result.stats.total_execs,
+                crashes_total=len(all_hashes),
+                crashes_new=len(new_crash_hashes),
+                coverage_profiles=len(result.coverage_raw_profiles),
+                fuzz_seconds=float(capped),
+                total_fuzz_seconds=session_state["total_fuzz_seconds"],
             )
 
             summary_parts = [
@@ -743,7 +764,9 @@ def live_fuzzing_solver(
                     sandbox, session_state, target_name, fuzzing_engine, sanitizer
                 ),
                 _make_add_seed_tool(sandbox, session_state),
-                _make_start_fuzzing_tool(sandbox, session_state, max_fuzz_duration),
+                _make_start_fuzzing_tool(
+                    sandbox, session_state, max_fuzz_duration, target_name
+                ),
                 _make_get_fuzzer_stats_tool(session_state),
                 _make_get_crash_info_tool(session_state),
                 _make_refine_harness_tool(session_state),

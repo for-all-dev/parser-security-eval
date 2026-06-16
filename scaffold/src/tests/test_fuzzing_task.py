@@ -507,6 +507,110 @@ class TestStartFuzzingTool:
 
         assert fresh_session_state["cycle_count"] == 1
 
+    @pytest.mark.asyncio
+    async def test_emits_per_cycle_logfire_metrics(
+        self, fresh_session_state: dict
+    ) -> None:
+        """Each completed cycle emits one structured 'fuzz cycle complete' log
+        carrying the metrics the #114 dashboard charts (issue #147)."""
+        fresh_session_state["compiled"] = True
+        fresh_session_state["fuzz_target"] = "harness_testparser_agent"
+
+        from parser_security_eval.sandbox.campaign import CampaignResult, FuzzingStats
+
+        mock_result = CampaignResult(
+            target_name="testparser",
+            engine="libfuzzer",
+            duration_seconds=120,
+            crash_files=[],
+            coverage_raw_profiles=[Path("/out/p1.profraw"), Path("/out/p2.profraw")],
+            stats=FuzzingStats(
+                execs_per_sec=1500.0,
+                total_execs=180_000,
+                corpus_size=42,
+                engine="libfuzzer",
+            ),
+        )
+        sandbox = MagicMock()
+
+        with (
+            patch("parser_security_eval.tasks.fuzzing.FuzzingCampaign") as MockCampaign,
+            patch("parser_security_eval.tasks.fuzzing.log") as mock_log,
+        ):
+            mock_instance = AsyncMock()
+            mock_instance.run = AsyncMock(return_value=mock_result)
+            MockCampaign.return_value = mock_instance
+
+            t = _make_start_fuzzing_tool(
+                sandbox, fresh_session_state, 1800, "testparser"
+            )
+            await t(duration_seconds=120)
+
+        # Exactly one cycle-complete record per cycle.
+        cycle_calls = [
+            c
+            for c in mock_log.info.call_args_list
+            if c.args and c.args[0] == "fuzz cycle complete"
+        ]
+        assert len(cycle_calls) == 1
+        kwargs = cycle_calls[0].kwargs
+        assert kwargs == {
+            "target": "testparser",
+            "cycle": 1,
+            "execs_per_sec": 1500.0,
+            "total_execs": 180_000,
+            "crashes_total": 0,
+            "crashes_new": 0,
+            "coverage_profiles": 2,
+            "fuzz_seconds": 120.0,
+            "total_fuzz_seconds": 120.0,
+        }
+        # Static message template (no value interpolation) so Logfire groups it.
+        assert "{" not in cycle_calls[0].args[0]
+
+    @pytest.mark.asyncio
+    async def test_per_cycle_log_passes_through_none_stats(
+        self, fresh_session_state: dict
+    ) -> None:
+        """execs_per_sec/total_execs are optional on FuzzingStats; None is fine."""
+        fresh_session_state["compiled"] = True
+        fresh_session_state["fuzz_target"] = "harness_testparser_agent"
+
+        from parser_security_eval.sandbox.campaign import CampaignResult, FuzzingStats
+
+        mock_result = CampaignResult(
+            target_name="testparser",
+            engine="libfuzzer",
+            duration_seconds=60,
+            crash_files=[],
+            coverage_raw_profiles=[],
+            stats=FuzzingStats(engine="libfuzzer"),
+        )
+        sandbox = MagicMock()
+
+        with (
+            patch("parser_security_eval.tasks.fuzzing.FuzzingCampaign") as MockCampaign,
+            patch("parser_security_eval.tasks.fuzzing.log") as mock_log,
+        ):
+            mock_instance = AsyncMock()
+            mock_instance.run = AsyncMock(return_value=mock_result)
+            MockCampaign.return_value = mock_instance
+
+            t = _make_start_fuzzing_tool(sandbox, fresh_session_state)
+            await t(duration_seconds=60)
+
+        cycle_calls = [
+            c
+            for c in mock_log.info.call_args_list
+            if c.args and c.args[0] == "fuzz cycle complete"
+        ]
+        assert len(cycle_calls) == 1
+        kwargs = cycle_calls[0].kwargs
+        assert kwargs["execs_per_sec"] is None
+        assert kwargs["total_execs"] is None
+        assert kwargs["target"] == "unknown"  # default when not threaded
+        assert kwargs["fuzz_seconds"] == 60.0
+
 
 # ---------------------------------------------------------------------------
 # Tool: get_fuzzer_stats
