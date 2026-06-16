@@ -3,7 +3,6 @@
 import stat
 from pathlib import Path
 
-
 from parser_security_eval.sandbox.build import (
     find_missing_copy_targets,
     generate_build_sh,

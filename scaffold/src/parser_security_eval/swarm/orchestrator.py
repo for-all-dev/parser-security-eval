@@ -11,10 +11,10 @@ Parallelism is controlled with ``asyncio.gather`` and a semaphore so that
 from __future__ import annotations
 
 import asyncio
-import logging
 import time
 from pathlib import Path
 
+from parser_security_eval.log import get_log
 from parser_security_eval.swarm.diversity import AgentConfig, DiversityConfig
 from parser_security_eval.swarm.result import (
     AgentResult,
@@ -22,7 +22,7 @@ from parser_security_eval.swarm.result import (
     SwarmResult,
 )
 
-logger = logging.getLogger(__name__)
+log = get_log(__name__)
 
 # Assumed cores per agent for cpu-hours accounting.
 _CORES_PER_AGENT = 1
@@ -111,7 +111,7 @@ class SwarmOrchestrator:
                     # in tests or unexpected failures) so one agent cannot abort
                     # the whole swarm.
                     msg = f"Agent {cfg.agent_id} failed unexpectedly: {exc}"
-                    logger.exception("Unexpected failure in agent %s", cfg.agent_id)
+                    log.exception("Unexpected failure in agent %s", cfg.agent_id)
                     return AgentResult(
                         agent_id=cfg.agent_id,
                         config=cfg,
@@ -184,7 +184,7 @@ class SwarmOrchestrator:
             An :class:`AgentResult` (with ``error`` set on failure).
         """
         agent_start = time.monotonic()
-        logger.info(
+        log.info(
             "Starting agent %s: engine=%s strategy=%s role=%s target=%s",
             agent_config.agent_id,
             agent_config.engine,
@@ -200,7 +200,7 @@ class SwarmOrchestrator:
                 duration_seconds=duration_seconds,
             )
             wall_time = time.monotonic() - agent_start
-            logger.info(
+            log.info(
                 "Agent %s finished in %.1fs: crashes=%d",
                 agent_config.agent_id,
                 wall_time,
@@ -216,7 +216,7 @@ class SwarmOrchestrator:
         except asyncio.TimeoutError:
             wall_time = time.monotonic() - agent_start
             msg = f"Agent {agent_config.agent_id} timed out after {wall_time:.1f}s"
-            logger.warning(msg)
+            log.warn(msg)
             return AgentResult(
                 agent_id=agent_config.agent_id,
                 config=agent_config,
@@ -228,7 +228,7 @@ class SwarmOrchestrator:
         except Exception as exc:
             wall_time = time.monotonic() - agent_start
             msg = f"Agent {agent_config.agent_id} failed: {exc}"
-            logger.exception("Agent %s raised an exception", agent_config.agent_id)
+            log.exception("Agent %s raised an exception", agent_config.agent_id)
             return AgentResult(
                 agent_id=agent_config.agent_id,
                 config=agent_config,

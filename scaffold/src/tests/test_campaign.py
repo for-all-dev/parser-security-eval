@@ -15,7 +15,6 @@ from parser_security_eval.sandbox.campaign import (
 )
 from parser_security_eval.sandbox.docker import DockerSandbox, SandboxConfig
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

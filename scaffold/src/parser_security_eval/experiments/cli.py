@@ -10,7 +10,6 @@ Commands:
 
 from __future__ import annotations
 
-import logging
 from pathlib import Path
 
 import typer
@@ -37,8 +36,6 @@ def experiment_run(
 ) -> None:
     """Run or resume an experiment from a TOML config file."""
     from parser_security_eval.experiments.runner import load_config, run_experiment
-
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     if not config_path.exists():
         typer.echo(f"Error: config file not found: {config_path}", err=True)

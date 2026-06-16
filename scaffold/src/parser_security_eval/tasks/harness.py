@@ -13,7 +13,6 @@ The agent must:
 
 from __future__ import annotations
 
-import logging
 import re
 import tempfile
 from pathlib import Path
@@ -38,6 +37,7 @@ from inspect_ai.solver import (
 )
 
 from parser_security_eval import prompts
+from parser_security_eval.log import get_log
 from parser_security_eval.models.target import ParserTarget
 from parser_security_eval.sandbox.docker import DockerSandbox, SandboxConfig
 from parser_security_eval.scorers.coverage import CoverageResult, run_fuzzer_and_measure
@@ -47,7 +47,7 @@ from parser_security_eval.scorers.efficiency import (
     model_thinking_seconds,
 )
 
-logger = logging.getLogger(__name__)
+log = get_log(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -345,7 +345,7 @@ def harness_scorer(
                 )
 
         except Exception as e:
-            logger.exception("Scorer failed for target %s", target_name)
+            log.exception("Scorer failed for target %s", target_name)
             return Score(
                 value=INCORRECT,
                 answer=harness_code[:200] if harness_code else "",

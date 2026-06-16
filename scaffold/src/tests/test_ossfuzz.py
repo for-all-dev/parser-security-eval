@@ -33,7 +33,6 @@ from parser_security_eval.models.vulnerability import (
     Severity,
 )
 
-
 # ---------------------------------------------------------------------------
 # Fixtures: synthetic OSV bug records
 # ---------------------------------------------------------------------------

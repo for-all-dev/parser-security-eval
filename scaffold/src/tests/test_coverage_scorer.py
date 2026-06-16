@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
+from parser_security_eval.sandbox.docker import DockerSandbox, SandboxConfig
 from parser_security_eval.scorers.coverage import (
     CoverageResult,
     _parse_coverage_report,
@@ -12,8 +13,6 @@ from parser_security_eval.scorers.coverage import (
     generate_coverage_report,
     run_fuzzer_and_measure,
 )
-from parser_security_eval.sandbox.docker import DockerSandbox, SandboxConfig
-
 
 # ---------------------------------------------------------------------------
 # Helpers

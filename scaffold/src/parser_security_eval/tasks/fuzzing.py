@@ -23,7 +23,6 @@ with clear TODOs pending the interface from issue #73.
 from __future__ import annotations
 
 import hashlib
-import logging
 import re
 import tempfile
 from pathlib import Path
@@ -44,10 +43,10 @@ from inspect_ai.solver import (
 from inspect_ai.tool import Tool, tool
 
 from parser_security_eval import prompts
-from parser_security_eval.scorers.efficiency import (
-    EFFICIENCY_METRICS,
-    EfficiencyInputs,
-    model_thinking_seconds,
+from parser_security_eval.log import get_log
+from parser_security_eval.memory.store import (
+    load_memory,
+    memory_to_context,
 )
 from parser_security_eval.models.fuzzing import (
     FuzzingCycle,
@@ -55,14 +54,15 @@ from parser_security_eval.models.fuzzing import (
     HarnessRecord,
     LiveFuzzingSessionResult,
 )
-from parser_security_eval.memory.store import (
-    load_memory,
-    memory_to_context,
-)
 from parser_security_eval.sandbox.campaign import FuzzingCampaign
 from parser_security_eval.sandbox.docker import DockerSandbox, SandboxConfig
+from parser_security_eval.scorers.efficiency import (
+    EFFICIENCY_METRICS,
+    EfficiencyInputs,
+    model_thinking_seconds,
+)
 
-logger = logging.getLogger(__name__)
+log = get_log(__name__)
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -100,6 +100,8 @@ def save_session_memory(target_name: str, session_state: dict[str, Any]) -> None
 
     from parser_security_eval.memory.models import (
         CrashSummary,
+    )
+    from parser_security_eval.memory.models import (
         HarnessRecord as MemHarnessRecord,
     )
     from parser_security_eval.memory.store import add_crash, add_harness
@@ -329,6 +331,7 @@ def _make_start_fuzzing_tool(
     sandbox: DockerSandbox,
     session_state: dict[str, Any],
     max_duration: int = CYCLE_CAP_SECONDS,
+    target_name: str = "unknown",
 ) -> Tool:
     """Tool: start the fuzzer for up to max_duration seconds."""
 
@@ -400,6 +403,26 @@ def _make_start_fuzzing_tool(
             # deterministic, single-core CPU-seconds proxy (issue #135).
             session_state["total_fuzz_seconds"] = (
                 session_state.get("total_fuzz_seconds", 0.0) + capped
+            )
+
+            # Emit one structured record per completed cycle so Logfire owns the
+            # live research curves (execs/s, crashes, coverage over time) for the
+            # #114 dashboard (issue #147). Static message template so Logfire
+            # groups by message; the per-cycle numbers ride as attributes.
+            # `fuzz_seconds` for this cycle is `capped` — the wall-clock the
+            # campaign was asked to run for (same CPU-seconds proxy accumulated
+            # into total_fuzz_seconds above).
+            log.info(
+                "fuzz cycle complete",
+                target=target_name,
+                cycle=session_state["cycle_count"],
+                execs_per_sec=result.stats.execs_per_sec,
+                total_execs=result.stats.total_execs,
+                crashes_total=len(all_hashes),
+                crashes_new=len(new_crash_hashes),
+                coverage_profiles=len(result.coverage_raw_profiles),
+                fuzz_seconds=float(capped),
+                total_fuzz_seconds=session_state["total_fuzz_seconds"],
             )
 
             summary_parts = [
@@ -709,10 +732,10 @@ def live_fuzzing_solver(
 
         async with DockerSandbox(config) as sandbox:
             # Build the target so libraries are available for harness linking
-            logger.info("Building target %s inside sandbox", target_name)
+            log.info("building target inside sandbox", target=target_name)
             build_ok = await sandbox.build_target()
             if not build_ok:
-                logger.warning("Target build failed for %s", target_name)
+                log.warn("target build failed", target=target_name)
                 system_prompt = prompts.load(
                     "fuzzing.system",
                     max_repair=MAX_REPAIR_ITERS,
@@ -741,7 +764,9 @@ def live_fuzzing_solver(
                     sandbox, session_state, target_name, fuzzing_engine, sanitizer
                 ),
                 _make_add_seed_tool(sandbox, session_state),
-                _make_start_fuzzing_tool(sandbox, session_state, max_fuzz_duration),
+                _make_start_fuzzing_tool(
+                    sandbox, session_state, max_fuzz_duration, target_name
+                ),
                 _make_get_fuzzer_stats_tool(session_state),
                 _make_get_crash_info_tool(session_state),
                 _make_refine_harness_tool(session_state),

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 import re
 from pathlib import Path
 from typing import Any
@@ -19,6 +18,7 @@ from parser_security_eval.experiments.models import (
     TargetBreakdown,
 )
 from parser_security_eval.experiments.state import load_manifest
+from parser_security_eval.log import get_log
 from parser_security_eval.scorers.efficiency import (
     EFF_FUZZ_SECONDS,
     EFF_MODEL_SECONDS,
@@ -28,7 +28,7 @@ from parser_security_eval.scorers.efficiency import (
     pooled_efficiency_rates,
 )
 
-logger = logging.getLogger(__name__)
+log = get_log(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -214,7 +214,7 @@ def build_combined_dataframe(
         try:
             summaries = read_eval_log_sample_summaries(log_path)
         except Exception:
-            logger.warning("Failed to read eval log: %s", log_path)
+            log.warn("Failed to read eval log: %s", log_path)
             continue
 
         for s in summaries:

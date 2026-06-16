@@ -34,11 +34,11 @@ task state and computes all three metric families.
 
 from __future__ import annotations
 
-import logging
 from collections.abc import Sequence
 
 from pydantic import BaseModel, Field
 
+from parser_security_eval.log import get_log
 from parser_security_eval.scoring.coverage_agg import (
     AgentCoverage,
     AggregateCoverage,
@@ -47,7 +47,7 @@ from parser_security_eval.scoring.coverage_agg import (
 from parser_security_eval.scoring.dedup import CrashCluster
 from parser_security_eval.triage.casr import Exploitability
 
-logger = logging.getLogger(__name__)
+log = get_log(__name__)
 
 # ---------------------------------------------------------------------------
 # Severity weight mapping (from CASR exploitability)
@@ -185,7 +185,7 @@ def compute_individual_scores(
                     m.marginal_line_count + m.marginal_branch_count
                 )
         except ValueError:
-            logger.warning("Could not compute marginal coverage", exc_info=True)
+            log.warn("Could not compute marginal coverage", exc_info=True)
 
     scores: list[IndividualScore] = []
     for aid in agent_ids:
@@ -251,7 +251,7 @@ def compute_swarm_score(
             # Coverage diversity bonus: 1 - mean pairwise Jaccard
             coverage_diversity_bonus = _compute_diversity_bonus(agg)
         except ValueError:
-            logger.warning("Could not compute aggregate coverage", exc_info=True)
+            log.warn("Could not compute aggregate coverage", exc_info=True)
 
     composite = total_unique + total_coverage + coverage_diversity_bonus
 

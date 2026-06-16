@@ -10,7 +10,6 @@ that the expensive extraction steps are not repeated on every run.
 
 from __future__ import annotations
 
-import logging
 import textwrap
 from pathlib import Path
 from typing import Any
@@ -18,10 +17,11 @@ from typing import Any
 import yaml
 from pydantic import BaseModel
 
+from parser_security_eval.log import get_log
 from parser_security_eval.preprocess.callgraph import CallGraph, extract_callgraph
 from parser_security_eval.preprocess.grammar import FormatGrammar, extract_grammar
 
-logger = logging.getLogger(__name__)
+log = get_log(__name__)
 
 # ---------------------------------------------------------------------------
 # Data model
@@ -142,7 +142,7 @@ def _load_cached_callgraph(target_dir: Path) -> CallGraph | None:
         try:
             return CallGraph.model_validate_json(p.read_text())
         except Exception as exc:  # noqa: BLE001
-            logger.warning("Could not load cached callgraph: %s", exc)
+            log.warn("Could not load cached callgraph: %s", exc)
     return None
 
 
@@ -157,7 +157,7 @@ def _load_cached_grammar(target_dir: Path) -> FormatGrammar | None:
         try:
             return FormatGrammar.model_validate_json(p.read_text())
         except Exception as exc:  # noqa: BLE001
-            logger.warning("Could not load cached grammar: %s", exc)
+            log.warn("Could not load cached grammar: %s", exc)
     return None
 
 
@@ -244,7 +244,7 @@ async def build_context(
         None if force_refresh else _load_cached_callgraph(target_dir)
     )
     if callgraph is None:
-        logger.info("Extracting call graph for %s …", target_name)
+        log.info("Extracting call graph for %s …", target_name)
         callgraph = extract_callgraph(
             source_dir=source_dir,
             entry_points=all_entry_points,
@@ -253,18 +253,18 @@ async def build_context(
         )
         _save_cached_callgraph(target_dir, callgraph)
     else:
-        logger.info("Loaded cached call graph for %s", target_name)
+        log.info("Loaded cached call graph for %s", target_name)
 
     # --- Grammar ---
     grammar: FormatGrammar | None = (
         None if force_refresh else _load_cached_grammar(target_dir)
     )
     if grammar is None:
-        logger.info("Extracting format grammar for %s …", target_name)
+        log.info("Extracting format grammar for %s …", target_name)
         if not spec_text:
             spec_url = metadata.get("spec_url", "")
             if spec_url:
-                logger.warning(
+                log.warn(
                     "spec_url is set (%s) but spec_text was not provided; "
                     "falling back to source comment extraction.",
                     spec_url,
@@ -286,7 +286,7 @@ async def build_context(
             )
         _save_cached_grammar(target_dir, grammar)
     else:
-        logger.info("Loaded cached grammar for %s", target_name)
+        log.info("Loaded cached grammar for %s", target_name)
 
     ctx = HarnessContext(
         target=target_name,

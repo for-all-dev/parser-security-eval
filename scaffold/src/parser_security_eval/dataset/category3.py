@@ -15,7 +15,6 @@ The workflow is a 3-command pipeline:
 from __future__ import annotations
 
 import json
-import logging
 import tomllib
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -25,7 +24,9 @@ from typing import Any
 
 from pydantic import BaseModel
 
-logger = logging.getLogger(__name__)
+from parser_security_eval.log import get_log
+
+log = get_log(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -265,7 +266,7 @@ def build_audit_list(
             groups[project][fuzz_target].append(entry)
 
     if skipped_not_in_ossfuzz:
-        logger.warning(
+        log.warn(
             "Skipped %d project(s) not found in oss-fuzz: %s",
             len(skipped_not_in_ossfuzz),
             ", ".join(sorted(skipped_not_in_ossfuzz)),
@@ -353,7 +354,7 @@ def write_audit_toml(entries: list[ProjectAuditEntry], output_path: Path) -> Non
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text("\n".join(lines))
-    logger.info("Wrote audit TOML to %s (%d projects)", output_path, len(entries))
+    log.info("Wrote audit TOML to %s (%d projects)", output_path, len(entries))
 
 
 def _bool_toml(val: bool) -> str:
@@ -516,7 +517,7 @@ async def classify_uncertain_targets(
                 )
             )
         except Exception as exc:
-            logger.warning(
+            log.warn(
                 "LLM classification failed for %s/%s: %s",
                 project,
                 profile.name,
@@ -626,7 +627,7 @@ def save_registry(registry: Category3SampleRegistry, output_path: Path) -> None:
     """Write a Category3SampleRegistry to JSON."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(registry.model_dump_json(indent=2))
-    logger.info(
+    log.info(
         "Saved Category 3 registry: %d samples from %d projects to %s",
         registry.total_samples,
         registry.projects,

@@ -4,14 +4,14 @@ import asyncio
 import json
 import stat
 from pathlib import Path
-from inspect_ai.model import ChatMessageAssistant, ChatMessageUser
-from inspect_ai.scorer import Score
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
+from inspect_ai.model import ChatMessageAssistant, ChatMessageUser
+from inspect_ai.scorer import Score
 from inspect_ai.tool import ToolCall
 
+from parser_security_eval.models.scoring import PatchResult
 from parser_security_eval.tasks.patching import (
     _extract_crash_line,
     _extract_diff,
@@ -23,8 +23,6 @@ from parser_security_eval.tasks.patching import (
     patching_solver,
     vulnerability_patching,
 )
-from parser_security_eval.models.scoring import PatchResult
-
 
 # ---------------------------------------------------------------------------
 # Minimal benchmark fixture

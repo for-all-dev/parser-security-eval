@@ -4,7 +4,6 @@ import asyncio
 from pathlib import Path
 from unittest.mock import AsyncMock
 
-
 from parser_security_eval.scorers.patch import (
     _count_diff_lines,
     apply_patch,
@@ -13,7 +12,6 @@ from parser_security_eval.scorers.patch import (
     run_test_suite,
     score_patch,
 )
-
 
 MINIMAL_DIFF = """\
 --- a/src/parse.c

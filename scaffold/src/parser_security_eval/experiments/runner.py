@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import itertools
-import logging
 import tomllib
 from pathlib import Path
 from typing import Any
@@ -30,8 +29,9 @@ from parser_security_eval.experiments.state import (
     mark_run_failed,
     mark_run_started,
 )
+from parser_security_eval.log import get_log
 
-logger = logging.getLogger(__name__)
+log = get_log(__name__)
 
 
 def load_config(config_path: Path) -> ExperimentConfig:
@@ -146,7 +146,7 @@ def run_experiment(
     pending = [r for r in manifest.runs.values() if r.status == RunStatus.pending]
 
     if dry_run:
-        logger.info(
+        log.info(
             "Dry run: %d total runs, %d pending, %d completed, %d failed",
             manifest.total_runs,
             manifest.pending_runs,
@@ -154,7 +154,7 @@ def run_experiment(
             manifest.failed_runs,
         )
         for run in pending:
-            logger.info(
+            log.info(
                 "  [%s] model=%s target=%s rep=%d kwargs=%s",
                 run.run_id,
                 run.model,
@@ -165,7 +165,7 @@ def run_experiment(
         return manifest
 
     if not pending:
-        logger.info("All %d runs already completed or failed.", manifest.total_runs)
+        log.info("All %d runs already completed or failed.", manifest.total_runs)
         return manifest
 
     from inspect_ai import eval as inspect_eval
@@ -208,7 +208,7 @@ def run_experiment(
                         error_msg += f": {logs[0].error.message}"
                     run_result = extract_run_result(logs[0]) if logs else None
                     mark_run_failed(manifest, run.run_id, error_msg, result=run_result)
-                    logger.error("Run %s failed: %s", run.run_id, error_msg)
+                    log.error("Run %s failed: %s", run.run_id, error_msg)
                 else:
                     eval_log_path = (
                         str(logs[0].location)
@@ -219,11 +219,11 @@ def run_experiment(
                     mark_run_completed(
                         manifest, run.run_id, eval_log_path, result=run_result
                     )
-                    logger.info("Run %s completed.", run.run_id)
+                    log.info("Run %s completed.", run.run_id)
 
             except Exception as exc:
                 mark_run_failed(manifest, run.run_id, str(exc))
-                logger.error("Run %s failed: %s", run.run_id, exc)
+                log.error("Run %s failed: %s", run.run_id, exc)
 
             progress.advance(task_id)
 

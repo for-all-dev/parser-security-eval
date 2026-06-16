@@ -9,12 +9,13 @@ Fills three gaps in the benchmark dataset:
 from __future__ import annotations
 
 import json
-import logging
 import sqlite3
 import subprocess
 from pathlib import Path
 
-logger = logging.getLogger(__name__)
+from parser_security_eval.log import get_log
+
+log = get_log(__name__)
 
 # Deterministic crash_type → CWE mapping based on ASAN/MSAN crash type strings.
 # These are conservative, well-established mappings.
@@ -75,7 +76,7 @@ def _crash_type_to_cwe(crash_type: str) -> str | None:
     if "dynamic-stack-buffer-overflow" in ct:
         return "CWE-121"
 
-    logger.warning("No CWE mapping for crash_type: %s", crash_type)
+    log.warn("No CWE mapping for crash_type: %s", crash_type)
     return None
 
 
@@ -103,7 +104,7 @@ def enrich_crash_reports(
 
     db_path = cache_dir / "arvo.db"
     if not db_path.exists():
-        logger.error("arvo.db not found at %s — run fetch-artifacts first", db_path)
+        log.error("arvo.db not found at %s — run fetch-artifacts first", db_path)
         return 0, 0
 
     conn = sqlite3.connect(str(db_path))
@@ -138,7 +139,7 @@ def enrich_crash_reports(
     conn.close()
 
     metadata_path.write_text(json.dumps(metadata, indent=2, default=str) + "\n")
-    logger.info("Enriched %d / %d crash reports with ASAN output", enriched, total)
+    log.info("Enriched %d / %d crash reports with ASAN output", enriched, total)
     return enriched, total
 
 
@@ -162,7 +163,7 @@ def enrich_cwe(benchmark_dir: Path) -> tuple[int, int]:
             mapped += 1
 
     metadata_path.write_text(json.dumps(metadata, indent=2, default=str) + "\n")
-    logger.info("CWE mapped for %d / %d records", mapped, len(records))
+    log.info("CWE mapped for %d / %d records", mapped, len(records))
     return mapped, len(records)
 
 
@@ -204,7 +205,7 @@ def extract_crash_inputs(
             continue
 
         image = f"n132/arvo:{lid}-vul"
-        logger.info("Extracting crash input from %s …", image)
+        log.info("Extracting crash input from %s …", image)
 
         # Pull image
         try:
@@ -215,7 +216,7 @@ def extract_crash_inputs(
                 timeout=timeout_per_image,
             )
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
-            logger.warning("Failed to pull %s: %s", image, e)
+            log.warn("Failed to pull %s: %s", image, e)
             continue
 
         # Extract /tmp/poc
@@ -227,7 +228,7 @@ def extract_crash_inputs(
                 timeout=30,
             )
             if result.returncode != 0:
-                logger.warning("Failed to extract /tmp/poc from %s", image)
+                log.warn("Failed to extract /tmp/poc from %s", image)
                 continue
 
             crash_input_path.write_bytes(result.stdout)
@@ -235,15 +236,13 @@ def extract_crash_inputs(
             extracted += 1
 
             if extracted % 20 == 0:
-                logger.info(
-                    "Progress: %d / %d crash inputs extracted", extracted, total
-                )
+                log.info("Progress: %d / %d crash inputs extracted", extracted, total)
         except subprocess.TimeoutExpired:
-            logger.warning("Timeout extracting from %s", image)
+            log.warn("Timeout extracting from %s", image)
             continue
 
     metadata_path.write_text(json.dumps(metadata, indent=2, default=str) + "\n")
-    logger.info(
+    log.info(
         "Extracted %d crash inputs (%d already cached), %d total ARVO records",
         extracted - skipped,
         skipped,

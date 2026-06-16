@@ -67,13 +67,14 @@ undefined inverse.
 
 from __future__ import annotations
 
-import logging
 from collections.abc import Iterable
 
-from pydantic import BaseModel
 from inspect_ai.scorer import Metric, SampleScore, Value, metric
+from pydantic import BaseModel
 
-logger = logging.getLogger(__name__)
+from parser_security_eval.log import get_log
+
+log = get_log(__name__)
 
 # ---------------------------------------------------------------------------
 # Canonical metadata keys
