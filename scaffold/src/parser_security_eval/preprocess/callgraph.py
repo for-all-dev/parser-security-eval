@@ -9,7 +9,6 @@ point before being returned as a :class:`CallGraph`.
 
 from __future__ import annotations
 
-import logging
 import re
 import shutil
 import subprocess
@@ -17,7 +16,9 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-logger = logging.getLogger(__name__)
+from parser_security_eval.log import get_log
+
+log = get_log(__name__)
 
 # ---------------------------------------------------------------------------
 # Data models
@@ -171,11 +172,11 @@ def _extract_via_cflow(
                 cwd=str(source_dir),
             )
         except (subprocess.TimeoutExpired, OSError) as exc:
-            logger.warning("cflow failed for %s: %s", entry, exc)
+            log.warn("cflow failed for %s: %s", entry, exc)
             continue
 
         if result.returncode != 0 and not result.stdout.strip():
-            logger.debug("cflow returned %d for %s", result.returncode, entry)
+            log.debug("cflow returned %d for %s", result.returncode, entry)
             continue
 
         nodes, edges = _parse_cflow_output(result.stdout, source_dir, entry, depth)
@@ -228,7 +229,7 @@ def extract_callgraph(
         raise ValueError("entry_points must not be empty")
 
     nodes_dict, edges = _extract_via_cflow(source_dir, entry_points, depth)
-    logger.info("Used cflow for call graph extraction of %s", target_name or source_dir)
+    log.info("Used cflow for call graph extraction of %s", target_name or source_dir)
 
     return CallGraph(
         target=target_name or str(source_dir),

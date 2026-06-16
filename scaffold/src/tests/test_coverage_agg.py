@@ -36,7 +36,6 @@ from parser_security_eval.scoring.coverage_agg import (
     merge_agent_coverage_from_sets,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

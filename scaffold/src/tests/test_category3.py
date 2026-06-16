@@ -7,11 +7,11 @@ from pathlib import Path
 from unittest.mock import patch
 
 from parser_security_eval.dataset.category3 import (
+    Category3SampleRegistry,
     FuzzTargetProfile,
     ParserRelevance,
     ProjectAuditEntry,
     SampleRegistryEntry,
-    Category3SampleRegistry,
     build_audit_list,
     classify_fuzz_target,
     compile_registry,
@@ -20,7 +20,6 @@ from parser_security_eval.dataset.category3 import (
     save_registry,
     write_audit_toml,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers

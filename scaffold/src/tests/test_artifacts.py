@@ -7,14 +7,12 @@ import subprocess
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-
 from parser_security_eval.dataset.artifacts import (
     _extract_sources_from_docker,
     _fetch_patch_from_url,
     extract_vulnerable_sources,
     fetch_reference_patches,
 )
-
 
 # ---------------------------------------------------------------------------
 # _fetch_patch_from_url

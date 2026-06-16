@@ -10,14 +10,12 @@ Tests the helper functions added to improve error diagnostics when patches fail:
 import asyncio
 from unittest.mock import AsyncMock
 
-
 from parser_security_eval.tasks.patching import (
     _build_rejection_context,
     _check_whitespace_mismatch,
     _parse_diff_targets,
     _validate_unified_diff,
 )
-
 
 # ---------------------------------------------------------------------------
 # Valid diff fixture used across tests

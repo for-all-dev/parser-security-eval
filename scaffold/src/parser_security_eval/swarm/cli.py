@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-import logging
 from pathlib import Path
 
 import typer
@@ -49,9 +48,9 @@ def swarm_run(
     Example:
         parser-security-eval swarm run libxml2 --agents 4 --duration 120
     """
-    from parser_security_eval.swarm.orchestrator import SwarmOrchestrator  # noqa: PLC0415
-
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+    from parser_security_eval.swarm.orchestrator import (
+        SwarmOrchestrator,  # noqa: PLC0415
+    )
 
     typer.echo(
         f"Launching swarm: target={target} agents={agents} "

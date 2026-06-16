@@ -11,7 +11,6 @@ Covers:
 
 from __future__ import annotations
 
-
 import pytest
 
 from parser_security_eval.scoring.coverage_agg import AgentCoverage
@@ -31,7 +30,6 @@ from parser_security_eval.triage.casr import (
     CrashSeverity,
     Exploitability,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers

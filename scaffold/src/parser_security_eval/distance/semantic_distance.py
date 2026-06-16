@@ -26,7 +26,6 @@ Import :func:`~callgraph_distance.write_aflgo_distance_file` and pass the
 from __future__ import annotations
 
 import json
-import logging
 import math
 import re
 from pathlib import Path
@@ -39,9 +38,10 @@ from parser_security_eval.distance.callgraph_distance import (
     DistanceMetric,
     FunctionDistance,
 )
+from parser_security_eval.log import get_log
 from parser_security_eval.preprocess.callgraph import CallGraph
 
-logger = logging.getLogger(__name__)
+log = get_log(__name__)
 
 # ---------------------------------------------------------------------------
 # Cache model
@@ -84,7 +84,7 @@ def load_distance_cache(target_dir: Path) -> PairwiseDistanceCache:
         try:
             return PairwiseDistanceCache.model_validate_json(cache_path.read_text())
         except Exception as exc:  # noqa: BLE001
-            logger.warning("Could not load distance cache from %s: %s", cache_path, exc)
+            log.warn("Could not load distance cache from %s: %s", cache_path, exc)
     target_name = target_dir.name
     return PairwiseDistanceCache(target=target_name)
 
@@ -249,7 +249,7 @@ async def compute_attention_distance(
         data: dict[str, Any] = json.loads(raw)
         score = float(data["score"])
         score = max(0.0, min(1.0, score))  # clamp to [0, 1]
-        logger.debug(
+        log.debug(
             "Semantic distance %s <-> %s = %.3f  reason: %s",
             function_a,
             function_b,
@@ -258,7 +258,7 @@ async def compute_attention_distance(
         )
         return score
     except Exception as exc:  # noqa: BLE001
-        logger.warning(
+        log.warn(
             "LLM distance call failed for %s <-> %s: %s; defaulting to 1.0",
             function_a,
             function_b,

@@ -24,7 +24,6 @@ from pydantic import BaseModel
 
 from parser_security_eval.preprocess.callgraph import CallGraph
 
-
 # ---------------------------------------------------------------------------
 # Data model
 # ---------------------------------------------------------------------------

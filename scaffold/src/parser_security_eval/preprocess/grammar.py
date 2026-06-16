@@ -8,14 +8,15 @@ structure, magic bytes, size limits, and notable quirks.
 from __future__ import annotations
 
 import json
-import logging
 import re
 from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel
 
-logger = logging.getLogger(__name__)
+from parser_security_eval.log import get_log
+
+log = get_log(__name__)
 
 # ---------------------------------------------------------------------------
 # Data models
@@ -147,7 +148,7 @@ def _build_grammar_from_dict(
             bytes.fromhex(clean)  # validate
             magic_bytes_hex = clean
         except ValueError:
-            logger.warning("Could not parse magic_bytes_hex: %r", raw_magic_hex)
+            log.warn("Could not parse magic_bytes_hex: %r", raw_magic_hex)
 
     return FormatGrammar(
         target=target,
@@ -243,7 +244,7 @@ async def extract_grammar(
         data = _parse_llm_json(raw)
         return _build_grammar_from_dict(target, format_name, data)
     except (json.JSONDecodeError, KeyError, TypeError) as exc:
-        logger.warning(
+        log.warn(
             "Failed to parse LLM grammar JSON for %s/%s: %s. Returning empty grammar.",
             target,
             format_name,
@@ -265,7 +266,7 @@ async def extract_grammar_from_source(
     """Extract grammar by mining source comments when no spec URL is available."""
     spec_text = _extract_spec_from_source(source_dir)
     if not spec_text.strip():
-        logger.warning(
+        log.warn(
             "No spec text found in headers for %s; returning minimal grammar", target
         )
         return FormatGrammar(

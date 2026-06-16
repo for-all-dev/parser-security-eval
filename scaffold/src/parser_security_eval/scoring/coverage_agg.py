@@ -31,14 +31,15 @@ zeroes.
 from __future__ import annotations
 
 import json
-import logging
 import subprocess
 import tempfile
 from pathlib import Path
 
 from pydantic import BaseModel
 
-logger = logging.getLogger(__name__)
+from parser_security_eval.log import get_log
+
+log = get_log(__name__)
 
 # ---------------------------------------------------------------------------
 # Data models
@@ -209,7 +210,7 @@ def _merge_profraw(
     cmd += [str(p) for p in profraw_paths]
     cmd += ["-o", str(output_profdata)]
 
-    logger.debug("Running: %s", " ".join(cmd))
+    log.debug("Running: %s", " ".join(cmd))
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
         raise RuntimeError(
@@ -246,7 +247,7 @@ def _export_coverage_json(
         "--summary-only",
     ]
 
-    logger.debug("Running: %s", " ".join(cmd))
+    log.debug("Running: %s", " ".join(cmd))
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
         raise RuntimeError(
@@ -283,7 +284,7 @@ def _export_coverage_json_full(
         "--format=json",
     ]
 
-    logger.debug("Running: %s", " ".join(cmd))
+    log.debug("Running: %s", " ".join(cmd))
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
         raise RuntimeError(
@@ -512,7 +513,7 @@ def merge_agent_coverage(
     # Build per-agent coverage sets (runs llvm-profdata + llvm-cov per agent).
     agent_coverages: list[AgentCoverage] = []
     for profile in profiles:
-        logger.info(
+        log.info(
             "Building coverage for agent %r (binary=%r, %d profraw files)",
             profile.agent_id,
             profile.binary_name,

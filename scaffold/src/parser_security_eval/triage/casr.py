@@ -14,7 +14,6 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
-import logging
 import tempfile
 from enum import Enum
 from pathlib import Path
@@ -22,7 +21,9 @@ from typing import cast
 
 from pydantic import BaseModel
 
-logger = logging.getLogger(__name__)
+from parser_security_eval.log import get_log
+
+log = get_log(__name__)
 
 
 class Exploitability(str, Enum):
@@ -285,7 +286,7 @@ class CASRTriager:
         cmd = f"casr-san --output {casrep_out} -- {binary_path} {crash_file}"
         rc, stdout, stderr = await self._exec(cmd)
         if rc != 0:
-            logger.debug("casr-san failed (rc=%d) for %s: %s", rc, crash_file, stderr)
+            log.debug("casr-san failed (rc=%d) for %s: %s", rc, crash_file, stderr)
             return None
 
         # Try reading the output file first, then stdout
@@ -318,7 +319,7 @@ class CASRTriager:
         cmd = f"casr-cluster -c {reports_dir} {cluster_out}"
         rc, _stdout, stderr = await self._exec(cmd)
         if rc != 0:
-            logger.debug("casr-cluster failed (rc=%d): %s", rc, stderr)
+            log.debug("casr-cluster failed (rc=%d): %s", rc, stderr)
             return []
 
         clusters: list[CrashCluster] = []

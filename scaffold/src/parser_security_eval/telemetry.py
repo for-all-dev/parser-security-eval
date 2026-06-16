@@ -23,7 +23,13 @@ Design constraints
 from __future__ import annotations
 
 import logging
+import os
+from pathlib import Path
 
+from parser_security_eval import log as _log_facade
+
+# telemetry.py is the bootstrap for the log facade, so it keeps its OWN stdlib
+# logger to avoid a circular dependency (log.py must not import telemetry).
 logger = logging.getLogger(__name__)
 
 # Provider SDKs Inspect may drive. Each is instrumented best-effort: a missing
@@ -83,9 +89,30 @@ def configure_telemetry(*, service_name: str = "parser-security-eval") -> bool:
 
     _register_inspect_hooks()
 
+    # Route the log facade through Logfire only when credentials are actually
+    # present (the relaxed #145 constraint is specifically about auth presence).
+    # Without creds, send_to_logfire="if-token-present" exports nothing, so the
+    # facade should stay on stdlib to keep logs visible on the console.
+    if _logfire_credentialed():
+        _log_facade.set_logfire_active(True)
+
     _configured = True
     logger.info("Logfire telemetry configured (service=%s)", service_name)
     return True
+
+
+def _logfire_credentialed() -> bool:
+    """Best-effort detection of Logfire credentials.
+
+    True when ``LOGFIRE_TOKEN`` is set, or a logfire credentials file exists
+    (logfire writes ``.logfire/logfire_credentials.json`` on auth). Detection is
+    intentionally conservative: if unsure we return False so the facade stays on
+    stdlib rather than silently swallowing logs into an unexported Logfire.
+    """
+    if os.environ.get("LOGFIRE_TOKEN"):
+        return True
+    creds = Path.cwd() / ".logfire" / "logfire_credentials.json"
+    return creds.is_file()
 
 
 # ---------------------------------------------------------------------------

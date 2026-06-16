@@ -10,15 +10,16 @@ Also integrates with oss-fuzz project definitions for target metadata.
 from __future__ import annotations
 
 import json
-import logging
 import re
 import shutil
 import subprocess
 import urllib.request
-from dataclasses import dataclass, field as dataclass_field
+from dataclasses import dataclass
+from dataclasses import field as dataclass_field
 from pathlib import Path
 from typing import Any
 
+from parser_security_eval.log import get_log
 from parser_security_eval.models import ParserTarget, VulnerabilityRecord
 from parser_security_eval.models.vulnerability import (
     Difficulty,
@@ -26,7 +27,7 @@ from parser_security_eval.models.vulnerability import (
     Severity,
 )
 
-logger = logging.getLogger(__name__)
+log = get_log(__name__)
 
 OSV_API_URL = "https://api.osv.dev/v1/query"
 
@@ -155,14 +156,14 @@ def clone_ossfuzz_repo(cache_dir: Path) -> Path:
     cache_dir.mkdir(parents=True, exist_ok=True)
 
     if (repo_dir / ".git").is_dir():
-        logger.info("Updating existing oss-fuzz clone at %s", repo_dir)
+        log.info("Updating existing oss-fuzz clone at %s", repo_dir)
         subprocess.run(
             ["git", "-C", str(repo_dir), "pull", "--ff-only"],
             check=True,
             capture_output=True,
         )
     else:
-        logger.info("Cloning oss-fuzz repo into %s (shallow)", repo_dir)
+        log.info("Cloning oss-fuzz repo into %s (shallow)", repo_dir)
         subprocess.run(
             [
                 "git",
@@ -260,7 +261,7 @@ def bootstrap_targets(
                 build_sh.chmod(build_sh.stat().st_mode | 0o111)
             result.succeeded.append(project)
         except Exception as exc:
-            logger.exception("Failed to import %s", project)
+            log.exception("Failed to import %s", project)
             # Clean up partial directory so it isn't wrongly skipped on retry.
             if dst.exists():
                 shutil.rmtree(dst)
@@ -299,10 +300,10 @@ def fetch_ossfuzz_bugs(
     cache_file = cache_dir / f"osv_{project}.json"
 
     if cache_file.exists():
-        logger.info("Using cached OSV data for %s", project)
+        log.info("Using cached OSV data for %s", project)
         return json.loads(cache_file.read_text())
 
-    logger.info("Fetching OSV data for project %s", project)
+    log.info("Fetching OSV data for project %s", project)
     all_vulns: list[dict[str, Any]] = []
     page_token: str | None = None
 
@@ -316,7 +317,7 @@ def fetch_ossfuzz_bugs(
             break
 
     cache_file.write_text(json.dumps(all_vulns, indent=2))
-    logger.info("Fetched %d bugs for %s", len(all_vulns), project)
+    log.info("Fetched %d bugs for %s", len(all_vulns), project)
     return all_vulns
 
 

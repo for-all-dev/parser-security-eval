@@ -23,7 +23,6 @@ with clear TODOs pending the interface from issue #73.
 from __future__ import annotations
 
 import hashlib
-import logging
 import re
 import tempfile
 from pathlib import Path
@@ -44,10 +43,10 @@ from inspect_ai.solver import (
 from inspect_ai.tool import Tool, tool
 
 from parser_security_eval import prompts
-from parser_security_eval.scorers.efficiency import (
-    EFFICIENCY_METRICS,
-    EfficiencyInputs,
-    model_thinking_seconds,
+from parser_security_eval.log import get_log
+from parser_security_eval.memory.store import (
+    load_memory,
+    memory_to_context,
 )
 from parser_security_eval.models.fuzzing import (
     FuzzingCycle,
@@ -55,14 +54,15 @@ from parser_security_eval.models.fuzzing import (
     HarnessRecord,
     LiveFuzzingSessionResult,
 )
-from parser_security_eval.memory.store import (
-    load_memory,
-    memory_to_context,
-)
 from parser_security_eval.sandbox.campaign import FuzzingCampaign
 from parser_security_eval.sandbox.docker import DockerSandbox, SandboxConfig
+from parser_security_eval.scorers.efficiency import (
+    EFFICIENCY_METRICS,
+    EfficiencyInputs,
+    model_thinking_seconds,
+)
 
-logger = logging.getLogger(__name__)
+log = get_log(__name__)
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -100,6 +100,8 @@ def save_session_memory(target_name: str, session_state: dict[str, Any]) -> None
 
     from parser_security_eval.memory.models import (
         CrashSummary,
+    )
+    from parser_security_eval.memory.models import (
         HarnessRecord as MemHarnessRecord,
     )
     from parser_security_eval.memory.store import add_crash, add_harness
@@ -709,10 +711,10 @@ def live_fuzzing_solver(
 
         async with DockerSandbox(config) as sandbox:
             # Build the target so libraries are available for harness linking
-            logger.info("Building target %s inside sandbox", target_name)
+            log.info("Building target %s inside sandbox", target_name)
             build_ok = await sandbox.build_target()
             if not build_ok:
-                logger.warning("Target build failed for %s", target_name)
+                log.warn("Target build failed for %s", target_name)
                 system_prompt = prompts.load(
                     "fuzzing.system",
                     max_repair=MAX_REPAIR_ITERS,

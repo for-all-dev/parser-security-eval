@@ -10,16 +10,15 @@ from parser_security_eval.scoring.dedup import (
     CrashCluster,
     CrashDeduplicator,
     CrashReport,
+    DeduplicationStrategy,
     DeduplicatorConfig,
     DeduplicatorQueues,
-    DeduplicationStrategy,
     FuzzerEngine,
     InterestingInput,
     _compute_stack_hash,
     _normalise_frame,
     deduplicate_crashes,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers

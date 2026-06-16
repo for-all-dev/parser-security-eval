@@ -8,12 +8,13 @@ oss-fuzz conventions:
 """
 
 import asyncio
-import logging
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
-logger = logging.getLogger(__name__)
+from parser_security_eval.log import get_log
+
+log = get_log(__name__)
 
 
 @dataclass
@@ -221,13 +222,13 @@ class DockerSandbox:
             )
 
         if rc != 0:
-            logger.warning("build_target failed (rc=%d)", rc)
+            log.warn("build_target failed (rc=%d)", rc)
             if stderr:
                 for line in stderr.strip().splitlines()[-30:]:
-                    logger.warning("  stderr: %s", line)
+                    log.warn("  stderr: %s", line)
             if stdout:
                 for line in stdout.strip().splitlines()[-10:]:
-                    logger.warning("  stdout: %s", line)
+                    log.warn("  stdout: %s", line)
         return rc == 0
 
     async def _build_with_network(self, command: str) -> tuple[int, str, str]:

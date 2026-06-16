@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-import logging
 from enum import Enum
 from pathlib import Path
 
@@ -23,8 +22,8 @@ from parser_security_eval.dataset.enrich import (
     extract_crash_inputs,
 )
 from parser_security_eval.dataset.ossfuzz import fetch_ossfuzz_bugs, parse_ossfuzz_bug
+from parser_security_eval.log import get_log
 from parser_security_eval.models.vulnerability import VulnerabilityRecord
-
 
 # ---------------------------------------------------------------------------
 # Enums for finite-choice CLI arguments
@@ -86,7 +85,7 @@ category3_app = typer.Typer(
 )
 app.add_typer(category3_app, name="category3")
 
-logger = logging.getLogger(__name__)
+log = get_log(__name__)
 
 _DEFAULT_CACHE = Path.home() / ".cache" / "parser-security-eval"
 
@@ -166,27 +165,27 @@ def run_curation_pipeline(
 
     # --- ARVO ingestion ---
     if source in ("arvo", "all"):
-        logger.info("Ingesting from ARVO (targets: %s)", targets)
+        log.info("Ingesting from ARVO (targets: %s)", targets)
         arvo_output = output / "arvo"
         arvo_records = ingest_arvo(
             cache_dir, arvo_output, limit=limit, targets=target_set, local_ids=local_ids
         )
-        logger.info("ARVO: %d records matching targets", len(arvo_records))
+        log.info("ARVO: %d records matching targets", len(arvo_records))
         all_records.extend(arvo_records)
 
     # --- oss-fuzz ingestion ---
     if source in ("ossfuzz", "all"):
-        logger.info("Ingesting from oss-fuzz (targets: %s)", targets)
+        log.info("Ingesting from oss-fuzz (targets: %s)", targets)
         ossfuzz_cache = cache_dir / "ossfuzz"
         for target in targets:
-            logger.info("Fetching oss-fuzz bugs for %s", target)
+            log.info("Fetching oss-fuzz bugs for %s", target)
             bugs = fetch_ossfuzz_bugs(target, ossfuzz_cache)
             target_records: list[VulnerabilityRecord] = []
             for bug in bugs:
                 record = parse_ossfuzz_bug(bug, target)
                 if record is not None:
                     target_records.append(record)
-            logger.info(
+            log.info(
                 "oss-fuzz %s: %d bugs fetched, %d parsed",
                 target,
                 len(bugs),
@@ -201,11 +200,11 @@ def run_curation_pipeline(
 
     errors = curator.validate()
     if errors:
-        logger.warning("Validation found %d issues:", len(errors))
+        log.warn("Validation found %d issues:", len(errors))
         for err in errors[:20]:
-            logger.warning("  %s", err)
+            log.warn("  %s", err)
         if len(errors) > 20:
-            logger.warning("  ... and %d more", len(errors) - 20)
+            log.warn("  ... and %d more", len(errors) - 20)
 
     curator.export_metadata()
     curator.export_inspect_dataset()
@@ -248,7 +247,6 @@ def curate(
     Runs the full curation pipeline: ingest, filter, deduplicate, validate,
     and export benchmark/metadata.json + benchmark/dataset.jsonl.
     """
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     target_list = [t.strip() for t in targets.split(",") if t.strip()]
 
@@ -557,7 +555,6 @@ def fetch_artifacts(
     ),
 ) -> None:
     """Fetch reference patches from ARVO-Meta for all benchmark records."""
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     if not (benchmark_dir / "metadata.json").exists():
         typer.echo(f"Error: metadata.json not found in {benchmark_dir}", err=True)
@@ -593,7 +590,6 @@ def enrich_dataset(
     timeout: int = typer.Option(120, help="Timeout per Docker image pull in seconds"),
 ) -> None:
     """Enrich benchmark dataset with crash reports, CWE mappings, crash inputs, and source."""
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     if not (benchmark_dir / "metadata.json").exists():
         typer.echo(f"Error: metadata.json not found in {benchmark_dir}", err=True)
@@ -654,8 +650,6 @@ def fuzzing(
     from inspect_ai import eval as inspect_eval
 
     from parser_security_eval.tasks.fuzzing import live_fuzzing
-
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     inspect_task = live_fuzzing(
         targets_dir=str(targets_root),
@@ -742,8 +736,6 @@ def preprocess(
 
     from parser_security_eval.preprocess.context_builder import build_context
 
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
-
     target_dir = targets_root / target
     if not target_dir.exists():
         typer.echo(f"Error: target directory not found: {target_dir}", err=True)
@@ -805,7 +797,6 @@ def audit(
     heuristic classification.  The resulting TOML file is intended for
     human review.
     """
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     from parser_security_eval.dataset.arvo import fetch_arvo_index
     from parser_security_eval.dataset.category3 import (
@@ -881,8 +872,6 @@ def classify(
     """
     import os
 
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
-
     from parser_security_eval.dataset.category3 import (
         classify_uncertain_targets,
         read_audit_toml,
@@ -949,7 +938,6 @@ def compile_cmd(
     localIds for included fuzz targets, and writes a JSON registry suitable
     for ``curate --category3-registry``.
     """
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     from parser_security_eval.dataset.arvo import fetch_arvo_index
     from parser_security_eval.dataset.category3 import (
@@ -1004,8 +992,6 @@ def bootstrap(
         bootstrap_targets,
         clone_ossfuzz_repo,
     )
-
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     if not registry_path.exists():
         typer.echo(f"Error: registry not found: {registry_path}", err=True)
@@ -1067,8 +1053,6 @@ def validate(
 
     from parser_security_eval.dataset.category3 import load_registry
     from parser_security_eval.sandbox.build import validate_target_layout
-
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     if not registry_path.exists():
         typer.echo(f"Error: registry not found: {registry_path}", err=True)

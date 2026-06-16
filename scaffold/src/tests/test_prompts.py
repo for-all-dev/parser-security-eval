@@ -7,7 +7,6 @@ import pytest
 from parser_security_eval import prompts
 from parser_security_eval.prompts.loader import render
 
-
 # ---------------------------------------------------------------------------
 # load() — plain .prompt files
 # ---------------------------------------------------------------------------

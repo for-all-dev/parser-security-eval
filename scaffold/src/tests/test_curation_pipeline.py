@@ -12,7 +12,6 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import patch
 
-
 from parser_security_eval.cli import (
     CATEGORY1_TARGETS,
     _format_summary,
@@ -24,7 +23,6 @@ from parser_security_eval.models.vulnerability import (
     Severity,
     VulnerabilityRecord,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers

@@ -8,7 +8,6 @@ from typer.testing import CliRunner
 
 from parser_security_eval.cli import app
 
-
 runner = CliRunner()
 
 

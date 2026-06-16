@@ -15,10 +15,10 @@ with fields like ``project``, ``crash_type``, ``severity``, ``sanitizer``,
 from __future__ import annotations
 
 import json
-import logging
 import subprocess
 from pathlib import Path
 
+from parser_security_eval.log import get_log
 from parser_security_eval.models.vulnerability import (
     Difficulty,
     Sanitizer,
@@ -26,7 +26,7 @@ from parser_security_eval.models.vulnerability import (
     VulnerabilityRecord,
 )
 
-logger = logging.getLogger(__name__)
+log = get_log(__name__)
 
 ARVO_REPO_URL = "https://github.com/n132/ARVO.git"
 METADATA_REL_PATH = Path("arvo/NewTracker/metadata.jsonl")
@@ -298,14 +298,14 @@ def fetch_arvo_index(cache_dir: Path) -> Path:
     cache_dir.mkdir(parents=True, exist_ok=True)
 
     if (repo_dir / ".git").is_dir():
-        logger.info("Updating existing ARVO clone at %s", repo_dir)
+        log.info("Updating existing ARVO clone at %s", repo_dir)
         subprocess.run(
             ["git", "-C", str(repo_dir), "pull", "--ff-only"],
             check=True,
             capture_output=True,
         )
     else:
-        logger.info("Cloning ARVO repo into %s (shallow)", repo_dir)
+        log.info("Cloning ARVO repo into %s (shallow)", repo_dir)
         subprocess.run(
             [
                 "git",
@@ -521,7 +521,7 @@ def ingest_arvo(
         for record in records:
             fh.write(record.model_dump_json() + "\n")
 
-    logger.info(
+    log.info(
         "Ingested %d parser-related vulnerabilities from ARVO (%d total in index)",
         len(records),
         _count_lines(metadata_path),

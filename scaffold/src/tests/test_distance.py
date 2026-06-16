@@ -27,7 +27,6 @@ from parser_security_eval.distance.semantic_distance import (
 )
 from parser_security_eval.preprocess.callgraph import CallEdge, CallGraph, FunctionNode
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

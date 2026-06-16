@@ -11,16 +11,16 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from parser_security_eval import prompts
 from parser_security_eval.models.fuzzing import (
     CoverageDelta,
     FuzzingResult,
     HarnessRecord,
     LiveFuzzingSessionResult,
 )
-from parser_security_eval import prompts
 from parser_security_eval.tasks.fuzzing import (
-    MAX_REPAIR_ITERS,
     CYCLE_CAP_SECONDS,
+    MAX_REPAIR_ITERS,
     _build_session_result,
     _compute_score,
     _extract_stack_hash,
@@ -38,7 +38,6 @@ from parser_security_eval.tasks.fuzzing import (
     load_session_memory,
     save_session_memory,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fixtures

@@ -9,7 +9,6 @@ Also extracts pre-fix source files for inclusion in patching task prompts.
 from __future__ import annotations
 
 import json
-import logging
 import re
 import shutil
 import sqlite3
@@ -17,7 +16,9 @@ import subprocess
 import urllib.request
 from pathlib import Path
 
-logger = logging.getLogger(__name__)
+from parser_security_eval.log import get_log
+
+log = get_log(__name__)
 
 ARVO_DB_URL = "https://github.com/n132/ARVO-Meta/releases/download/v3.0.0/arvo.db"
 
@@ -27,12 +28,12 @@ def download_arvo_db(cache_dir: Path) -> Path:
     cache_dir.mkdir(parents=True, exist_ok=True)
     db_path = cache_dir / "arvo.db"
     if db_path.exists():
-        logger.info("arvo.db already cached at %s", db_path)
+        log.info("arvo.db already cached at %s", db_path)
         return db_path
 
-    logger.info("Downloading arvo.db from %s …", ARVO_DB_URL)
+    log.info("Downloading arvo.db from %s …", ARVO_DB_URL)
     urllib.request.urlretrieve(ARVO_DB_URL, db_path)  # noqa: S310
-    logger.info("Downloaded arvo.db (%d MB)", db_path.stat().st_size // (1024 * 1024))
+    log.info("Downloaded arvo.db (%d MB)", db_path.stat().st_size // (1024 * 1024))
     return db_path
 
 
@@ -100,7 +101,7 @@ def _git_diff_for_commit(repo_dir: Path, commit: str) -> str | None:
             capture_output=True,
         )
     except subprocess.CalledProcessError:
-        logger.warning("Could not fetch commit %s in %s", commit, repo_dir)
+        log.warn("Could not fetch commit %s in %s", commit, repo_dir)
         return None
 
     result = subprocess.run(
@@ -109,7 +110,7 @@ def _git_diff_for_commit(repo_dir: Path, commit: str) -> str | None:
     )
     if result.returncode != 0:
         stderr = result.stderr.decode(errors="replace")
-        logger.warning("git diff failed for %s in %s: %s", commit, repo_dir, stderr)
+        log.warn("git diff failed for %s in %s: %s", commit, repo_dir, stderr)
         return None
     return result.stdout.decode(errors="replace")
 
@@ -133,7 +134,7 @@ def _fetch_patch_from_url(patch_url: str, timeout: int = 30) -> str | None:
         with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310
             content = resp.read().decode(errors="replace")
     except Exception:
-        logger.debug("Failed to fetch patch from %s", url)
+        log.debug("Failed to fetch patch from %s", url)
         return None
 
     # Sanity check: does this look like a unified diff?
@@ -172,7 +173,7 @@ def _extract_sources_from_docker(
             timeout=timeout_pull,
         )
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
-        logger.warning("Failed to pull Docker image %s: %s", image, e)
+        log.warn("Failed to pull Docker image %s: %s", image, e)
         if failed_images is not None:
             failed_images.add(local_id)
         return {}
@@ -185,7 +186,7 @@ def _extract_sources_from_docker(
             capture_output=True,
         )
     except subprocess.CalledProcessError:
-        logger.warning("Failed to create container %s", container_name)
+        log.warn("Failed to create container %s", container_name)
         return {}
 
     vuln_src_dir = vuln_dir / "vulnerable_src"
@@ -215,7 +216,7 @@ def _extract_sources_from_docker(
                     timeout=timeout_cmd,
                 )
                 if find_result.returncode != 0 or not find_result.stdout.strip():
-                    logger.debug("File %s not found in %s", basename, image)
+                    log.debug("File %s not found in %s", basename, image)
                     continue
 
                 container_path = find_result.stdout.strip().splitlines()[0]
@@ -229,7 +230,7 @@ def _extract_sources_from_docker(
                     timeout=timeout_cmd,
                 )
             except subprocess.CalledProcessError, subprocess.TimeoutExpired:
-                logger.debug("Failed to extract %s from %s", basename, container_name)
+                log.debug("Failed to extract %s from %s", basename, container_name)
                 continue
 
             if dest.exists() and dest.stat().st_size > 0:
@@ -277,11 +278,11 @@ def fetch_reference_patches(
                 continue
 
     total = len(id_to_record)
-    logger.info("Found %d ARVO records in metadata", total)
+    log.info("Found %d ARVO records in metadata", total)
 
     db_path = download_arvo_db(cache_dir)
     arvo_data = query_arvo_db(db_path, list(id_to_record.keys()))
-    logger.info("arvo.db matched %d / %d records", len(arvo_data), total)
+    log.info("arvo.db matched %d / %d records", len(arvo_data), total)
 
     repos_dir = cache_dir / "repos"
     success = 0
@@ -318,7 +319,7 @@ def fetch_reference_patches(
             _clone_or_update(repo_addr, repo_dir)
             diff = _git_diff_for_commit(repo_dir, fix_commit)
         except subprocess.CalledProcessError:
-            logger.warning("Failed to clone %s", repo_addr)
+            log.warn("Failed to clone %s", repo_addr)
             failed_repos.add(cache_key)
 
         # Fallback: fetch patch from patch_url when git fails
@@ -327,7 +328,7 @@ def fetch_reference_patches(
             diff = _fetch_patch_from_url(patch_url)
             if diff:
                 extraction_method = "patch_url"
-                logger.info("Fetched patch from patch_url for %s", rec["id"])
+                log.info("Fetched patch from patch_url for %s", rec["id"])
 
         if not diff:
             continue
@@ -342,14 +343,14 @@ def fetch_reference_patches(
         rec["source_extraction_method"] = extraction_method
         success += 1
         if success % 20 == 0:
-            logger.info("Progress: %d / %d patches fetched", success, total)
+            log.info("Progress: %d / %d patches fetched", success, total)
 
     # Clean up arvo dirs not referenced by metadata
     _cleanup_unreferenced_arvo_dirs(benchmark_dir, metadata)
 
     # Write back updated metadata
     metadata_path.write_text(json.dumps(metadata, indent=2, default=str) + "\n")
-    logger.info("Wrote %d / %d reference patches", success, total)
+    log.info("Wrote %d / %d reference patches", success, total)
     return success, total
 
 
@@ -414,7 +415,7 @@ def extract_vulnerable_sources(
                 continue
 
     total = len(id_to_record)
-    logger.info("Found %d ARVO records with reference patches", total)
+    log.info("Found %d ARVO records with reference patches", total)
 
     db_path = download_arvo_db(cache_dir)
     arvo_data = query_arvo_db(db_path, list(id_to_record.keys()))
@@ -468,7 +469,7 @@ def extract_vulnerable_sources(
             try:
                 _clone_or_update(repo_addr, repo_dir)
             except subprocess.CalledProcessError:
-                logger.warning("Failed to clone %s", repo_addr)
+                log.warn("Failed to clone %s", repo_addr)
                 failed_repos.add(cache_key)
                 git_available = False
 
@@ -489,7 +490,7 @@ def extract_vulnerable_sources(
                     capture_output=True,
                 )
             except subprocess.CalledProcessError:
-                logger.warning("Could not fetch commit %s in %s", fix_commit, repo_dir)
+                log.warn("Could not fetch commit %s in %s", fix_commit, repo_dir)
                 git_available = False
 
         if git_available:
@@ -499,7 +500,7 @@ def extract_vulnerable_sources(
             for file_path in c_files:
                 content = _git_show_file(repo_dir, f"{fix_commit}~1", file_path)
                 if content is None:
-                    logger.debug(
+                    log.debug(
                         "Could not extract %s at %s~1 for %s",
                         file_path,
                         fix_commit,
@@ -524,7 +525,7 @@ def extract_vulnerable_sources(
                 source_paths = docker_paths
                 rec["source_extraction_method"] = "docker"
                 docker_extracted += 1
-                logger.info(
+                log.info(
                     "Extracted %d sources from Docker for %s",
                     len(docker_paths),
                     rec["id"],
@@ -538,11 +539,11 @@ def extract_vulnerable_sources(
             success += 1
 
         if success % 20 == 0 and success > 0:
-            logger.info("Progress: %d / %d sources extracted", success, total)
+            log.info("Progress: %d / %d sources extracted", success, total)
 
     # Write back updated metadata
     metadata_path.write_text(json.dumps(metadata, indent=2, default=str) + "\n")
-    logger.info(
+    log.info(
         "Extracted vulnerable sources for %d / %d records (git: %d, docker: %d)",
         success,
         total,
@@ -581,7 +582,7 @@ def resolve_vulnerable_refs(
                 continue
 
     total = len(id_to_record)
-    logger.info("Found %d ARVO records to resolve vulnerable refs", total)
+    log.info("Found %d ARVO records to resolve vulnerable refs", total)
 
     db_path = download_arvo_db(cache_dir)
     arvo_data = query_arvo_db(db_path, list(id_to_record.keys()))
@@ -618,7 +619,7 @@ def resolve_vulnerable_refs(
         try:
             _clone_or_update(repo_addr, repo_dir)
         except subprocess.CalledProcessError:
-            logger.warning("Failed to clone %s", repo_addr)
+            log.warn("Failed to clone %s", repo_addr)
             failed_repos.add(cache_key)
             continue
 
@@ -638,7 +639,7 @@ def resolve_vulnerable_refs(
                 capture_output=True,
             )
         except subprocess.CalledProcessError:
-            logger.warning("Could not fetch commit %s in %s", fix_commit, repo_dir)
+            log.warn("Could not fetch commit %s in %s", fix_commit, repo_dir)
             continue
 
         # Resolve fix_commit~1 to a full SHA
@@ -648,7 +649,7 @@ def resolve_vulnerable_refs(
             text=True,
         )
         if result.returncode != 0:
-            logger.warning(
+            log.warn(
                 "Could not resolve %s~1 for %s: %s",
                 fix_commit,
                 rec["id"],
@@ -661,10 +662,10 @@ def resolve_vulnerable_refs(
         resolved += 1
 
         if resolved % 20 == 0:
-            logger.info("Progress: %d / %d refs resolved", resolved, total)
+            log.info("Progress: %d / %d refs resolved", resolved, total)
 
     metadata_path.write_text(json.dumps(metadata, indent=2, default=str) + "\n")
-    logger.info("Resolved vulnerable refs for %d / %d records", resolved, total)
+    log.info("Resolved vulnerable refs for %d / %d records", resolved, total)
     return resolved, total
 
 
@@ -681,4 +682,4 @@ def _cleanup_unreferenced_arvo_dirs(benchmark_dir: Path, metadata: dict) -> None
             shutil.rmtree(d)
             removed += 1
     if removed:
-        logger.info("Cleaned up %d unreferenced arvo directories", removed)
+        log.info("Cleaned up %d unreferenced arvo directories", removed)
