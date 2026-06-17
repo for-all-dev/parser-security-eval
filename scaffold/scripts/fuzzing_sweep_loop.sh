@@ -145,16 +145,19 @@ ROUND=1
 while [ ! -f "$STOP_FILE" ]; do
   if [ "$ROUND" -eq 1 ]; then SUF=""; else SUF="-r$ROUND"; fi
   echo "=== ROUND $ROUND (suffix='$SUF') start $(date -u '+%Y-%m-%dT%H:%M:%SZ') free=$(free_gb)GB ===" >> "$LOG"
-  # Group OUTERMOST, then target, then model INNERMOST. Launching model innermost
-  # means haiku/sonnet/opus enter the concurrency pool together and progress in
-  # lockstep; iterating targets above that means all targets advance in parallel
-  # too -> balanced data even if a round only partly completes.
+  # Group OUTERMOST, then model, then TARGET INNERMOST. Target innermost means
+  # consecutive launches hit DIFFERENT targets, so the first wave of $CAP shards
+  # spans all targets (libpng, libxml2, libjpeg, zlib) instead of filling every
+  # slot with the first one or two targets and starving the rest until a full
+  # shard (all reps) completes hours later.
   for group in $GRPS; do
-    for target in $TARGETS; do
-      for mpair in $MODELS; do
-        mname=${mpair%%:*}; mid=${mpair#*:}
+    for mpair in $MODELS; do
+      mname=${mpair%%:*}; mid=${mpair#*:}
+      for target in $TARGETS; do
         [ -f "$STOP_FILE" ] && break 3
-        while [ "$(jobs -rp | wc -l | tr -d ' ')" -ge "$CAP" ]; do
+        # Count only SHARD jobs, excluding the long-lived janitor ($JPID), so
+        # CAP means "concurrent shards" (the janitor was silently eating a slot).
+        while [ "$(jobs -rp | grep -vw "$JPID" | wc -l | tr -d ' ')" -ge "$CAP" ]; do
           [ -f "$STOP_FILE" ] && break
           sleep 8
         done

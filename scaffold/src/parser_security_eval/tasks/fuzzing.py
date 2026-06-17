@@ -899,8 +899,18 @@ def live_fuzzing_solver(
 
         _stash_session_state(state)
 
-        # Persist session memory for future runs
-        save_session_memory(target_name, session_state)
+        # Persist session memory for future runs. Never let a memory-persistence
+        # error fail the whole sample — the scientific data (tokens, coverage,
+        # crashes) is already captured; losing it to a bookkeeping write would be
+        # far worse than skipping the memory update.
+        try:
+            save_session_memory(target_name, session_state)
+        except Exception as exc:
+            log.warning(
+                "save_session_memory failed; continuing",
+                target=target_name,
+                error=str(exc),
+            )
 
         return state
 
