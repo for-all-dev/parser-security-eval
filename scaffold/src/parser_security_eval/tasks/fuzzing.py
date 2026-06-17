@@ -370,9 +370,17 @@ def _make_start_fuzzing_tool(
             # Collect ASAN output for newly found crashes
             new_crash_hashes: dict[str, str] = {}
             for crash_path in result.crash_files:
-                # Re-run the crash input through the binary to get ASAN output
+                # Re-run the crash input through the binary to get ASAN output.
+                # collect_crashes() copied each crash OUT to a host tempdir, but
+                # sandbox.exec runs INSIDE the container -- so we must copy the
+                # crash back in and run the in-container path. (Running the host
+                # path made the binary fail with "no such file", and that error
+                # string got mis-stored as the crash's ASAN output and hashed as a
+                # distinct "unique crash" -- inflating the vuln count with noise.)
+                container_crash = "/tmp/_crash_repro_input"
+                await sandbox.copy_in(crash_path, container_crash)
                 rc, stdout, stderr = await sandbox.exec(
-                    f"/out/{fuzz_target} {crash_path}",
+                    f"/out/{fuzz_target} {container_crash}",
                     timeout=30,
                 )
                 asan_out = stdout + "\n" + stderr

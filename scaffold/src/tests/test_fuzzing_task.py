@@ -1042,3 +1042,63 @@ class TestLiveFuzzingTask:
         )
         assert t.message_limit is not None
         assert t.message_limit >= 60
+
+
+class TestStartFuzzingCrashRetrieval:
+    """Regression: crashes must be re-run INSIDE the container to get ASAN.
+
+    collect_crashes() copies each crash out to a host tempdir; re-running that
+    host path via sandbox.exec (which runs in the container) failed with "no such
+    file", and that error string got mis-stored as the crash's ASAN output and
+    hashed as a distinct unique crash -- inflating the vuln count with noise. The
+    fix copies the crash back into the container and re-runs the in-container path.
+    """
+
+    @pytest.mark.asyncio
+    async def test_crash_reran_inside_container(
+        self, fresh_session_state: dict
+    ) -> None:
+        import parser_security_eval.tasks.fuzzing as fz
+
+        fresh_session_state["compiled"] = True
+        fresh_session_state["fuzz_target"] = "harness_testparser_agent"
+
+        asan = (
+            "==1== ERROR: AddressSanitizer: heap-buffer-overflow\n"
+            "  #0 jpeg_read_header\n  #1 LLVMFuzzerTestOneInput"
+        )
+        sandbox = MagicMock()
+        sandbox.exec = AsyncMock(return_value=(1, asan, ""))
+        sandbox.copy_in = AsyncMock(return_value=None)
+
+        host_crash = Path("/var/folders/xx/T/crashes-testparser-abc/crash-deadbeef")
+        fake_result = MagicMock()
+        fake_result.crash_files = [host_crash]
+        fake_result.coverage_raw_profiles = []
+        fake_result.stats = MagicMock(
+            execs_per_sec=100.0, corpus_size=5, total_execs=1000
+        )
+        fake_result.timed_out = False
+        fake_result.oom_killed = False
+        fake_result.raw_log = "libfuzzer log"
+        campaign = MagicMock()
+        campaign.run = AsyncMock(return_value=fake_result)
+
+        with patch.object(fz, "FuzzingCampaign", return_value=campaign):
+            t = _make_start_fuzzing_tool(
+                sandbox, fresh_session_state, max_duration=300, target_name="testparser"
+            )
+            await t(duration_seconds=60)
+
+        # The crash was copied INTO the container and re-run by the container path.
+        sandbox.copy_in.assert_awaited_once()
+        src, dst = sandbox.copy_in.await_args.args
+        assert src == host_crash
+        assert dst == "/tmp/_crash_repro_input"
+        exec_cmd = sandbox.exec.await_args_list[-1].args[0]
+        assert "/tmp/_crash_repro_input" in exec_cmd
+        assert "/var/folders" not in exec_cmd  # never the unreachable host path
+        # The REAL ASAN is recorded as exactly one unique crash (not path noise).
+        hashes = fresh_session_state["all_crash_hashes"]
+        assert len(hashes) == 1
+        assert "AddressSanitizer" in next(iter(hashes.values()))
