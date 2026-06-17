@@ -73,6 +73,78 @@ MAX_REPAIR_ITERS = 5  # max compile-fix iterations before giving up
 MAX_STACK_FRAMES = 5  # top-N frames used for crash deduplication
 
 # ---------------------------------------------------------------------------
+# Harness link recipes (issue: harnesses must link the REAL target library)
+# ---------------------------------------------------------------------------
+# Each target builds a sanitizer-instrumented static library, but at a
+# target-specific path with target-specific include dirs and dependency flags.
+# If the harness compile command does not (a) put the real headers on the
+# include path and (b) link the static .a + its deps, then agents cannot call
+# the real library: they hit "undefined reference", and "fix" it by stubbing the
+# functions themselves or `__has_include`-guarding them into a silent no-op — in
+# both cases fuzzing their own code, not the target. These recipes are derived
+# directly from each target's build.sh link step. `lib_candidates` is tried in
+# order; the first that exists is linked (mirrors build.sh's own fallback logic).
+HARNESS_LINK_RECIPES: dict[str, dict[str, Any]] = {
+    "libxml2": {
+        "includes": ["-I/src/libxml2/include", "-I/src/libxml2"],
+        "lib_candidates": ["/src/libxml2/.libs/libxml2.a"],
+        "extra": ["-Wl,-Bstatic", "-lz", "-llzma", "-Wl,-Bdynamic"],
+    },
+    "libpng": {
+        "includes": ["-I/src/libpng", "-I/work/include"],
+        "lib_candidates": [
+            "/src/libpng/.libs/libpng16.a",
+            "/src/libpng/.libs/libpng.a",
+            "/src/libpng/build_cmake/libpng16.a",
+            "/src/libpng/build_cmake/libpng.a",
+            "/src/libpng/libpng.a",
+        ],
+        "extra": ["/work/lib/libz.a"],
+    },
+    "libjpeg-turbo": {
+        "includes": ["-I/work/include", "-I/src/libjpeg-turbo"],
+        "lib_candidates": ["/work/lib/libjpeg.a"],
+        "extra": ["-Wl,-Bstatic", "-Wl,-Bdynamic"],
+    },
+    "zlib": {
+        "includes": ["-I/src/zlib"],
+        "lib_candidates": ["/src/zlib/libz.a", "/work/lib/libz.a"],
+        "extra": [],
+    },
+}
+
+
+async def resolve_harness_link(
+    sandbox: DockerSandbox, target_name: str
+) -> tuple[str, str]:
+    """Resolve (include_args, link_args) for linking the real target library.
+
+    Returns include flags and link flags (static .a + deps) as space-joined
+    strings, discovering the first existing static library at runtime. Falls
+    back to the legacy ``-I/src/<target>`` (no library) for unknown targets so
+    behaviour is unchanged where no recipe exists.
+    """
+    recipe = HARNESS_LINK_RECIPES.get(target_name)
+    if recipe is None:
+        return f"-I/src/{target_name}", ""
+
+    include_args = " ".join(recipe["includes"])
+
+    found = ""
+    for candidate in recipe["lib_candidates"]:
+        rc, _, _ = await sandbox.exec(f"test -f {candidate}")
+        if rc == 0:
+            found = candidate
+            break
+
+    link_parts: list[str] = []
+    if found:
+        link_parts.append(found)
+    link_parts.extend(recipe["extra"])
+    return include_args, " ".join(link_parts)
+
+
+# ---------------------------------------------------------------------------
 # Memory stub (issue #73)
 # ---------------------------------------------------------------------------
 
@@ -241,13 +313,21 @@ def _make_compile_harness_tool(
             else:
                 lib_fuzzing_engine = "-fsanitize=fuzzer"
 
+            # Include dirs and the real target library (.a + deps) are resolved
+            # once at session start (see resolve_harness_link). Linking the real
+            # library is what lets the harness call the actual target instead of
+            # stubbing it. Fall back to the legacy flags if unset.
+            include_args = session_state.get(
+                "harness_include_args", f"-I/src/{target_name}"
+            )
+            link_args = session_state.get("harness_link_args", "")
             compile_cmd = (
                 f"clang++ -fsanitize=address,fuzzer -fno-omit-frame-pointer -g "
-                f"-std=c++11 -I/src/{target_name} "
+                f"-std=c++11 {include_args} "
                 f"/src/harness_{target_name}.cc "
                 f"-o /out/harness_{target_name}_agent "
                 f"{lib_fuzzing_engine} "
-                f"-L/out -L/work/lib "
+                f"-L/out -L/work/lib {link_args} "
                 f"2>&1"
             )
             rc, stdout, stderr = await sandbox.exec(compile_cmd, timeout=120)
@@ -771,6 +851,18 @@ def live_fuzzing_solver(
                     )
                 )
                 return _stash_session_state(state)
+
+            # Resolve include dirs + the real target library link flags now that
+            # the target is built, so every harness compile links the real lib.
+            include_args, link_args = await resolve_harness_link(sandbox, target_name)
+            session_state["harness_include_args"] = include_args
+            session_state["harness_link_args"] = link_args
+            log.info(
+                "resolved harness link flags",
+                target=target_name,
+                include_args=include_args,
+                link_args=link_args,
+            )
 
             # Ensure corpus and crash dirs exist
             await sandbox.exec("mkdir -p /out/corpus /out/crashes")

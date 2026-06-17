@@ -20,12 +20,14 @@ from parser_security_eval.models.fuzzing import (
 )
 from parser_security_eval.tasks.fuzzing import (
     CYCLE_CAP_SECONDS,
+    HARNESS_LINK_RECIPES,
     MAX_REPAIR_ITERS,
     _build_session_result,
     _compute_score,
     _extract_stack_hash,
     _make_add_seed_tool,
     _make_compile_harness_tool,
+    resolve_harness_link,
     _make_get_crash_info_tool,
     _make_get_fuzzer_stats_tool,
     _make_refine_harness_tool,
@@ -345,6 +347,64 @@ class TestCompileHarnessTool:
         )
         await t()
         assert fresh_session_state["last_harness_first_try"] is False
+
+
+# ---------------------------------------------------------------------------
+# Harness link recipes (link the REAL target library, not a stub)
+# ---------------------------------------------------------------------------
+
+
+class TestResolveHarnessLink:
+    @pytest.mark.asyncio
+    async def test_libxml2_includes_and_links_static_lib(self) -> None:
+        sandbox = MagicMock()
+        sandbox.exec = AsyncMock(return_value=(0, "", ""))  # every .a "exists"
+        include_args, link_args = await resolve_harness_link(sandbox, "libxml2")
+        assert "-I/src/libxml2/include" in include_args
+        assert "/src/libxml2/.libs/libxml2.a" in link_args
+        assert "-lz" in link_args and "-llzma" in link_args
+
+    @pytest.mark.asyncio
+    async def test_picks_first_existing_candidate(self) -> None:
+        # First candidate missing (rc=1), second present (rc=0).
+        sandbox = MagicMock()
+        sandbox.exec = AsyncMock(side_effect=[(1, "", ""), (0, "", "")])
+        _, link_args = await resolve_harness_link(sandbox, "libpng")
+        cands = HARNESS_LINK_RECIPES["libpng"]["lib_candidates"]
+        assert cands[1] in link_args
+        assert cands[0] not in link_args
+        assert "/work/lib/libz.a" in link_args  # dep still appended
+
+    @pytest.mark.asyncio
+    async def test_unknown_target_falls_back_to_legacy(self) -> None:
+        sandbox = MagicMock()
+        sandbox.exec = AsyncMock(return_value=(0, "", ""))
+        include_args, link_args = await resolve_harness_link(sandbox, "mystery")
+        assert include_args == "-I/src/mystery"
+        assert link_args == ""
+
+    @pytest.mark.asyncio
+    async def test_compile_uses_resolved_link_args(
+        self, fresh_session_state: dict
+    ) -> None:
+        # The compile command MUST include the resolved library link flags, or
+        # the harness cannot call the real target (regression guard).
+        fresh_session_state["harness_written"] = True
+        fresh_session_state["pending_harness"] = MINIMAL_HARNESS
+        fresh_session_state["harness_include_args"] = "-I/src/libxml2/include"
+        fresh_session_state["harness_link_args"] = (
+            "/src/libxml2/.libs/libxml2.a -Wl,-Bstatic -lz -llzma -Wl,-Bdynamic"
+        )
+        sandbox = MagicMock()
+        sandbox.exec = AsyncMock(return_value=(0, "", ""))
+        sandbox.copy_in = AsyncMock(return_value=None)
+        t = _make_compile_harness_tool(
+            sandbox, fresh_session_state, "libxml2", "libfuzzer", "address"
+        )
+        await t()
+        compile_call = sandbox.exec.call_args.args[0]
+        assert "/src/libxml2/.libs/libxml2.a" in compile_call
+        assert "-I/src/libxml2/include" in compile_call
 
 
 # ---------------------------------------------------------------------------

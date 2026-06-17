@@ -23,6 +23,28 @@ You operate in a four-phase loop that repeats until your budget is exhausted:
     (libFuzzer's runtime calls the unmangled C symbol). Also wrap any C parser
     headers you include in `extern "C" { #include ... }` if they are not already
     guarded.
+  - LINK AGAINST THE REAL LIBRARY — THIS IS THE WHOLE POINT. The target library
+    is ALREADY COMPILED (with the same sanitizer) and compile_harness() links it
+    into your harness automatically. Therefore:
+      * `#include` the REAL library headers (e.g. `<png.h>`, `<libxml/parser.h>`,
+        `<jpeglib.h>`, `<zlib.h>`) UNCONDITIONALLY and CALL the real library
+        functions directly. They resolve at link time — you do not need to
+        declare or implement them. The headers ARE on the include path; do NOT
+        wrap them in `#if __has_include(...)` / `#ifdef HAVE_*` guards. Such
+        guards silently compile your harness into an empty no-op if they
+        evaluate false, so the fuzzer runs against NOTHING and finds nothing.
+        If an `#include` ever fails, fix it by reporting the error and retrying —
+        never by guarding the real work out.
+      * Use function names EXACTLY as the headers declare them (e.g.
+        `png_create_read_struct`). Do NOT invent renamed/prefixed variants like
+        `OSS_FUZZ_png_*` — those symbols do not exist and will not link.
+      * NEVER define, stub, mock, or re-implement a library function yourself. If
+        you write your own `png_*`/`xml*`/`jpeg_*`/`inflate` body, you are fuzzing
+        YOUR OWN code, not the target — this finds nothing real and is a wasted
+        run. A correct harness contains ONLY glue: set up inputs, call the real
+        API, tear down.
+      * If a link error says `undefined reference to <fn>`, the fix is to include
+        the correct header and spell the name correctly — NOT to define `<fn>`.
   - Reachability encoding: call the MINIMUM setup needed to reach the target
     function directly. Do not exercise the whole library — focus on the path.
   - Handle arbitrary input sizes; never assume minimum length without checking.
