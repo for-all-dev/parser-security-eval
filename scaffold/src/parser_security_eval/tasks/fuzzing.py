@@ -412,6 +412,13 @@ def _make_start_fuzzing_tool(
             session_state["total_fuzz_seconds"] = (
                 session_state.get("total_fuzz_seconds", 0.0) + capped
             )
+            # Track peak coverage (libFuzzer PCs/edges) reached across cycles.
+            # >0 confirms the harness exercised target code; 0 means it never got
+            # past its own entry point (the 0-coverage "artifact" self-crashes).
+            session_state["max_coverage_pcs"] = max(
+                session_state.get("max_coverage_pcs", 0),
+                result.stats.coverage_pcs,
+            )
 
             # Emit one structured record per completed cycle so Logfire owns the
             # live research curves (execs/s, crashes, coverage over time) for the
@@ -429,6 +436,8 @@ def _make_start_fuzzing_tool(
                 crashes_total=len(all_hashes),
                 crashes_new=len(new_crash_hashes),
                 coverage_profiles=len(result.coverage_raw_profiles),
+                coverage_pcs=result.stats.coverage_pcs,
+                max_coverage_pcs=session_state["max_coverage_pcs"],
                 fuzz_seconds=float(capped),
                 total_fuzz_seconds=session_state["total_fuzz_seconds"],
             )
@@ -836,8 +845,9 @@ def _build_session_result(
         cycles=fuzzing_cycles,
         total_unique_crashes=len(all_crash_hashes),
         all_crash_hashes=all_crash_hashes,
-        final_line_coverage_pct=0.0,  # populated by coverage scorer if available
+        final_line_coverage_pct=0.0,  # line-% needs an instrumented build (TODO)
         final_branch_coverage_pct=0.0,
+        coverage_pcs=session_state.get("max_coverage_pcs", 0),
         total_harnesses_attempted=total_attempted,
         harnesses_compiled_first_try=compiled_first_try,
         total_repair_iterations=total_repairs,
@@ -936,6 +946,7 @@ def live_fuzzing_scorer(
                     "mean_repair_iterations": result.mean_repair_iterations,
                     "final_line_coverage_pct": result.final_line_coverage_pct,
                     "final_branch_coverage_pct": result.final_branch_coverage_pct,
+                    "coverage_pcs": result.coverage_pcs,
                     "total_harnesses_attempted": result.total_harnesses_attempted,
                     "harnesses_compiled_first_try": result.harnesses_compiled_first_try,
                     **eff_inputs.as_metadata(),

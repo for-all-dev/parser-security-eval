@@ -78,6 +78,16 @@ stat::crash_count:     2
         stats = engine.parse_stats(self.SAMPLE_LOG)
         assert stats.engine == "libfuzzer"
 
+    def test_parses_peak_coverage_pcs(self) -> None:
+        # SAMPLE_LOG has "cov: 30" then "cov: 31" lines -> peak is 31.
+        engine = LibFuzzerEngine()
+        stats = engine.parse_stats(self.SAMPLE_LOG)
+        assert stats.coverage_pcs == 31
+
+    def test_coverage_pcs_zero_when_absent(self) -> None:
+        engine = LibFuzzerEngine()
+        assert engine.parse_stats("no cov lines here").coverage_pcs == 0
+
     def test_empty_log_returns_defaults(self) -> None:
         engine = LibFuzzerEngine()
         stats = engine.parse_stats("")

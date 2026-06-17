@@ -562,6 +562,8 @@ class TestStartFuzzingTool:
             "crashes_total": 0,
             "crashes_new": 0,
             "coverage_profiles": 2,
+            "coverage_pcs": 0,
+            "max_coverage_pcs": 0,
             "fuzz_seconds": 120.0,
             "total_fuzz_seconds": 120.0,
         }
@@ -1076,7 +1078,7 @@ class TestStartFuzzingCrashRetrieval:
         fake_result.crash_files = [host_crash]
         fake_result.coverage_raw_profiles = []
         fake_result.stats = MagicMock(
-            execs_per_sec=100.0, corpus_size=5, total_execs=1000
+            execs_per_sec=100.0, corpus_size=5, total_execs=1000, coverage_pcs=0
         )
         fake_result.timed_out = False
         fake_result.oom_killed = False
