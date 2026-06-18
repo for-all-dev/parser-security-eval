@@ -510,6 +510,12 @@ def _make_start_fuzzing_tool(
             log.info(
                 "fuzz cycle complete",
                 target=target_name,
+                # Run identity (issue #114): lets Logfire chart the live curves
+                # broken down by model and separated per run, instead of one
+                # tangled line per target.
+                model=session_state.get("model"),
+                sample_id=session_state.get("sample_id"),
+                epoch=session_state.get("epoch"),
                 cycle=session_state["cycle_count"],
                 execs_per_sec=result.stats.execs_per_sec,
                 total_execs=result.stats.total_execs,
@@ -815,6 +821,14 @@ def live_fuzzing_solver(
             "harness_records": [],  # list[HarnessRecord] accumulated across cycles
             "fuzzing_cycles": [],  # list[FuzzingCycle]
             "current_entry_point": "",
+            # Run identity, captured once so every per-cycle Logfire record can be
+            # grouped by model and separated per run (issue #114). `model` is the
+            # core research axis ("vulns per walltime as a function of model");
+            # `sample_id`/`epoch` disambiguate concurrent runs of the same
+            # model+target so their live curves don't collapse into one line.
+            "model": str(state.model),
+            "sample_id": state.sample_id,
+            "epoch": state.epoch,
         }
 
         def _stash_session_state(st: TaskState) -> TaskState:
@@ -906,7 +920,7 @@ def live_fuzzing_solver(
         try:
             save_session_memory(target_name, session_state)
         except Exception as exc:
-            log.warning(
+            log.warn(
                 "save_session_memory failed; continuing",
                 target=target_name,
                 error=str(exc),

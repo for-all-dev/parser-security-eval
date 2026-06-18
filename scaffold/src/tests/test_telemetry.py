@@ -179,6 +179,9 @@ def test_sample_attributes_extracts_target_scores_and_eff_metadata(telemetry):
     assert attrs["sample.total_time"] == 12.5
     assert attrs["error"] is False
     assert attrs["tokens.total"] == 150  # summed across model usages
+    # model = the busiest model_usage key (the run's primary model), so dashboards
+    # can break results down by model (issue #114).
+    assert attrs["model"] == "anthropic/x"
     assert attrs["score.live_fuzzing"] == 0.4
     assert attrs["score.live_fuzzing.unique_crashes"] == 3
     assert attrs["score.live_fuzzing.eff_vulns"] == 3.0

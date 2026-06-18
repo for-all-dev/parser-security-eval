@@ -123,6 +123,10 @@ def fresh_session_state() -> dict:
         "harness_records": [],
         "fuzzing_cycles": [],
         "current_entry_point": "",
+        # Run identity the solver stashes for per-cycle Logfire records (#114).
+        "model": "anthropic/test-model",
+        "sample_id": "live-fuzzing-testparser",
+        "epoch": 1,
     }
 
 
@@ -616,6 +620,9 @@ class TestStartFuzzingTool:
         kwargs = cycle_calls[0].kwargs
         assert kwargs == {
             "target": "testparser",
+            "model": "anthropic/test-model",
+            "sample_id": "live-fuzzing-testparser",
+            "epoch": 1,
             "cycle": 1,
             "execs_per_sec": 1500.0,
             "total_execs": 180_000,
@@ -672,6 +679,7 @@ class TestStartFuzzingTool:
         assert kwargs["total_execs"] is None
         assert kwargs["target"] == "unknown"  # default when not threaded
         assert kwargs["fuzz_seconds"] == 60.0
+        assert kwargs["model"] == "anthropic/test-model"  # run identity threaded (#114)
 
 
 # ---------------------------------------------------------------------------

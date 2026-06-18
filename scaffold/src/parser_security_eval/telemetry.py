@@ -238,6 +238,18 @@ def _sample_attributes(sample: object) -> dict[str, str | int | float | bool]:
     if total_tokens:
         attrs["tokens.total"] = total_tokens
 
+    # Record the model so dashboards can break results down by model — the core
+    # research axis ("vulns per walltime as a function of model", issue #114).
+    # ``model_usage`` is keyed by model name; pick the one that did the most work
+    # (a sample is almost always a single model, but grader/critic calls can add
+    # secondary keys we don't want to mislabel the run by).
+    if model_usage:
+        primary = max(
+            model_usage,
+            key=lambda m: getattr(model_usage[m], "total_tokens", 0) or 0,
+        )
+        attrs["model"] = primary
+
     scores = getattr(sample, "scores", None) or {}
     for name, score in scores.items():
         as_float = getattr(score, "as_float", None)
