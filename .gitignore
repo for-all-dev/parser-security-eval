@@ -20,11 +20,12 @@ benchmark-cat*-smoke/
 
 logs/
 
-# Auto-generated per-shard sweep configs (see scaffold/scripts/fuzzing_sweep_loop.sh).
-# The 4 hand-written configs (fuzzing-baseline/-test, patching-model-sweep,
-# triage-sweep) are committed and unaffected by these patterns.
-scaffold/experiments/bigrun-*.toml
-scaffold/experiments/fuzzing-bigrun-*.toml
-scaffold/experiments/fuzzing-fixed-*.toml
-scaffold/experiments/fuzzing-linked-*.toml
-scaffold/experiments/fuzzing-sweep-*.toml
+# Experiment configs: the hand-written sweep configs are committed (allowlisted
+# below); everything else in experiments/ is a generated/throwaway run config
+# (per-shard sweeps, mini/validate runs) and is ignored. To commit a NEW
+# hand-written config, add a matching `!` exception line here.
+scaffold/experiments/*.toml
+!scaffold/experiments/fuzzing-baseline.toml
+!scaffold/experiments/fuzzing-test.toml
+!scaffold/experiments/patching-model-sweep.toml
+!scaffold/experiments/triage-sweep.toml
