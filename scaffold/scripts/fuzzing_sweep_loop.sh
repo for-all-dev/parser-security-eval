@@ -120,6 +120,12 @@ EOF
     [ -d "$SCAF" ] || { sleep 15; continue; }
     ensure_docker || { sleep 30; continue; }
     disk_guard
+    # macOS writes ._* AppleDouble files next to target files on the NTFS SSD
+    # (e.g. ._memory.json beside a written memory.json). Those land in the docker
+    # build CONTEXT and make orbstack's context transfer fail with
+    # "failed to xattr ... operation not permitted" -> build rc=1. Sweep them
+    # before every build attempt so the context stays clean.
+    find "$SCAF/../targets" -name '._*' -delete 2>/dev/null
     out=$(python3 -c "
 import json
 from collections import Counter
