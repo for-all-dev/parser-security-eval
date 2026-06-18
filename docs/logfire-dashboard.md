@@ -5,7 +5,14 @@ Per the resolution of [#114](https://github.com/for-all-dev/parser-security-eval
 app or rebuild the Streamlit `viz/`; instead the runner + campaign loop emit
 structured attributes that Logfire charts natively (live tail = the "hot reload"
 the issue asked for). This file is the saved set of queries that power the core
-research views — paste them into a Logfire dashboard panel (SQL mode).
+research views.
+
+**Fastest path — import the whole dashboard:** in Logfire go to
+**Dashboards → Custom → Import JSON** and upload
+[`logfire-dashboard.json`](./logfire-dashboard.json) (next to this file). It
+creates an editable dashboard with all the panels below pre-wired. The queries
+in this doc are the same SQL, kept here for reference / hand-editing a single
+panel (Logfire's per-panel editor uses this same SQL).
 
 ## Telemetry contract
 
