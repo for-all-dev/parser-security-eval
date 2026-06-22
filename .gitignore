@@ -19,3 +19,4 @@ benchmark/arvo/
 benchmark-cat*-smoke/
 
 logs/
+/docs/meetings/*.pdf
