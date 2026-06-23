@@ -43,3 +43,6 @@ scaffold/results/*
 
 # Per-target memory is generated run state (and spawns ._ build-context junk).
 targets/*/memory.json
+
+/docs/meetings/*.pdf
+
