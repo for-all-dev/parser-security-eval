@@ -1,0 +1,243 @@
+{
+  "kind": "Dashboard",
+  "metadata": {
+    "name": "Parser Security — Fuzzing Research (#114)",
+    "project": "parser-security"
+  },
+  "spec": {
+    "display": {
+      "name": "Parser Security — Fuzzing Research (#114)",
+      "description": "Live fuzzing research dashboard. Run-level crux metrics (vulns per walltime, per model/target) + per-cycle live curves (execs/s, coverage, crashes). Test rows (target testparser/unknown) are filtered out. The `model` axis only populates for runs started after the #114 telemetry commit."
+    },
+    "panels": {
+      "total_unique_crashes": {
+        "kind": "Panel",
+        "spec": {
+          "display": { "name": "Total unique crashes" },
+          "plugin": { "kind": "Values", "spec": {} },
+          "queries": [
+            {
+              "kind": "NonTimeSeriesQuery",
+              "spec": {
+                "plugin": {
+                  "kind": "LogfireNonTimeSeriesQuery",
+                  "spec": {
+                    "query": "select\n    sum((attributes->>'score._live_fuzzing_scorer.eff_vulns')::float) as \"Unique crashes\"\nfrom records\nwhere message = 'eval sample'\n  and attributes->>'sample.id' like 'live-fuzzing%'\n  and attributes->>'error' = 'false'\n  and attributes->>'target' not in ('testparser', 'unknown')\n"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "vulns_per_fuzz_hour_by_target": {
+        "kind": "Panel",
+        "spec": {
+          "display": { "name": "Vulns per fuzz-hour, by target (the crux)" },
+          "plugin": {
+            "kind": "BarChart",
+            "spec": {
+              "mode": "value",
+              "sort": "desc",
+              "format": { "unit": "decimal", "shortValues": true },
+              "showValues": true,
+              "calculation": "last"
+            }
+          },
+          "queries": [
+            {
+              "kind": "NonTimeSeriesQuery",
+              "spec": {
+                "plugin": {
+                  "kind": "LogfireNonTimeSeriesQuery",
+                  "spec": {
+                    "query": "select * from (\n  select\n      round(\n        sum((attributes->>'score._live_fuzzing_scorer.eff_vulns')::float)\n        / nullif(sum((attributes->>'score._live_fuzzing_scorer.eff_fuzz_seconds')::float) / 3600, 0)\n      , 3) as vulns_per_fuzz_hour,\n      attributes->>'target' as target\n  from records\n  where message = 'eval sample'\n    and attributes->>'sample.id' like 'live-fuzzing%'\n    and attributes->>'error' = 'false'\n    and attributes->>'target' not in ('testparser', 'unknown')\n  group by target\n) order by vulns_per_fuzz_hour desc",
+                    "groupBy": "",
+                    "metrics": []
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "vulns_per_fuzz_hour_by_model": {
+        "kind": "Panel",
+        "spec": {
+          "display": { "name": "Vulns per fuzz-hour, by model (#114 — populates on new runs)" },
+          "plugin": {
+            "kind": "BarChart",
+            "spec": {
+              "mode": "value",
+              "sort": "desc",
+              "format": { "unit": "decimal", "shortValues": true },
+              "showValues": true,
+              "calculation": "last"
+            }
+          },
+          "queries": [
+            {
+              "kind": "NonTimeSeriesQuery",
+              "spec": {
+                "plugin": {
+                  "kind": "LogfireNonTimeSeriesQuery",
+                  "spec": {
+                    "query": "select * from (\n  select\n      round(\n        sum((attributes->>'score._live_fuzzing_scorer.eff_vulns')::float)\n        / nullif(sum((attributes->>'score._live_fuzzing_scorer.eff_fuzz_seconds')::float) / 3600, 0)\n      , 3) as vulns_per_fuzz_hour,\n      coalesce(attributes->>'model', '(model not recorded)') as model\n  from records\n  where message = 'eval sample'\n    and attributes->>'sample.id' like 'live-fuzzing%'\n    and attributes->>'error' = 'false'\n    and attributes->>'target' not in ('testparser', 'unknown')\n  group by model\n) order by vulns_per_fuzz_hour desc",
+                    "groupBy": "",
+                    "metrics": []
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "run_failure_rate_by_target": {
+        "kind": "Panel",
+        "spec": {
+          "display": { "name": "Run failure rate (%) by target" },
+          "plugin": {
+            "kind": "BarChart",
+            "spec": {
+              "mode": "value",
+              "sort": "desc",
+              "format": { "unit": "decimal", "shortValues": true },
+              "showValues": true,
+              "calculation": "last"
+            }
+          },
+          "queries": [
+            {
+              "kind": "NonTimeSeriesQuery",
+              "spec": {
+                "plugin": {
+                  "kind": "LogfireNonTimeSeriesQuery",
+                  "spec": {
+                    "query": "select * from (\n  select\n      round(100.0 * sum(case when attributes->>'error' = 'true' then 1 else 0 end)\n            / nullif(count(*), 0), 1) as error_pct,\n      attributes->>'target' as target\n  from records\n  where message = 'eval sample'\n    and attributes->>'sample.id' like 'live-fuzzing%'\n    and attributes->>'target' not in ('testparser', 'unknown')\n  group by target\n) order by error_pct desc",
+                    "groupBy": "",
+                    "metrics": []
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "execs_per_sec_by_target": {
+        "kind": "Panel",
+        "spec": {
+          "display": { "name": "Execs/sec over time, by target" },
+          "plugin": {
+            "kind": "TimeSeriesChart",
+            "spec": {
+              "yAxis": { "show": true, "label": "execs/sec", "format": { "unit": "decimal", "shortValues": true } },
+              "legend": { "position": "bottom" },
+              "visual": { "display": "line" }
+            }
+          },
+          "queries": [
+            {
+              "kind": "TimeSeriesQuery",
+              "spec": {
+                "plugin": {
+                  "kind": "LogfireTimeSeriesQuery",
+                  "spec": {
+                    "query": "select\n    avg((attributes->>'execs_per_sec')::float) as execs_per_sec,\n    attributes->>'target' as target,\n    time_bucket($resolution, start_timestamp) as x\nfrom records\nwhere message = 'fuzz cycle complete'\n  and attributes->>'target' not in ('testparser', 'unknown')\ngroup by x, target",
+                    "groupBy": "target",
+                    "metrics": ["execs_per_sec"]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "coverage_pcs_by_target": {
+        "kind": "Panel",
+        "spec": {
+          "display": { "name": "Peak coverage (libFuzzer PCs) over time, by target" },
+          "plugin": {
+            "kind": "TimeSeriesChart",
+            "spec": {
+              "yAxis": { "show": true, "label": "coverage PCs", "format": { "unit": "decimal", "shortValues": true } },
+              "legend": { "position": "bottom" },
+              "visual": { "display": "line" }
+            }
+          },
+          "queries": [
+            {
+              "kind": "TimeSeriesQuery",
+              "spec": {
+                "plugin": {
+                  "kind": "LogfireTimeSeriesQuery",
+                  "spec": {
+                    "query": "select\n    max((attributes->>'coverage_pcs')::int) as coverage_pcs,\n    attributes->>'target' as target,\n    time_bucket($resolution, start_timestamp) as x\nfrom records\nwhere message = 'fuzz cycle complete'\n  and attributes->>'target' not in ('testparser', 'unknown')\ngroup by x, target",
+                    "groupBy": "target",
+                    "metrics": ["coverage_pcs"]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "cumulative_crashes_by_target": {
+        "kind": "Panel",
+        "spec": {
+          "display": { "name": "Unique crashes over time, by target" },
+          "plugin": {
+            "kind": "TimeSeriesChart",
+            "spec": {
+              "yAxis": { "show": true, "label": "unique crashes", "format": { "unit": "decimal", "shortValues": true } },
+              "legend": { "position": "bottom" },
+              "visual": { "display": "line" }
+            }
+          },
+          "queries": [
+            {
+              "kind": "TimeSeriesQuery",
+              "spec": {
+                "plugin": {
+                  "kind": "LogfireTimeSeriesQuery",
+                  "spec": {
+                    "query": "select\n    max((attributes->>'crashes_total')::int) as crashes_total,\n    attributes->>'target' as target,\n    time_bucket($resolution, start_timestamp) as x\nfrom records\nwhere message = 'fuzz cycle complete'\n  and attributes->>'target' not in ('testparser', 'unknown')\ngroup by x, target",
+                    "groupBy": "target",
+                    "metrics": ["crashes_total"]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "layouts": [
+      {
+        "kind": "Grid",
+        "spec": {
+          "display": { "title": "Research crux (run-level)", "collapse": { "open": true } },
+          "items": [
+            { "x": 0, "y": 0, "width": 6, "height": 8, "content": { "$ref": "#/spec/panels/total_unique_crashes" } },
+            { "x": 6, "y": 0, "width": 18, "height": 8, "content": { "$ref": "#/spec/panels/vulns_per_fuzz_hour_by_target" } },
+            { "x": 0, "y": 8, "width": 12, "height": 10, "content": { "$ref": "#/spec/panels/vulns_per_fuzz_hour_by_model" } },
+            { "x": 12, "y": 8, "width": 12, "height": 10, "content": { "$ref": "#/spec/panels/run_failure_rate_by_target" } }
+          ]
+        }
+      },
+      {
+        "kind": "Grid",
+        "spec": {
+          "display": { "title": "Live fuzzing curves (per cycle)", "collapse": { "open": true } },
+          "items": [
+            { "x": 0, "y": 0, "width": 24, "height": 8, "content": { "$ref": "#/spec/panels/execs_per_sec_by_target" } },
+            { "x": 0, "y": 8, "width": 12, "height": 8, "content": { "$ref": "#/spec/panels/coverage_pcs_by_target" } },
+            { "x": 12, "y": 8, "width": 12, "height": 8, "content": { "$ref": "#/spec/panels/cumulative_crashes_by_target" } }
+          ]
+        }
+      }
+    ],
+    "variables": [],
+    "duration": "7d",
+    "refreshInterval": "30s"
+  }
+}

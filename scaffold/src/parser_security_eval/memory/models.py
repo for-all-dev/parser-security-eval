@@ -40,10 +40,10 @@ class CrashSummary(BaseModel):
 
     id: str  # stack hash (top 5 frames)
     stack_hash: str
-    cwe: str | None  # e.g. "CWE-122"
-    severity: str | None  # critical/high/medium/low
+    cwe: str | None = None  # e.g. "CWE-122"
+    severity: str | None = None  # critical/high/medium/low
     entry_point: str
-    crash_file: str | None  # path to crash artifact relative to target dir
+    crash_file: str | None = None  # path to crash artifact relative to target dir
     found_at: datetime
     patched: bool = False
 

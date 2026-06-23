@@ -73,6 +73,78 @@ MAX_REPAIR_ITERS = 5  # max compile-fix iterations before giving up
 MAX_STACK_FRAMES = 5  # top-N frames used for crash deduplication
 
 # ---------------------------------------------------------------------------
+# Harness link recipes (issue: harnesses must link the REAL target library)
+# ---------------------------------------------------------------------------
+# Each target builds a sanitizer-instrumented static library, but at a
+# target-specific path with target-specific include dirs and dependency flags.
+# If the harness compile command does not (a) put the real headers on the
+# include path and (b) link the static .a + its deps, then agents cannot call
+# the real library: they hit "undefined reference", and "fix" it by stubbing the
+# functions themselves or `__has_include`-guarding them into a silent no-op — in
+# both cases fuzzing their own code, not the target. These recipes are derived
+# directly from each target's build.sh link step. `lib_candidates` is tried in
+# order; the first that exists is linked (mirrors build.sh's own fallback logic).
+HARNESS_LINK_RECIPES: dict[str, dict[str, Any]] = {
+    "libxml2": {
+        "includes": ["-I/src/libxml2/include", "-I/src/libxml2"],
+        "lib_candidates": ["/src/libxml2/.libs/libxml2.a"],
+        "extra": ["-Wl,-Bstatic", "-lz", "-llzma", "-Wl,-Bdynamic"],
+    },
+    "libpng": {
+        "includes": ["-I/src/libpng", "-I/work/include"],
+        "lib_candidates": [
+            "/src/libpng/.libs/libpng16.a",
+            "/src/libpng/.libs/libpng.a",
+            "/src/libpng/build_cmake/libpng16.a",
+            "/src/libpng/build_cmake/libpng.a",
+            "/src/libpng/libpng.a",
+        ],
+        "extra": ["/work/lib/libz.a"],
+    },
+    "libjpeg-turbo": {
+        "includes": ["-I/work/include", "-I/src/libjpeg-turbo"],
+        "lib_candidates": ["/work/lib/libjpeg.a"],
+        "extra": ["-Wl,-Bstatic", "-Wl,-Bdynamic"],
+    },
+    "zlib": {
+        "includes": ["-I/src/zlib"],
+        "lib_candidates": ["/src/zlib/libz.a", "/work/lib/libz.a"],
+        "extra": [],
+    },
+}
+
+
+async def resolve_harness_link(
+    sandbox: DockerSandbox, target_name: str
+) -> tuple[str, str]:
+    """Resolve (include_args, link_args) for linking the real target library.
+
+    Returns include flags and link flags (static .a + deps) as space-joined
+    strings, discovering the first existing static library at runtime. Falls
+    back to the legacy ``-I/src/<target>`` (no library) for unknown targets so
+    behaviour is unchanged where no recipe exists.
+    """
+    recipe = HARNESS_LINK_RECIPES.get(target_name)
+    if recipe is None:
+        return f"-I/src/{target_name}", ""
+
+    include_args = " ".join(recipe["includes"])
+
+    found = ""
+    for candidate in recipe["lib_candidates"]:
+        rc, _, _ = await sandbox.exec(f"test -f {candidate}")
+        if rc == 0:
+            found = candidate
+            break
+
+    link_parts: list[str] = []
+    if found:
+        link_parts.append(found)
+    link_parts.extend(recipe["extra"])
+    return include_args, " ".join(link_parts)
+
+
+# ---------------------------------------------------------------------------
 # Memory stub (issue #73)
 # ---------------------------------------------------------------------------
 
@@ -241,13 +313,21 @@ def _make_compile_harness_tool(
             else:
                 lib_fuzzing_engine = "-fsanitize=fuzzer"
 
+            # Include dirs and the real target library (.a + deps) are resolved
+            # once at session start (see resolve_harness_link). Linking the real
+            # library is what lets the harness call the actual target instead of
+            # stubbing it. Fall back to the legacy flags if unset.
+            include_args = session_state.get(
+                "harness_include_args", f"-I/src/{target_name}"
+            )
+            link_args = session_state.get("harness_link_args", "")
             compile_cmd = (
                 f"clang++ -fsanitize=address,fuzzer -fno-omit-frame-pointer -g "
-                f"-std=c++11 -I/src/{target_name} "
+                f"-std=c++11 {include_args} "
                 f"/src/harness_{target_name}.cc "
                 f"-o /out/harness_{target_name}_agent "
                 f"{lib_fuzzing_engine} "
-                f"-L/out -L/work/lib "
+                f"-L/out -L/work/lib {link_args} "
                 f"2>&1"
             )
             rc, stdout, stderr = await sandbox.exec(compile_cmd, timeout=120)
@@ -370,9 +450,17 @@ def _make_start_fuzzing_tool(
             # Collect ASAN output for newly found crashes
             new_crash_hashes: dict[str, str] = {}
             for crash_path in result.crash_files:
-                # Re-run the crash input through the binary to get ASAN output
+                # Re-run the crash input through the binary to get ASAN output.
+                # collect_crashes() copied each crash OUT to a host tempdir, but
+                # sandbox.exec runs INSIDE the container -- so we must copy the
+                # crash back in and run the in-container path. (Running the host
+                # path made the binary fail with "no such file", and that error
+                # string got mis-stored as the crash's ASAN output and hashed as a
+                # distinct "unique crash" -- inflating the vuln count with noise.)
+                container_crash = "/tmp/_crash_repro_input"
+                await sandbox.copy_in(crash_path, container_crash)
                 rc, stdout, stderr = await sandbox.exec(
-                    f"/out/{fuzz_target} {crash_path}",
+                    f"/out/{fuzz_target} {container_crash}",
                     timeout=30,
                 )
                 asan_out = stdout + "\n" + stderr
@@ -404,6 +492,13 @@ def _make_start_fuzzing_tool(
             session_state["total_fuzz_seconds"] = (
                 session_state.get("total_fuzz_seconds", 0.0) + capped
             )
+            # Track peak coverage (libFuzzer PCs/edges) reached across cycles.
+            # >0 confirms the harness exercised target code; 0 means it never got
+            # past its own entry point (the 0-coverage "artifact" self-crashes).
+            session_state["max_coverage_pcs"] = max(
+                session_state.get("max_coverage_pcs", 0),
+                result.stats.coverage_pcs,
+            )
 
             # Emit one structured record per completed cycle so Logfire owns the
             # live research curves (execs/s, crashes, coverage over time) for the
@@ -415,12 +510,20 @@ def _make_start_fuzzing_tool(
             log.info(
                 "fuzz cycle complete",
                 target=target_name,
+                # Run identity (issue #114): lets Logfire chart the live curves
+                # broken down by model and separated per run, instead of one
+                # tangled line per target.
+                model=session_state.get("model"),
+                sample_id=session_state.get("sample_id"),
+                epoch=session_state.get("epoch"),
                 cycle=session_state["cycle_count"],
                 execs_per_sec=result.stats.execs_per_sec,
                 total_execs=result.stats.total_execs,
                 crashes_total=len(all_hashes),
                 crashes_new=len(new_crash_hashes),
                 coverage_profiles=len(result.coverage_raw_profiles),
+                coverage_pcs=result.stats.coverage_pcs,
+                max_coverage_pcs=session_state["max_coverage_pcs"],
                 fuzz_seconds=float(capped),
                 total_fuzz_seconds=session_state["total_fuzz_seconds"],
             )
@@ -718,6 +821,14 @@ def live_fuzzing_solver(
             "harness_records": [],  # list[HarnessRecord] accumulated across cycles
             "fuzzing_cycles": [],  # list[FuzzingCycle]
             "current_entry_point": "",
+            # Run identity, captured once so every per-cycle Logfire record can be
+            # grouped by model and separated per run (issue #114). `model` is the
+            # core research axis ("vulns per walltime as a function of model");
+            # `sample_id`/`epoch` disambiguate concurrent runs of the same
+            # model+target so their live curves don't collapse into one line.
+            "model": str(state.model),
+            "sample_id": state.sample_id,
+            "epoch": state.epoch,
         }
 
         def _stash_session_state(st: TaskState) -> TaskState:
@@ -755,6 +866,18 @@ def live_fuzzing_solver(
                 )
                 return _stash_session_state(state)
 
+            # Resolve include dirs + the real target library link flags now that
+            # the target is built, so every harness compile links the real lib.
+            include_args, link_args = await resolve_harness_link(sandbox, target_name)
+            session_state["harness_include_args"] = include_args
+            session_state["harness_link_args"] = link_args
+            log.info(
+                "resolved harness link flags",
+                target=target_name,
+                include_args=include_args,
+                link_args=link_args,
+            )
+
             # Ensure corpus and crash dirs exist
             await sandbox.exec("mkdir -p /out/corpus /out/crashes")
 
@@ -790,8 +913,18 @@ def live_fuzzing_solver(
 
         _stash_session_state(state)
 
-        # Persist session memory for future runs
-        save_session_memory(target_name, session_state)
+        # Persist session memory for future runs. Never let a memory-persistence
+        # error fail the whole sample — the scientific data (tokens, coverage,
+        # crashes) is already captured; losing it to a bookkeeping write would be
+        # far worse than skipping the memory update.
+        try:
+            save_session_memory(target_name, session_state)
+        except Exception as exc:
+            log.warn(
+                "save_session_memory failed; continuing",
+                target=target_name,
+                error=str(exc),
+            )
 
         return state
 
@@ -828,8 +961,9 @@ def _build_session_result(
         cycles=fuzzing_cycles,
         total_unique_crashes=len(all_crash_hashes),
         all_crash_hashes=all_crash_hashes,
-        final_line_coverage_pct=0.0,  # populated by coverage scorer if available
+        final_line_coverage_pct=0.0,  # line-% needs an instrumented build (TODO)
         final_branch_coverage_pct=0.0,
+        coverage_pcs=session_state.get("max_coverage_pcs", 0),
         total_harnesses_attempted=total_attempted,
         harnesses_compiled_first_try=compiled_first_try,
         total_repair_iterations=total_repairs,
@@ -928,6 +1062,7 @@ def live_fuzzing_scorer(
                     "mean_repair_iterations": result.mean_repair_iterations,
                     "final_line_coverage_pct": result.final_line_coverage_pct,
                     "final_branch_coverage_pct": result.final_branch_coverage_pct,
+                    "coverage_pcs": result.coverage_pcs,
                     "total_harnesses_attempted": result.total_harnesses_attempted,
                     "harnesses_compiled_first_try": result.harnesses_compiled_first_try,
                     **eff_inputs.as_metadata(),

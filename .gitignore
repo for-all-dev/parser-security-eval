@@ -19,4 +19,30 @@ benchmark/arvo/
 benchmark-cat*-smoke/
 
 logs/
+
+# Experiment configs: the hand-written sweep configs are committed (allowlisted
+# below); everything else in experiments/ is a generated/throwaway run config
+# (per-shard sweeps, mini/validate runs) and is ignored. To commit a NEW
+# hand-written config, add a matching `!` exception line here.
+scaffold/experiments/*.toml
+!scaffold/experiments/fuzzing-baseline.toml
+!scaffold/experiments/fuzzing-test.toml
+!scaffold/experiments/patching-model-sweep.toml
+!scaffold/experiments/triage-sweep.toml
+
+# Experiment run outputs: small manifest.json/results.json summaries for the
+# canonical runs are committed (allowlisted); every other run-output dir is a
+# generated artifact and is ignored — full .eval logs live in DigitalOcean
+# Spaces, not git. To commit a NEW canonical run's summary, add a `!` line here.
+scaffold/results/*
+!scaffold/results/fuzzing-baseline/
+!scaffold/results/fuzzing-baseline-v2/
+!scaffold/results/fuzzing-test/
+!scaffold/results/patching-model-sweep/
+!scaffold/results/patching-model-sweep-v2/
+
+# Per-target memory is generated run state (and spawns ._ build-context junk).
+targets/*/memory.json
+
 /docs/meetings/*.pdf
+

@@ -20,12 +20,14 @@ from parser_security_eval.models.fuzzing import (
 )
 from parser_security_eval.tasks.fuzzing import (
     CYCLE_CAP_SECONDS,
+    HARNESS_LINK_RECIPES,
     MAX_REPAIR_ITERS,
     _build_session_result,
     _compute_score,
     _extract_stack_hash,
     _make_add_seed_tool,
     _make_compile_harness_tool,
+    resolve_harness_link,
     _make_get_crash_info_tool,
     _make_get_fuzzer_stats_tool,
     _make_refine_harness_tool,
@@ -121,6 +123,10 @@ def fresh_session_state() -> dict:
         "harness_records": [],
         "fuzzing_cycles": [],
         "current_entry_point": "",
+        # Run identity the solver stashes for per-cycle Logfire records (#114).
+        "model": "anthropic/test-model",
+        "sample_id": "live-fuzzing-testparser",
+        "epoch": 1,
     }
 
 
@@ -348,6 +354,64 @@ class TestCompileHarnessTool:
 
 
 # ---------------------------------------------------------------------------
+# Harness link recipes (link the REAL target library, not a stub)
+# ---------------------------------------------------------------------------
+
+
+class TestResolveHarnessLink:
+    @pytest.mark.asyncio
+    async def test_libxml2_includes_and_links_static_lib(self) -> None:
+        sandbox = MagicMock()
+        sandbox.exec = AsyncMock(return_value=(0, "", ""))  # every .a "exists"
+        include_args, link_args = await resolve_harness_link(sandbox, "libxml2")
+        assert "-I/src/libxml2/include" in include_args
+        assert "/src/libxml2/.libs/libxml2.a" in link_args
+        assert "-lz" in link_args and "-llzma" in link_args
+
+    @pytest.mark.asyncio
+    async def test_picks_first_existing_candidate(self) -> None:
+        # First candidate missing (rc=1), second present (rc=0).
+        sandbox = MagicMock()
+        sandbox.exec = AsyncMock(side_effect=[(1, "", ""), (0, "", "")])
+        _, link_args = await resolve_harness_link(sandbox, "libpng")
+        cands = HARNESS_LINK_RECIPES["libpng"]["lib_candidates"]
+        assert cands[1] in link_args
+        assert cands[0] not in link_args
+        assert "/work/lib/libz.a" in link_args  # dep still appended
+
+    @pytest.mark.asyncio
+    async def test_unknown_target_falls_back_to_legacy(self) -> None:
+        sandbox = MagicMock()
+        sandbox.exec = AsyncMock(return_value=(0, "", ""))
+        include_args, link_args = await resolve_harness_link(sandbox, "mystery")
+        assert include_args == "-I/src/mystery"
+        assert link_args == ""
+
+    @pytest.mark.asyncio
+    async def test_compile_uses_resolved_link_args(
+        self, fresh_session_state: dict
+    ) -> None:
+        # The compile command MUST include the resolved library link flags, or
+        # the harness cannot call the real target (regression guard).
+        fresh_session_state["harness_written"] = True
+        fresh_session_state["pending_harness"] = MINIMAL_HARNESS
+        fresh_session_state["harness_include_args"] = "-I/src/libxml2/include"
+        fresh_session_state["harness_link_args"] = (
+            "/src/libxml2/.libs/libxml2.a -Wl,-Bstatic -lz -llzma -Wl,-Bdynamic"
+        )
+        sandbox = MagicMock()
+        sandbox.exec = AsyncMock(return_value=(0, "", ""))
+        sandbox.copy_in = AsyncMock(return_value=None)
+        t = _make_compile_harness_tool(
+            sandbox, fresh_session_state, "libxml2", "libfuzzer", "address"
+        )
+        await t()
+        compile_call = sandbox.exec.call_args.args[0]
+        assert "/src/libxml2/.libs/libxml2.a" in compile_call
+        assert "-I/src/libxml2/include" in compile_call
+
+
+# ---------------------------------------------------------------------------
 # Tool: add_seed
 # ---------------------------------------------------------------------------
 
@@ -556,12 +620,17 @@ class TestStartFuzzingTool:
         kwargs = cycle_calls[0].kwargs
         assert kwargs == {
             "target": "testparser",
+            "model": "anthropic/test-model",
+            "sample_id": "live-fuzzing-testparser",
+            "epoch": 1,
             "cycle": 1,
             "execs_per_sec": 1500.0,
             "total_execs": 180_000,
             "crashes_total": 0,
             "crashes_new": 0,
             "coverage_profiles": 2,
+            "coverage_pcs": 0,
+            "max_coverage_pcs": 0,
             "fuzz_seconds": 120.0,
             "total_fuzz_seconds": 120.0,
         }
@@ -610,6 +679,7 @@ class TestStartFuzzingTool:
         assert kwargs["total_execs"] is None
         assert kwargs["target"] == "unknown"  # default when not threaded
         assert kwargs["fuzz_seconds"] == 60.0
+        assert kwargs["model"] == "anthropic/test-model"  # run identity threaded (#114)
 
 
 # ---------------------------------------------------------------------------
@@ -1042,3 +1112,63 @@ class TestLiveFuzzingTask:
         )
         assert t.message_limit is not None
         assert t.message_limit >= 60
+
+
+class TestStartFuzzingCrashRetrieval:
+    """Regression: crashes must be re-run INSIDE the container to get ASAN.
+
+    collect_crashes() copies each crash out to a host tempdir; re-running that
+    host path via sandbox.exec (which runs in the container) failed with "no such
+    file", and that error string got mis-stored as the crash's ASAN output and
+    hashed as a distinct unique crash -- inflating the vuln count with noise. The
+    fix copies the crash back into the container and re-runs the in-container path.
+    """
+
+    @pytest.mark.asyncio
+    async def test_crash_reran_inside_container(
+        self, fresh_session_state: dict
+    ) -> None:
+        import parser_security_eval.tasks.fuzzing as fz
+
+        fresh_session_state["compiled"] = True
+        fresh_session_state["fuzz_target"] = "harness_testparser_agent"
+
+        asan = (
+            "==1== ERROR: AddressSanitizer: heap-buffer-overflow\n"
+            "  #0 jpeg_read_header\n  #1 LLVMFuzzerTestOneInput"
+        )
+        sandbox = MagicMock()
+        sandbox.exec = AsyncMock(return_value=(1, asan, ""))
+        sandbox.copy_in = AsyncMock(return_value=None)
+
+        host_crash = Path("/var/folders/xx/T/crashes-testparser-abc/crash-deadbeef")
+        fake_result = MagicMock()
+        fake_result.crash_files = [host_crash]
+        fake_result.coverage_raw_profiles = []
+        fake_result.stats = MagicMock(
+            execs_per_sec=100.0, corpus_size=5, total_execs=1000, coverage_pcs=0
+        )
+        fake_result.timed_out = False
+        fake_result.oom_killed = False
+        fake_result.raw_log = "libfuzzer log"
+        campaign = MagicMock()
+        campaign.run = AsyncMock(return_value=fake_result)
+
+        with patch.object(fz, "FuzzingCampaign", return_value=campaign):
+            t = _make_start_fuzzing_tool(
+                sandbox, fresh_session_state, max_duration=300, target_name="testparser"
+            )
+            await t(duration_seconds=60)
+
+        # The crash was copied INTO the container and re-run by the container path.
+        sandbox.copy_in.assert_awaited_once()
+        src, dst = sandbox.copy_in.await_args.args
+        assert src == host_crash
+        assert dst == "/tmp/_crash_repro_input"
+        exec_cmd = sandbox.exec.await_args_list[-1].args[0]
+        assert "/tmp/_crash_repro_input" in exec_cmd
+        assert "/var/folders" not in exec_cmd  # never the unreachable host path
+        # The REAL ASAN is recorded as exactly one unique crash (not path noise).
+        hashes = fresh_session_state["all_crash_hashes"]
+        assert len(hashes) == 1
+        assert "AddressSanitizer" in next(iter(hashes.values()))

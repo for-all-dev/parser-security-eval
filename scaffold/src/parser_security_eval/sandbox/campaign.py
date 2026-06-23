@@ -31,6 +31,7 @@ Typical usage::
         print(result.stats.execs_per_sec, len(result.crash_files))
 """
 
+import re
 import tempfile
 from pathlib import Path
 from typing import Protocol
@@ -55,6 +56,11 @@ class FuzzingStats(BaseModel):
     total_execs: int | None = None
     corpus_size: int | None = None
     crashes_found: int = 0
+    # Peak code-coverage the fuzzer discovered (libFuzzer "cov:" = number of
+    # covered PCs/edges). >0 means the harness actually reaches target code; 0
+    # means it never got past its own entry (e.g. crashes on its own input).
+    # NOT a line-coverage percentage (that needs an instrumented build).
+    coverage_pcs: int = 0
     engine: str = ""
 
 
@@ -168,6 +174,13 @@ class LibFuzzerEngine(FuzzerEngine):
                 stats.corpus_size = value
             elif key == "crash_count":
                 stats.crashes_found = value
+
+        # Peak coverage: libFuzzer prints running lines like
+        #   "#1024 NEW    cov: 567 ft: 890 corp: ..."
+        # where cov: is the number of covered PCs/edges. Take the max seen.
+        cov_values = [int(m) for m in re.findall(r"\bcov:\s*(\d+)", log)]
+        if cov_values:
+            stats.coverage_pcs = max(cov_values)
 
         return stats
 

@@ -75,6 +75,9 @@ class LiveFuzzingSessionResult(BaseModel):
     # Coverage at end of session
     final_line_coverage_pct: float = 0.0
     final_branch_coverage_pct: float = 0.0
+    # Peak libFuzzer coverage PCs/edges reached across all cycles. >0 means the
+    # harness actually exercised target code (vs. crashing on its own input at 0).
+    coverage_pcs: int = 0
 
     # Harness quality metrics
     total_harnesses_attempted: int = 0
