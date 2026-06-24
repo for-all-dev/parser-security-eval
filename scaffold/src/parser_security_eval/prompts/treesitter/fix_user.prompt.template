@@ -1,0 +1,27 @@
+A fuzzing campaign against the **{{ language }}** tree-sitter grammar
+(`{{ grammar }}`) found a crash.
+
+## Crash
+- Bug class: {{ bug_class }}
+- Sanitizer summary: {{ asan_summary }}
+- Implicated file: {{ implicated_file }}
+
+### Top stack frames
+{{ top_frames }}
+
+### Triggering input (repr)
+{{ crash_input_repr }}
+
+### Sanitizer report (excerpt)
+```
+{{ asan_report }}
+```
+
+## File to fix: `{{ implicated_file }}`
+```{{ lang_hint }}
+{{ source }}
+```
+
+Return the complete corrected contents of `{{ implicated_file }}` in the required
+format. Add the missing safety check on the crashing path; do not otherwise alter
+behavior.
