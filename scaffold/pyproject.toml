@@ -16,6 +16,7 @@ dependencies = [
     "pandas>=2.2.0",
     "plotly>=5.22.0",
     "pydantic>=2.12.5",
+    "pydantic-ai-slim[anthropic,openai]>=2.0.0",
     "pyyaml>=6.0",
     "rich>=14.3.3",
     "streamlit>=1.36.0",
@@ -28,6 +29,11 @@ parser-security-eval = "parser_security_eval:main"
 [build-system]
 requires = ["uv_build>=0.9.22,<0.10.0"]
 build-backend = "uv_build"
+
+[tool.logfire]
+# Loop telemetry degrades to a silent no-op when Logfire isn't configured
+# (no token / unit tests) instead of warning on every span/log call.
+ignore_no_config = true
 
 [dependency-groups]
 dev = [

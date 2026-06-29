@@ -37,6 +37,7 @@ def test_loop_fuzzer_triggers_fix_and_writes_jsonl(tmp_path: Path, monkeypatch) 
     cache = tmp_path / "cache"
     out_dir = tmp_path / "out"
 
+    monkeypatch.setattr(loop_mod, "configure_telemetry", lambda *a, **k: False)
     monkeypatch.setattr(runtime, "ensure_runtime", lambda c: tmp_path / "rt")
     monkeypatch.setattr(runtime, "ensure_grammar", lambda t, c: tmp_path / "grammar")
     monkeypatch.setattr(runtime, "gather_seeds", lambda *a, **k: 0)
@@ -107,6 +108,7 @@ def test_loop_fuzzer_triggers_fix_and_writes_jsonl(tmp_path: Path, monkeypatch) 
 
 
 def test_loop_records_build_failure(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr(loop_mod, "configure_telemetry", lambda *a, **k: False)
     monkeypatch.setattr(runtime, "check_toolchain", lambda **k: None)
     monkeypatch.setattr(runtime, "ensure_runtime", lambda c: tmp_path / "rt")
     monkeypatch.setattr(runtime, "ensure_grammar", lambda t, c: tmp_path / "grammar")

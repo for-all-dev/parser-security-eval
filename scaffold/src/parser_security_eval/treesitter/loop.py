@@ -11,6 +11,9 @@ from __future__ import annotations
 from collections.abc import Callable
 from pathlib import Path
 
+import logfire
+
+from parser_security_eval.telemetry import configure_telemetry
 from parser_security_eval.treesitter import fixer as fixer_mod
 from parser_security_eval.treesitter import runtime, triage
 from parser_security_eval.treesitter.fixer import DEFAULT_FIX_MODEL, Fixer, LLMFixer
@@ -49,6 +52,7 @@ def run_loop(
     seed_corpus: bool = True,
 ) -> TSLoopResult:
     """Run the fuzz→fix loop for a single grammar; stream JSONL to ``out_dir``."""
+    configure_telemetry()  # Logfire: instruments pydantic-ai + provider SDKs
     runtime.check_toolchain()
     result = TSLoopResult(
         grammar=target.name, tier=target.tier, language=target.language
@@ -67,6 +71,13 @@ def run_loop(
     )
 
     build_result = runtime.build(spec)
+    logfire.info(
+        "build {grammar} built={built}",
+        grammar=target.name,
+        built=build_result.built,
+        has_scanner=build_result.had_scanner,
+        symbol=build_result.symbol,
+    )
     if not build_result.built:
         result.build_error = build_result.compile_errors
         it = TSLoopIteration(
@@ -96,62 +107,102 @@ def run_loop(
         fixer = LLMFixer(model=model)
 
     seen_hashes: set[str] = set()
-    for i in range(iterations):
-        fuzz_res, new_crashes = runner.run(fuzz_seconds)
-        it = TSLoopIteration(
-            iteration=i,
-            grammar=target.name,
-            repo_url=target.repo_url,
-            tier=target.tier,
-            language=target.language,
-            built=True,
-            fuzz=fuzz_res,
-        )
-
-        # Pick the first crash whose stack hash we haven't already handled.
-        # Hang/OOM artifacts are classified from the libFuzzer filename WITHOUT
-        # replaying them (replaying a hang would just hang again).
-        chosen = None
-        for cf in new_crashes:
-            if cf.name.startswith("timeout-"):
-                report = (
-                    "ERROR: libFuzzer: timeout\n"
-                    "Pathological parse time / hang (libFuzzer -timeout exceeded)."
+    with logfire.span(
+        "treesitter fuzz→fix {grammar}",
+        grammar=target.name,
+        tier=target.tier.value,
+        repo=target.repo_url,
+        iterations=iterations,
+        fuzz_seconds=fuzz_seconds,
+    ):
+        for i in range(iterations):
+            with logfire.span("ts iteration {grammar} #{i}", grammar=target.name, i=i):
+                fuzz_res, new_crashes = runner.run(fuzz_seconds)
+                logfire.info(
+                    "fuzz window {grammar} #{i}: {execs} execs, {n} new crash(es)",
+                    grammar=target.name,
+                    i=i,
+                    execs=fuzz_res.total_executions,
+                    n=fuzz_res.crashes_found,
+                    execs_per_sec=fuzz_res.execs_per_sec,
+                    corpus_size=fuzz_res.corpus_size,
+                    oom=fuzz_res.oom_killed,
+                    timed_out=fuzz_res.timed_out,
                 )
-            elif cf.name.startswith("oom-"):
-                report = "ERROR: libFuzzer: out-of-memory\nrss_limit exceeded."
-            else:
-                _, report = runtime.reproduce(Path(build_result.binary_path or ""), cf)
-            crash = triage.triage(report, cf.read_bytes(), str(cf))
-            if crash.stack_hash and crash.stack_hash in seen_hashes:
-                continue
-            chosen = (cf, crash, report)
-            break
+                it = TSLoopIteration(
+                    iteration=i,
+                    grammar=target.name,
+                    repo_url=target.repo_url,
+                    tier=target.tier,
+                    language=target.language,
+                    built=True,
+                    fuzz=fuzz_res,
+                )
 
-        if chosen is None:
-            it.notes = "no new crash this window — still fuzzing"
-            result.iterations.append(it)
-            _append_jsonl(out_path, it)
-            continue
+                # Pick the first crash whose stack hash we haven't already handled.
+                # Hang/OOM artifacts are classified from the libFuzzer filename
+                # WITHOUT replaying them (replaying a hang would just hang again).
+                chosen = None
+                for cf in new_crashes:
+                    if cf.name.startswith("timeout-"):
+                        report = (
+                            "ERROR: libFuzzer: timeout\n"
+                            "Pathological parse time / hang (libFuzzer -timeout exceeded)."
+                        )
+                    elif cf.name.startswith("oom-"):
+                        report = "ERROR: libFuzzer: out-of-memory\nrss_limit exceeded."
+                    else:
+                        _, report = runtime.reproduce(
+                            Path(build_result.binary_path or ""), cf
+                        )
+                    crash = triage.triage(report, cf.read_bytes(), str(cf))
+                    if crash.stack_hash and crash.stack_hash in seen_hashes:
+                        continue
+                    chosen = (cf, crash, report)
+                    break
 
-        crash_file, crash, report = chosen
-        if crash.stack_hash:
-            seen_hashes.add(crash.stack_hash)
-        it.crash = crash
+                if chosen is None:
+                    it.notes = "no new crash this window — still fuzzing"
+                    result.iterations.append(it)
+                    _append_jsonl(out_path, it)
+                    continue
 
-        # The crash triggers the fix phase.
-        attempt, new_build = fixer_mod.run_fix(
-            crash, crash_file, target, spec, build_result, fixer, report
-        )
-        it.fix = attempt
-        if new_build.built and new_build.binary_path:
-            build_result = new_build
-            runner.binary = Path(new_build.binary_path)
-        if attempt.verified and crash_file.exists():
-            crash_file.unlink()  # don't re-discover a fixed crash
+                crash_file, crash, report = chosen
+                if crash.stack_hash:
+                    seen_hashes.add(crash.stack_hash)
+                it.crash = crash
+                logfire.warn(
+                    "crash {grammar}: {bug_class} (in_scanner={in_scanner})",
+                    grammar=target.name,
+                    bug_class=crash.bug_class.value,
+                    in_scanner=crash.in_scanner,
+                    stack_hash=crash.stack_hash[:16],
+                )
 
-        result.iterations.append(it)
-        _append_jsonl(out_path, it)
+                # The crash triggers the fix phase.
+                attempt, new_build = fixer_mod.run_fix(
+                    crash, crash_file, target, spec, build_result, fixer, report
+                )
+                it.fix = attempt
+                logfire.info(
+                    "fix {grammar}: verified={verified}",
+                    grammar=target.name,
+                    verified=attempt.verified,
+                    reproduced_original=attempt.reproduced_original,
+                    applied=attempt.applied,
+                    rebuilt=attempt.rebuilt,
+                    fixer_model=attempt.model,
+                    out_tokens=attempt.output_tokens,
+                    error=attempt.error or None,
+                )
+                if new_build.built and new_build.binary_path:
+                    build_result = new_build
+                    runner.binary = Path(new_build.binary_path)
+                if attempt.verified and crash_file.exists():
+                    crash_file.unlink()  # don't re-discover a fixed crash
+
+                result.iterations.append(it)
+                _append_jsonl(out_path, it)
 
     return result
 
@@ -241,19 +292,27 @@ def run_hunt(
     progress: Callable[[int, int, str], None] | None = None,
 ) -> list[TSLoopResult]:
     """Fuzz→fix a range of un-fuzzed scanner candidates from the survey registry."""
+    configure_telemetry()
     targets = select_hunt_candidates(registry_path, top_n, start=start)
     results: list[TSLoopResult] = []
-    for i, target in enumerate(targets):
-        if progress is not None:
-            progress(i + 1, len(targets), target.name)
-        results.append(
-            run_loop(
-                target,
-                iterations=1,
-                fuzz_seconds=fuzz_seconds,
-                model=model,
-                out_dir=out_dir,
-                cache_dir=cache_dir,
+    with logfire.span(
+        "treesitter hunt ranks {start}-{end} ({n} grammars)",
+        start=start,
+        end=start + len(targets) - 1,
+        n=len(targets),
+        fuzz_seconds=fuzz_seconds,
+    ):
+        for i, target in enumerate(targets):
+            if progress is not None:
+                progress(i + 1, len(targets), target.name)
+            results.append(
+                run_loop(
+                    target,
+                    iterations=1,
+                    fuzz_seconds=fuzz_seconds,
+                    model=model,
+                    out_dir=out_dir,
+                    cache_dir=cache_dir,
+                )
             )
-        )
     return results

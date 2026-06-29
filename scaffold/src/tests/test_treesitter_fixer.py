@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-import sys
 import types
 from pathlib import Path
 
 from parser_security_eval.treesitter import fixer as fixer_mod
 from parser_security_eval.treesitter import runtime
 from parser_security_eval.treesitter.fixer import (
+    FixOutput,
     FixProposal,
     LLMFixer,
     run_fix,
@@ -22,15 +22,6 @@ from parser_security_eval.treesitter.models import (
     TSCrash,
 )
 
-MODEL_REPLY = """\
-RATIONALE: missing bounds check before indexing the lexeme buffer.
-```c
-#include "tree_sitter/parser.h"
-int scan(void) { return 0; /* fixed */ }
-```
-trailing prose that must be ignored
-"""
-
 
 def _target() -> GrammarTarget:
     return GrammarTarget(
@@ -41,52 +32,49 @@ def _target() -> GrammarTarget:
     )
 
 
-def test_extract_file_picks_largest_fenced_block() -> None:
-    content = fixer_mod._extract_file(MODEL_REPLY)
-    assert "fixed" in content
-    assert "trailing prose" not in content
-
-
-def test_extract_file_handles_truncated_unclosed_fence() -> None:
-    # Model hit the token cap mid-file: opening fence, no closing fence.
-    truncated = "RATIONALE: bounds check\n```c\nint scan(void){ return 0; }\n// cut off"
-    out = fixer_mod._extract_file(truncated)
-    assert "int scan" in out
-    assert "```" not in out
-    assert "RATIONALE" not in out
-
-
-def test_llm_fixer_parses_reply(monkeypatch) -> None:
-    block = types.SimpleNamespace(type="text", text=MODEL_REPLY)
-    usage = types.SimpleNamespace(input_tokens=11, output_tokens=22)
-    msg = types.SimpleNamespace(content=[block], usage=usage)
-
-    class _Stream:  # context manager mimicking client.messages.stream(...)
-        def __enter__(self):  # noqa: ANN204
-            return self
-
-        def __exit__(self, *a):  # noqa: ANN002, ANN204
-            return False
-
-        def get_final_message(self):  # noqa: ANN202
-            return msg
-
-    client = types.SimpleNamespace(
-        messages=types.SimpleNamespace(stream=lambda **_: _Stream())
+def _patch_agent(
+    monkeypatch, output: FixOutput, *, in_tok: int = 11, out_tok: int = 22
+):  # noqa: ANN001, ANN202
+    """Replace pydantic-ai Agent in the fixer with one returning a canned result."""
+    result = types.SimpleNamespace(
+        output=output,
+        usage=types.SimpleNamespace(input_tokens=in_tok, output_tokens=out_tok),
     )
-    fake = types.ModuleType("anthropic")
-    fake.Anthropic = lambda *a, **k: client  # type: ignore[attr-defined]
-    monkeypatch.setitem(sys.modules, "anthropic", fake)
 
+    class _FakeAgent:
+        def __init__(self, *a, **k) -> None:  # noqa: ANN002, ANN003
+            pass
+
+        def run_sync(self, _user):  # noqa: ANN001, ANN202
+            return result
+
+    monkeypatch.setattr(fixer_mod, "Agent", _FakeAgent)
+
+
+def test_llm_fixer_returns_structured_proposal(monkeypatch) -> None:
+    _patch_agent(
+        monkeypatch,
+        FixOutput(
+            rationale="missing bounds check",
+            file_contents="int scan(void) { return 0; }",
+        ),
+    )
     crash = TSCrash(bug_class=BugClass.heap_buffer_overflow, asan_summary="boom")
-    proposal = LLMFixer(model="claude-test").propose(
+    proposal = LLMFixer(model="anthropic:claude-test").propose(
         crash, _target(), "old source", "scanner.c", "asan report", "c"
     )
     assert isinstance(proposal, FixProposal)
-    assert "fixed" in proposal.new_content
-    assert proposal.rationale.startswith("missing bounds check")
+    assert proposal.new_content == "int scan(void) { return 0; }\n"  # trailing newline
+    assert proposal.rationale == "missing bounds check"
     assert proposal.input_tokens == 11
     assert proposal.output_tokens == 22
+
+
+def test_llm_fixer_empty_file_contents_yields_no_content(monkeypatch) -> None:
+    _patch_agent(monkeypatch, FixOutput(rationale="n/a", file_contents="   \n"))
+    crash = TSCrash(bug_class=BugClass.heap_buffer_overflow)
+    proposal = LLMFixer().propose(crash, _target(), "src", "scanner.c", "report", "c")
+    assert proposal.new_content == ""
 
 
 def test_select_fix_target_prefers_scanner(tmp_path: Path) -> None:

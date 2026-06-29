@@ -100,6 +100,7 @@ def test_select_start_offset_skips_earlier_ranks(tmp_path: Path) -> None:
 
 def test_run_hunt_invokes_loop_per_candidate(tmp_path: Path, monkeypatch) -> None:
     reg = _write_registry(tmp_path)
+    monkeypatch.setattr(loop_mod, "configure_telemetry", lambda *a, **k: False)
     calls: list[str] = []
 
     def fake_run_loop(target, **kwargs):  # noqa: ANN001, ANN202

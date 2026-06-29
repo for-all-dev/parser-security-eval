@@ -10,10 +10,13 @@ replay the crashing input to verify the crash is gone.
 from __future__ import annotations
 
 import difflib
-import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol
+from typing import Protocol, cast
+
+from pydantic import BaseModel, Field
+from pydantic_ai import Agent
+from pydantic_ai.settings import ModelSettings
 
 from parser_security_eval import prompts
 from parser_security_eval.treesitter import runtime
@@ -24,14 +27,13 @@ from parser_security_eval.treesitter.models import (
     TSFixAttempt,
 )
 
-DEFAULT_FIX_MODEL = "claude-opus-4-8"
+# Model-agnostic: a pydantic-ai "provider:model" string. Swap the provider freely
+# (e.g. "openai:gpt-4o", "google-gla:gemini-2.5-pro"); keys are read from the env.
+DEFAULT_FIX_MODEL = "anthropic:claude-opus-4-8"
 # Replays used to confirm a crash reproduces (pre-fix) and is gone (post-fix).
 # >1 because some scanner crashes are flaky (e.g. heap-layout-dependent SEGVs).
 VERIFY_ATTEMPTS = 20
 
-_RATIONALE_RE = re.compile(r"RATIONALE:\s*(.+)")
-_FENCE_RE = re.compile(r"```[^\n]*\n(.*?)```", re.DOTALL)
-_OPEN_FENCE_RE = re.compile(r"```[^\n]*\n")
 _CRASH_MARKERS = (
     "ERROR:",
     "SUMMARY:",
@@ -39,6 +41,18 @@ _CRASH_MARKERS = (
     "byte(s) leaked",
     "runtime error:",
 )
+
+
+class FixOutput(BaseModel):
+    """Structured fixer result — enforced by pydantic-ai (no text parsing)."""
+
+    rationale: str = Field(
+        description="One sentence: the root cause and the guard you added."
+    )
+    file_contents: str = Field(
+        description="The COMPLETE corrected contents of the file — the full file, "
+        "not a diff or a snippet."
+    )
 
 
 @dataclass
@@ -90,7 +104,13 @@ def _crash_input_repr(crash: TSCrash) -> str:
 
 
 class LLMFixer:
-    """Anthropic-backed fixer. Reads ANTHROPIC_API_KEY from the environment."""
+    """Model-agnostic fixer via pydantic-ai.
+
+    ``model`` is a ``provider:model`` string (e.g. ``anthropic:claude-opus-4-8``,
+    ``openai:gpt-4o``); the provider's API key is read from the environment. The fix
+    comes back as a validated :class:`FixOutput` (structured output), so there is no
+    text/regex parsing of the model's reply.
+    """
 
     def __init__(self, model: str = DEFAULT_FIX_MODEL, max_tokens: int = 32768) -> None:
         self.model = model
@@ -106,8 +126,6 @@ class LLMFixer:
         asan_report: str,
         lang_hint: str,
     ) -> FixProposal:
-        import anthropic
-
         system = prompts.load("treesitter.fix_system")
         user = prompts.load(
             "treesitter.fix_user",
@@ -122,47 +140,21 @@ class LLMFixer:
             source=source,
             lang_hint=lang_hint,
         )
-        client = anthropic.Anthropic()
-        # Stream: a full-file rewrite at this max_tokens can exceed the SDK's
-        # non-streaming 10-minute ceiling, which otherwise raises.
-        with client.messages.stream(
-            model=self.model,
-            max_tokens=self.max_tokens,
-            system=system,
-            messages=[{"role": "user", "content": user}],
-        ) as stream:
-            msg = stream.get_final_message()
-        text = "".join(
-            getattr(block, "text", "")
-            for block in msg.content
-            if getattr(block, "type", "") == "text"
+        agent = Agent(
+            self.model,
+            output_type=FixOutput,
+            system_prompt=system,
+            model_settings=ModelSettings(max_tokens=self.max_tokens),
         )
-        new_content = _extract_file(text)
-        rationale_m = _RATIONALE_RE.search(text)
+        result = agent.run_sync(user)
+        out = cast("FixOutput", result.output)
+        content = out.file_contents.strip("\n")
         return FixProposal(
-            new_content=new_content,
-            rationale=rationale_m.group(1).strip() if rationale_m else "",
-            input_tokens=msg.usage.input_tokens,
-            output_tokens=msg.usage.output_tokens,
+            new_content=(content + "\n") if content.strip() else "",
+            rationale=out.rationale.strip(),
+            input_tokens=result.usage.input_tokens or 0,
+            output_tokens=result.usage.output_tokens or 0,
         )
-
-
-def _extract_file(text: str) -> str:
-    """Pull the corrected file out of the model's response (largest fenced block).
-
-    Falls back to "from the last opening fence to EOF" when the reply was truncated
-    mid-block (an unclosed fence), so a large file that hit the token cap still yields
-    its (partial) content rather than nothing.
-    """
-    blocks: list[str] = _FENCE_RE.findall(text)
-    if blocks:
-        return str(max(blocks, key=len)).strip("\n") + "\n"
-    opens = list(_OPEN_FENCE_RE.finditer(text))
-    if opens:
-        tail = text[opens[-1].end() :].strip("\n")
-        if tail:
-            return tail + "\n"
-    return ""
 
 
 def _is_crash(rc: int, output: str) -> bool:

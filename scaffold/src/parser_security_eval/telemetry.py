@@ -32,12 +32,15 @@ from parser_security_eval import log as _log_facade
 # logger to avoid a circular dependency (log.py must not import telemetry).
 logger = logging.getLogger(__name__)
 
-# Provider SDKs Inspect may drive. Each is instrumented best-effort: a missing
-# package or version skew must not break the eval. ``httpx`` is the catch-all
-# for any provider not natively instrumented above.
+# Best-effort instrumenters (all no-arg). Inspect drives the provider SDKs; the
+# tree-sitter fixer drives pydantic-ai (``instrument_pydantic_ai`` captures agent
+# runs / structured output / token usage). Each is applied defensively: a missing
+# package or version skew must not break a run. ``httpx`` is the catch-all for any
+# provider not natively instrumented above.
 _PROVIDER_INSTRUMENTERS: tuple[str, ...] = (
     "instrument_anthropic",
     "instrument_openai",
+    "instrument_pydantic_ai",
 )
 
 _configured = False
