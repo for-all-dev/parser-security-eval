@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol, cast
 
+import logfire
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent
 from pydantic_ai.settings import ModelSettings
@@ -146,9 +147,37 @@ class LLMFixer:
             system_prompt=system,
             model_settings=ModelSettings(max_tokens=self.max_tokens),
         )
-        result = agent.run_sync(user)
-        out = cast("FixOutput", result.output)
-        content = out.file_contents.strip("\n")
+        # Log the FULL prompt + solution as named attributes (not interpolated into
+        # the span message, which Logfire caps). pydantic-ai's auto-instrumentation
+        # also captures the messages but renders a truncated preview; these explicit
+        # attributes carry the complete challenge and the complete fix.
+        with logfire.span(
+            "repair agent {grammar} ({bug_class})",
+            grammar=target.name,
+            bug_class=crash.bug_class.value,
+            model=self.model,
+            implicated_file=implicated_file,
+        ):
+            logfire.info(
+                "repair prompt {grammar}",
+                grammar=target.name,
+                system_prompt=system,
+                user_prompt=user,  # the full challenge: report + source + crash input
+                source_chars=len(source),
+                user_prompt_chars=len(user),
+            )
+            result = agent.run_sync(user)
+            out = cast("FixOutput", result.output)
+            content = out.file_contents.strip("\n")
+            logfire.info(
+                "repair solution {grammar}: {rationale}",
+                grammar=target.name,
+                rationale=out.rationale.strip(),
+                solution=out.file_contents,  # the agent's full corrected file
+                solution_chars=len(out.file_contents),
+                input_tokens=result.usage.input_tokens or 0,
+                output_tokens=result.usage.output_tokens or 0,
+            )
         return FixProposal(
             new_content=(content + "\n") if content.strip() else "",
             rationale=out.rationale.strip(),

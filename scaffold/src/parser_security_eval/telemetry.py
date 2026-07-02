@@ -71,6 +71,11 @@ def configure_telemetry(*, service_name: str = "parser-security-eval") -> bool:
             send_to_logfire="if-token-present",
             # This is a backend/agent process; keep stdout clean for the CLI.
             console=False,
+            # All our spans/logs pass fields as explicit kwargs (never bare
+            # f-strings), so the source-introspection that extracts f-string vars
+            # is pure overhead — and it warns noisily when source isn't available
+            # (interactive shell, ``python -c``, exec, pyc-without-py). Disable it.
+            inspect_arguments=False,
         )
     except Exception as exc:  # pragma: no cover - defensive; setup must not crash
         logger.warning("Logfire setup failed (continuing without telemetry): %s", exc)

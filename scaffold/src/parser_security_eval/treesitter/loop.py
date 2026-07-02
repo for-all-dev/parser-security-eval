@@ -194,6 +194,9 @@ def run_loop(
                     fixer_model=attempt.model,
                     out_tokens=attempt.output_tokens,
                     error=attempt.error or None,
+                    rationale=attempt.rationale or None,
+                    patch=attempt.patch or None,  # the applied unified diff (solution)
+                    target_file=attempt.target_file,
                 )
                 if new_build.built and new_build.binary_path:
                     build_result = new_build
