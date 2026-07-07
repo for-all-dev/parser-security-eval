@@ -67,7 +67,9 @@ def test_loop_fuzzer_triggers_fix_and_writes_jsonl(tmp_path: Path, monkeypatch) 
 
     fix_calls = {"n": 0}
 
-    def fake_run_fix(crash, crash_file, target, spec, build_result, fixer, report, **kwargs):  # noqa: ANN001, ANN003, ANN202, PLR0913
+    def fake_run_fix(
+        crash, crash_file, target, spec, build_result, fixer, report, **kwargs
+    ):  # noqa: ANN001, ANN003, ANN202, PLR0913
         fix_calls["n"] += 1
         return (
             TSFixAttempt(
