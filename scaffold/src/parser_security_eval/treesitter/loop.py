@@ -50,6 +50,7 @@ def run_loop(
     max_len: int = 65536,
     fixer: Fixer | None = None,
     seed_corpus: bool = True,
+    max_repair_iters: int = 1,
 ) -> TSLoopResult:
     """Run the fuzz→fix loop for a single grammar; stream JSONL to ``out_dir``."""
     configure_telemetry()  # Logfire: instruments pydantic-ai + provider SDKs
@@ -181,7 +182,14 @@ def run_loop(
 
                 # The crash triggers the fix phase.
                 attempt, new_build = fixer_mod.run_fix(
-                    crash, crash_file, target, spec, build_result, fixer, report
+                    crash,
+                    crash_file,
+                    target,
+                    spec,
+                    build_result,
+                    fixer,
+                    report,
+                    max_repair_iters=max_repair_iters,
                 )
                 it.fix = attempt
                 logfire.info(
@@ -308,14 +316,26 @@ def run_hunt(
         for i, target in enumerate(targets):
             if progress is not None:
                 progress(i + 1, len(targets), target.name)
-            results.append(
-                run_loop(
-                    target,
-                    iterations=1,
-                    fuzz_seconds=fuzz_seconds,
-                    model=model,
-                    out_dir=out_dir,
-                    cache_dir=cache_dir,
+            try:
+                results.append(
+                    run_loop(
+                        target,
+                        iterations=1,
+                        fuzz_seconds=fuzz_seconds,
+                        model=model,
+                        out_dir=out_dir,
+                        cache_dir=cache_dir,
+                    )
                 )
-            )
+            except Exception as exc:  # noqa: BLE001 — one grammar must not kill the campaign
+                logfire.warn(
+                    "hunt grammar failed {grammar}: {error}",
+                    grammar=target.name,
+                    error=str(exc),
+                )
+                failed = TSLoopResult(
+                    grammar=target.name, tier=target.tier, language=target.language
+                )
+                failed.build_error = f"run_loop raised: {type(exc).__name__}: {exc}"
+                results.append(failed)
     return results

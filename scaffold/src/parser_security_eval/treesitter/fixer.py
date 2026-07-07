@@ -79,6 +79,7 @@ class Fixer(Protocol):
         implicated_file: str,
         asan_report: str,
         lang_hint: str,
+        feedback: str = "",
     ) -> FixProposal: ...
 
 
@@ -126,6 +127,7 @@ class LLMFixer:
         implicated_file: str,
         asan_report: str,
         lang_hint: str,
+        feedback: str = "",
     ) -> FixProposal:
         system = prompts.load("treesitter.fix_system")
         user = prompts.load(
@@ -140,6 +142,7 @@ class LLMFixer:
             asan_report=asan_report[:6000],
             source=source,
             lang_hint=lang_hint,
+            feedback=feedback,
         )
         agent = Agent(
             self.model,
@@ -235,6 +238,16 @@ def select_fix_target(
     return None
 
 
+def _accumulate_feedback(prev: str, i: int, rationale: str, failure: str) -> str:
+    """Append a failed-attempt block for the next repair iteration's prompt."""
+    block = (
+        f"### Attempt {i} (FAILED)\n"
+        f"- What it tried: {rationale or '(no rationale)'}\n"
+        f"- Why it failed: {failure}\n"
+    )
+    return f"{prev}\n{block}" if prev else block
+
+
 def run_fix(
     crash: TSCrash,
     crash_file: Path,
@@ -243,8 +256,15 @@ def run_fix(
     build_result: TSBuildResult,
     fixer: Fixer,
     asan_report: str,
+    max_repair_iters: int = 1,
 ) -> tuple[TSFixAttempt, TSBuildResult]:
     """Propose+apply a fix, rebuild, and verify the crash no longer reproduces.
+
+    With ``max_repair_iters > 1``, a patch that fails to compile or fails to
+    eliminate the crash is fed back to the fixer (what it tried + why it failed +
+    the still-present sanitizer report) and it retries, up to that many times. The
+    source file is reverted to the original between attempts, so each retry is a
+    fresh rewrite informed by the accumulated failures.
 
     Returns the :class:`TSFixAttempt` and the (possibly rebuilt) build result.
     """
@@ -278,59 +298,98 @@ def run_fix(
 
     original = fix_path.read_text(encoding="utf-8", errors="replace")
     lang_hint = _lang_hint(fix_path)
-
-    try:
-        proposal = fixer.propose(
-            crash, target, original, fix_path.name, asan_report, lang_hint
-        )
-    except Exception as exc:  # noqa: BLE001 — surface fixer errors into the record
-        attempt.error = f"fixer.propose failed: {exc}"
-        return attempt, build_result
-
-    attempt.input_tokens = proposal.input_tokens
-    attempt.output_tokens = proposal.output_tokens
-    attempt.rationale = proposal.rationale
-    if not proposal.new_content.strip():
-        attempt.error = "fixer returned no file content"
-        return attempt, build_result
-
-    attempt.patch = "".join(
-        difflib.unified_diff(
-            original.splitlines(keepends=True),
-            proposal.new_content.splitlines(keepends=True),
-            fromfile=f"a/{fix_path.name}",
-            tofile=f"b/{fix_path.name}",
-        )
-    )
-
-    # Apply (keep a backup so a failed fix can be rolled back).
     backup = fix_path.with_suffix(fix_path.suffix + ".orig")
     if not backup.exists():
         backup.write_text(original, encoding="utf-8")
-    fix_path.write_text(proposal.new_content, encoding="utf-8")
-    attempt.applied = True
 
-    # grammar.js edits require regeneration before rebuild.
-    if fix_path.name == "grammar.js":
-        ok, _ = runtime.generate_parser(spec.src_dir)
-        attempt.regenerated = ok
-        if not ok:
-            attempt.error = "tree-sitter generate failed after grammar.js edit"
-            return attempt, build_result
+    feedback = ""
+    result_build = build_result
+    for i in range(1, max_repair_iters + 1):
+        attempt.iters_used = i
+        try:
+            proposal = fixer.propose(
+                crash,
+                target,
+                original,
+                fix_path.name,
+                asan_report,
+                lang_hint,
+                feedback=feedback,
+            )
+        except Exception as exc:  # noqa: BLE001 — surface fixer errors into the record
+            attempt.error = f"fixer.propose failed: {exc}"
+            return attempt, result_build
 
-    new_build = runtime.build(spec)
-    attempt.rebuilt = new_build.built
-    if not new_build.built:
-        attempt.error = f"rebuild failed:\n{new_build.compile_errors[-1500:]}"
-        return attempt, build_result
+        attempt.input_tokens += proposal.input_tokens
+        attempt.output_tokens += proposal.output_tokens
+        attempt.rationale = proposal.rationale
+        if not proposal.new_content.strip():
+            attempt.error = "fixer returned no file content"
+            return attempt, result_build
 
-    # Verified only if the patched build never crashes across the replay budget
-    # (reproduced_original is already True here).
-    attempt.verified = _clean_on_replay(
-        Path(new_build.binary_path or ""), crash_file, VERIFY_ATTEMPTS
-    )
-    if not attempt.verified:
+        attempt.patch = "".join(
+            difflib.unified_diff(
+                original.splitlines(keepends=True),
+                proposal.new_content.splitlines(keepends=True),
+                fromfile=f"a/{fix_path.name}",
+                tofile=f"b/{fix_path.name}",
+            )
+        )
+        fix_path.write_text(proposal.new_content, encoding="utf-8")
+        attempt.applied = True
+
+        # grammar.js edits require regeneration before rebuild.
+        if fix_path.name == "grammar.js":
+            ok, gen_log = runtime.generate_parser(spec.src_dir)
+            attempt.regenerated = ok
+            if not ok:
+                attempt.error = "tree-sitter generate failed after grammar.js edit"
+                feedback = _accumulate_feedback(
+                    feedback,
+                    i,
+                    proposal.rationale,
+                    f"`tree-sitter generate` failed:\n{gen_log[-800:]}",
+                )
+                fix_path.write_text(original, encoding="utf-8")
+                continue
+
+        new_build = runtime.build(spec)
+        attempt.rebuilt = new_build.built
+        if not new_build.built:
+            attempt.error = f"rebuild failed:\n{new_build.compile_errors[-1500:]}"
+            feedback = _accumulate_feedback(
+                feedback,
+                i,
+                proposal.rationale,
+                f"the patch did NOT COMPILE:\n{new_build.compile_errors[-1000:]}",
+            )
+            fix_path.write_text(original, encoding="utf-8")
+            continue
+
+        result_build = new_build
+        # Verified only if the patched build never crashes across the replay budget
+        # (reproduced_original is already True here).
+        if _clean_on_replay(
+            Path(new_build.binary_path or ""), crash_file, VERIFY_ATTEMPTS
+        ):
+            attempt.verified = True
+            attempt.error = ""
+            return attempt, new_build
+
+        # Still crashes — capture the post-patch report as feedback and retry.
+        _, post_report = runtime.reproduce(
+            Path(new_build.binary_path or ""), crash_file
+        )
         attempt.error = (
             "patch did not eliminate the crash (still reproduces after rebuild)"
         )
-    return attempt, new_build
+        feedback = _accumulate_feedback(
+            feedback,
+            i,
+            proposal.rationale,
+            "the bug STILL reproduces after this patch. Current (post-patch) "
+            f"sanitizer report:\n{post_report[:2000]}",
+        )
+        fix_path.write_text(original, encoding="utf-8")  # clean base for next attempt
+
+    return attempt, result_build

@@ -103,6 +103,7 @@ class TSFixAttempt(BaseModel):
     # verified == reproduced_original AND the patched build never crashed on replay.
     reproduced_original: bool = False  # the bug reproduced on the pre-fix build
     verify_attempts: int = 0  # replays used to confirm repro / clearance (flaky-safe)
+    iters_used: int = 0  # LLM repair iterations attempted (>1 = retried with feedback)
     verified: bool = False  # crashing input no longer reproduces after the fix
     error: str = ""
     input_tokens: int = 0

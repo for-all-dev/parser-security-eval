@@ -115,3 +115,24 @@ def test_run_hunt_invokes_loop_per_candidate(tmp_path: Path, monkeypatch) -> Non
     results = run_hunt(reg, top_n=10, fuzz_seconds=99, out_dir=tmp_path / "hunt")
     assert calls == ["uyha-cmake", "ram02z-fish"]
     assert len(results) == 2
+
+
+def test_run_hunt_survives_a_failing_grammar(tmp_path: Path, monkeypatch) -> None:
+    # One grammar raising (e.g. clone/build/toolchain error) must not abort the
+    # whole overnight campaign.
+    reg = _write_registry(tmp_path)
+    monkeypatch.setattr(loop_mod, "configure_telemetry", lambda *a, **k: False)
+
+    def flaky_run_loop(target, **kwargs):  # noqa: ANN001, ANN202
+        if target.name == "uyha-cmake":
+            raise RuntimeError("clone failed")
+        return TSLoopResult(
+            grammar=target.name, tier=target.tier, language=target.language
+        )
+
+    monkeypatch.setattr(loop_mod, "run_loop", flaky_run_loop)
+    results = run_hunt(reg, top_n=10, fuzz_seconds=1, out_dir=tmp_path / "hunt")
+    assert len(results) == 2  # both candidates still produce a result row
+    failed = next(r for r in results if r.grammar == "uyha-cmake")
+    assert "run_loop raised" in failed.build_error
+    assert "clone failed" in failed.build_error

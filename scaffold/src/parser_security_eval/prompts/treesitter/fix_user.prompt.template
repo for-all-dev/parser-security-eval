@@ -22,6 +22,13 @@ A fuzzing campaign against the **{{ language }}** tree-sitter grammar
 {{ source }}
 ```
 
-Return the complete corrected contents of `{{ implicated_file }}` in the required
-format. Add the missing safety check on the crashing path; do not otherwise alter
-behavior.
+{% if feedback %}
+## Earlier fix attempt(s) that did NOT work — read carefully, then try a DIFFERENT fix
+{{ feedback }}
+{% endif %}
+Return the complete corrected contents of `{{ implicated_file }}`. Add the missing
+guard / cleanup on the crashing path; do not otherwise alter behavior. If an earlier
+attempt is shown above, its approach did NOT eliminate the bug — diagnose *why* from
+the still-present sanitizer report and fix the ACTUAL site (e.g. free EVERY allocation
+in the matching teardown/destroy path — including hashmap/queue entries, not just the
+container — or bounds-check before the offending access).

@@ -94,7 +94,16 @@ def test_select_fix_target_runtime_crash_returns_none(tmp_path: Path) -> None:
 class _StubFixer:
     name = "stub"
 
-    def propose(self, crash, target, source, implicated_file, asan_report, lang_hint):  # noqa: ANN001, ANN201, PLR0913
+    def propose(
+        self,
+        crash,
+        target,
+        source,
+        implicated_file,
+        asan_report,
+        lang_hint,
+        feedback="",
+    ):  # noqa: ANN001, ANN201, PLR0913
         return FixProposal(
             new_content="int scan(void){return 0;}\n",
             rationale="add guard",
@@ -245,6 +254,93 @@ def test_run_fix_patch_that_does_not_eliminate_is_not_verified(
     assert attempt.applied is True
     assert attempt.verified is False
     assert "did not eliminate" in attempt.error
+
+
+def test_run_fix_retries_with_feedback_until_verified(
+    tmp_path: Path, monkeypatch
+) -> None:
+    # First patch fails to eliminate the crash; the retry (with feedback) succeeds.
+    grammar = tmp_path / "g"
+    src = grammar / "src"
+    src.mkdir(parents=True)
+    scanner = src / "scanner.c"
+    scanner.write_text("int scan(void){buf[i];}\n")
+    (src / "parser.c").write_text("// parser")
+    target = _target()
+    spec = runtime.BuildSpec(
+        target=target,
+        runtime_dir=tmp_path / "rt",
+        grammar_dir=grammar,
+        work_dir=tmp_path / "work",
+    )
+    build = TSBuildResult(
+        built=True, binary_path=str(tmp_path / "fuzz_orig"), scanner_file=str(scanner)
+    )
+    crash = TSCrash(
+        bug_class=BugClass.heap_buffer_overflow,
+        in_scanner=True,
+        implicated_file="scanner.c",
+    )
+    crash_file = tmp_path / "crash-1"
+    crash_file.write_bytes(b"bad")
+
+    builds = {"n": 0}
+
+    def fake_build(_spec):  # noqa: ANN001, ANN202
+        builds["n"] += 1
+        return TSBuildResult(
+            built=True, binary_path=str(tmp_path / f"fuzz_patched_{builds['n']}")
+        )
+
+    def fake_reproduce(binary, cf, timeout=60):  # noqa: ANN001, ANN202
+        b = str(binary)
+        # original crashes; first patched build still crashes; second is clean.
+        if "orig" in b or b.endswith("_1"):
+            return 1, "==ERROR: AddressSanitizer: heap-buffer-overflow"
+        return 0, "clean"
+
+    monkeypatch.setattr(runtime, "build", fake_build)
+    monkeypatch.setattr(runtime, "reproduce", fake_reproduce)
+
+    seen_feedback: list[bool] = []
+
+    class _TwoTryFixer:
+        name = "two-try"
+
+        def propose(
+            self,
+            crash,
+            target,
+            source,
+            implicated_file,
+            asan_report,
+            lang_hint,
+            feedback="",
+        ):  # noqa: ANN001, ANN201, PLR0913
+            seen_feedback.append(bool(feedback))
+            # First call (no feedback) → weak fix; retry (with feedback) → real fix.
+            body = "return 1;" if feedback else "return 0;"
+            return FixProposal(
+                new_content=f"int scan(void){{{body}}}\n",
+                rationale="attempt",
+                input_tokens=1,
+                output_tokens=1,
+            )
+
+    attempt, _ = run_fix(
+        crash,
+        crash_file,
+        target,
+        spec,
+        build,
+        _TwoTryFixer(),
+        "report",
+        max_repair_iters=3,
+    )
+    assert attempt.iters_used == 2  # succeeded on the 2nd try
+    assert attempt.verified is True
+    assert attempt.error == ""
+    assert seen_feedback == [False, True]  # retry received failure feedback
 
 
 def test_run_fix_skips_runtime_crash(tmp_path: Path) -> None:
