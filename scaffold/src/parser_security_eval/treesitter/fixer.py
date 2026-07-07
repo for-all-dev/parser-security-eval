@@ -30,7 +30,8 @@ from parser_security_eval.treesitter.models import (
 
 # Model-agnostic: a pydantic-ai "provider:model" string. Swap the provider freely
 # (e.g. "openai:gpt-4o", "google-gla:gemini-2.5-pro"); keys are read from the env.
-DEFAULT_FIX_MODEL = "anthropic:claude-opus-4-8"
+# Defaults to Sonnet; override per-run with `--model`/`-m` on any `treesitter` command.
+DEFAULT_FIX_MODEL = "anthropic:claude-sonnet-5"
 # Replays used to confirm a crash reproduces (pre-fix) and is gone (post-fix).
 # >1 because some scanner crashes are flaky (e.g. heap-layout-dependent SEGVs).
 VERIFY_ATTEMPTS = 20
