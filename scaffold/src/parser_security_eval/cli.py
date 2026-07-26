@@ -85,6 +85,11 @@ category3_app = typer.Typer(
 )
 app.add_typer(category3_app, name="category3")
 
+# Register tree-sitter fuzz→fix loop sub-commands
+from parser_security_eval.treesitter.cli import app as treesitter_app  # noqa: E402
+
+app.add_typer(treesitter_app, name="treesitter")
+
 log = get_log(__name__)
 
 _DEFAULT_CACHE = Path.home() / ".cache" / "parser-security-eval"

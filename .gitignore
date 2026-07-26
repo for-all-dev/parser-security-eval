@@ -46,3 +46,5 @@ targets/*/memory.json
 
 /docs/meetings/*.pdf
 
+# tree-sitter fuzz→fix loop: streamed JSONL results
+scaffold/results/treesitter/
