@@ -8,6 +8,8 @@ Commands:
     treesitter sweep [--tier popular|less-popular] [--iterations N --duration S]
     treesitter survey [--token T --limit N --out DIR]  # build the priority registry
     treesitter hunt [--top N --duration S]             # fuzz top un-fuzzed scanner grammars
+    treesitter baseline --hybrid DIR [--out DIR]       # plain-libFuzzer ablation (no LLM)
+    treesitter baseline-compare --hybrid DIR --baseline DIR  # diff the two sweeps
 
 Run inside the project's nix-shell so clang/tree-sitter are on PATH:
     nix-shell scaffold/treesitter-shell.nix --run \\
@@ -124,6 +126,105 @@ def sweep(
             out_dir=out_dir,
         )
         _print_summary(result)
+
+
+@app.command("baseline")
+def baseline(
+    hybrid: Path = typer.Option(
+        DEFAULT_OUT_DIR,
+        "--hybrid",
+        help="Hybrid sweep JSONL dir; defines the exact grammar set + per-grammar "
+        "fuzzing walltime to replicate (NO LLM).",
+    ),
+    out_dir: Path = typer.Option(
+        Path("results") / "treesitter-baseline", "--out", help="JSONL output dir"
+    ),
+    max_len: int = typer.Option(65536, "--max-len", help="libFuzzer -max_len"),
+    jobs: int = typer.Option(
+        1,
+        "--jobs",
+        "-j",
+        help="Grammars to fuzz concurrently. Each is ~1 core; keep at/below the "
+        "machine's PHYSICAL core count to preserve per-grammar throughput parity "
+        "with the (serial) hybrid runs. Oversubscribing skews the comparison.",
+    ),
+    no_fork: bool = typer.Option(
+        False, "--no-fork", help="Disable libFuzzer fork mode (stop at first crash)"
+    ),
+) -> None:
+    """Plain-libFuzzer ablation: same grammars + walltime as the hybrid, no fixer."""
+    import os
+
+    from parser_security_eval.treesitter.baseline import (
+        run_baseline_sweep,
+        targets_from_results,
+    )
+
+    if not hybrid.exists():
+        typer.echo(f"Hybrid results dir not found: {hybrid}", err=True)
+        raise typer.Exit(1)
+    targets = targets_from_results(hybrid)
+    if not targets:
+        typer.echo(f"No fuzzable grammars found under {hybrid}", err=True)
+        raise typer.Exit(1)
+    total_h = sum(t.fuzz_seconds for t in targets) / 3600
+    # SMT threads don't count as full fuzzing cores; halve the logical count as a
+    # physical-core estimate for the guidance below.
+    physical = max(1, (os.cpu_count() or 2) // 2)
+    typer.echo(
+        f"Baselining {len(targets)} grammars ({total_h:.1f} fuzzing-hours total), "
+        f"plain libFuzzer, no LLM. jobs={jobs}."
+    )
+    if jobs == 1:
+        typer.echo(
+            f"  tip: serial run ≈ {total_h:.0f}h. This box looks like ~{physical} "
+            f"physical cores → `-j {physical}` cuts it to ≈ {total_h / physical:.1f}h "
+            "with per-grammar throughput preserved.",
+            err=True,
+        )
+    elif jobs > physical:
+        typer.echo(
+            f"  warning: jobs={jobs} exceeds ~{physical} physical cores — each fuzz "
+            "process will be CPU-starved, biasing the comparison (fewer execs, "
+            f"spurious wall-clock timeouts). Consider `-j {physical}`.",
+            err=True,
+        )
+
+    def _progress(i: int, total: int, label: str) -> None:
+        typer.echo(f"[{i}/{total}] done: {label}", err=True)
+
+    run_baseline_sweep(
+        targets,
+        out_dir=out_dir,
+        max_len=max_len,
+        fork=not no_fork,
+        jobs=jobs,
+        progress=_progress,
+    )
+    typer.echo(f"\nJSONL written under: {out_dir}")
+    typer.echo(
+        "Now diff against the hybrid:\n"
+        f"  parser-security-eval treesitter baseline-compare "
+        f"--hybrid {hybrid} --baseline {out_dir}"
+    )
+
+
+@app.command("baseline-compare")
+def baseline_compare(
+    hybrid: Path = typer.Option(DEFAULT_OUT_DIR, "--hybrid", help="Hybrid sweep dir"),
+    baseline_dir: Path = typer.Option(
+        Path("results") / "treesitter-baseline", "--baseline", help="Baseline sweep dir"
+    ),
+) -> None:
+    """Diff hybrid vs baseline sweeps on memory-safety stack hashes."""
+    from parser_security_eval.treesitter.baseline_compare import compare, format_report
+
+    for label, path in (("hybrid", hybrid), ("baseline", baseline_dir)):
+        if not path.exists():
+            typer.echo(f"{label} dir not found: {path}", err=True)
+            raise typer.Exit(1)
+    report = compare(hybrid, baseline_dir)
+    typer.echo(format_report(report))
 
 
 @app.command("survey")
