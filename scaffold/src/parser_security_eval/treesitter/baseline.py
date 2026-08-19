@@ -292,7 +292,7 @@ def run_baseline_sweep(
     max_len: int = 65536,
     fork: bool = True,
     jobs: int = 1,
-    progress: Callable[[int, int, str], None] | None = None,
+    progress: Callable[[int, int, str, list[TSLoopIteration]], None] | None = None,
 ) -> dict[str, list[TSLoopIteration]]:
     """Run :func:`run_baseline_grammar` over a target set; keep going on error.
 
@@ -301,17 +301,22 @@ def run_baseline_sweep(
     single-core) hybrid runs, keep ``jobs`` at or below the machine's *physical*
     core count — oversubscribing starves each process of CPU (fewer execs/sec and
     spurious wall-clock timeouts) and of RAM (``jobs`` × ``rss_limit`` peak).
+
+    ``progress`` fires once per grammar *on completion* with
+    ``(done, total, name, iterations)`` so callers can log the live outcome.
     """
     jobs = max(1, jobs)
     results: dict[str, list[TSLoopIteration]] = {}
+    total = len(targets)
 
     if jobs == 1:
         for i, bt in enumerate(targets):
-            if progress is not None:
-                progress(i + 1, len(targets), bt.target.name)
-            results[bt.target.name] = _run_one(
+            iters = _run_one(
                 bt, cache_dir=cache_dir, out_dir=out_dir, max_len=max_len, fork=fork
             )
+            results[bt.target.name] = iters
+            if progress is not None:
+                progress(i + 1, total, bt.target.name, iters)
         return results
 
     # Clone the shared tree-sitter runtime ONCE up front: concurrent first-time
@@ -334,9 +339,10 @@ def run_baseline_sweep(
         }
         for fut in as_completed(futures):
             bt = futures[fut]
-            results[bt.target.name] = fut.result()
+            iters = fut.result()
+            results[bt.target.name] = iters
             if progress is not None:
                 with lock:
                     done += 1
-                    progress(done, len(targets), bt.target.name)
+                    progress(done, total, bt.target.name, iters)
     return results

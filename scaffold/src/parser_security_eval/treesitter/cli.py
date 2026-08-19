@@ -148,17 +148,25 @@ def baseline(
         "machine's PHYSICAL core count to preserve per-grammar throughput parity "
         "with the (serial) hybrid runs. Oversubscribing skews the comparison.",
     ),
+    log_file: Path | None = typer.Option(
+        None,
+        "--log-file",
+        help="Tee progress here too (default: <out>/baseline-run.log). "
+        "`tail -f` it to watch a detached run.",
+    ),
     no_fork: bool = typer.Option(
         False, "--no-fork", help="Disable libFuzzer fork mode (stop at first crash)"
     ),
 ) -> None:
     """Plain-libFuzzer ablation: same grammars + walltime as the hybrid, no fixer."""
     import os
+    from datetime import datetime, timezone
 
     from parser_security_eval.treesitter.baseline import (
         run_baseline_sweep,
         targets_from_results,
     )
+    from parser_security_eval.treesitter.models import TSLoopIteration
 
     if not hybrid.exists():
         typer.echo(f"Hybrid results dir not found: {hybrid}", err=True)
@@ -167,40 +175,79 @@ def baseline(
     if not targets:
         typer.echo(f"No fuzzable grammars found under {hybrid}", err=True)
         raise typer.Exit(1)
+
+    # Tee every progress line to stdout AND a run log, each line timestamped so a
+    # detached/`tail -f`'d run is legible. The per-grammar JSONL under <out> stays
+    # the machine-readable record; this log is the human heartbeat.
+    out_dir.mkdir(parents=True, exist_ok=True)
+    log_path = log_file or (out_dir / "baseline-run.log")
+    log_fh = log_path.open("a", encoding="utf-8", buffering=1)  # line-buffered
+
+    def _log(msg: str) -> None:
+        stamp = datetime.now(tz=timezone.utc).strftime("%H:%M:%S")
+        line = f"[{stamp}] {msg}"
+        typer.echo(line)
+        log_fh.write(line + "\n")
+
     total_h = sum(t.fuzz_seconds for t in targets) / 3600
     # SMT threads don't count as full fuzzing cores; halve the logical count as a
     # physical-core estimate for the guidance below.
     physical = max(1, (os.cpu_count() or 2) // 2)
-    typer.echo(
-        f"Baselining {len(targets)} grammars ({total_h:.1f} fuzzing-hours total), "
-        f"plain libFuzzer, no LLM. jobs={jobs}."
+    eta_h = total_h / max(1, jobs)
+    _log(
+        f"baseline start: {len(targets)} grammars, {total_h:.1f} fuzzing-hours, "
+        f"jobs={jobs} → ~{eta_h:.1f}h wall. plain libFuzzer, no LLM."
     )
+    _log(f"log: {log_path}  |  per-grammar JSONL: {out_dir}/")
     if jobs == 1:
-        typer.echo(
-            f"  tip: serial run ≈ {total_h:.0f}h. This box looks like ~{physical} "
-            f"physical cores → `-j {physical}` cuts it to ≈ {total_h / physical:.1f}h "
-            "with per-grammar throughput preserved.",
-            err=True,
+        _log(
+            f"  tip: `-j {physical}` (this box ≈ {physical} physical cores) would cut "
+            f"this to ≈ {total_h / physical:.1f}h with throughput preserved."
         )
     elif jobs > physical:
-        typer.echo(
-            f"  warning: jobs={jobs} exceeds ~{physical} physical cores — each fuzz "
-            "process will be CPU-starved, biasing the comparison (fewer execs, "
-            f"spurious wall-clock timeouts). Consider `-j {physical}`.",
-            err=True,
+        _log(
+            f"  warning: jobs={jobs} > ~{physical} physical cores — each proc is "
+            "CPU-starved (fewer execs, spurious timeouts), biasing the comparison."
         )
 
-    def _progress(i: int, total: int, label: str) -> None:
-        typer.echo(f"[{i}/{total}] done: {label}", err=True)
+    tally = {"crash": 0, "clean": 0, "buildfail": 0, "bugs": 0}
 
-    run_baseline_sweep(
-        targets,
-        out_dir=out_dir,
-        max_len=max_len,
-        fork=not no_fork,
-        jobs=jobs,
-        progress=_progress,
-    )
+    def _outcome(iters: list[TSLoopIteration]) -> str:
+        if iters and not any(it.built for it in iters):
+            tally["buildfail"] += 1
+            return "BUILD-FAILED"
+        classes = [it.crash.bug_class.value for it in iters if it.crash]
+        if not classes:
+            tally["clean"] += 1
+            return "no crash"
+        tally["crash"] += 1
+        tally["bugs"] += len(classes)
+        return f"CRASH ×{len(classes)}: {', '.join(classes)}"
+
+    def _progress(i: int, total: int, label: str, iters: list[TSLoopIteration]) -> None:
+        _log(
+            f"[{i}/{total}] {label:30} {_outcome(iters)}  "
+            f"(running: {tally['crash']} crashing / {tally['bugs']} crashes, "
+            f"{tally['buildfail']} build-fail)"
+        )
+
+    try:
+        run_baseline_sweep(
+            targets,
+            out_dir=out_dir,
+            max_len=max_len,
+            fork=not no_fork,
+            jobs=jobs,
+            progress=_progress,
+        )
+        _log(
+            f"baseline done: {tally['crash']} grammars crashed "
+            f"({tally['bugs']} total crashes), {tally['clean']} clean, "
+            f"{tally['buildfail']} build-failed."
+        )
+    finally:
+        log_fh.close()
+
     typer.echo(f"\nJSONL written under: {out_dir}")
     typer.echo(
         "Now diff against the hybrid:\n"
