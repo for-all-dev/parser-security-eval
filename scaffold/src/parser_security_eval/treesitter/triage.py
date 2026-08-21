@@ -22,6 +22,20 @@ _FRAME_RE = re.compile(r"^\s*#\d+\s+0x[0-9a-fA-F]+\s+(.+?)\s*$", re.MULTILINE)
 # Drop the trailing ":col" so equivalent crashes hash identically.
 _COL_RE = re.compile(r":(\d+):(\d+)$")
 
+# Frame normalization for a PORTABLE stack hash — one that matches across two
+# independent sweeps (different machines, home dirs, and tree-sitter runtime
+# commits). Without this, the hash is a SHA-256 over raw frame strings that embed
+# run-specific noise, so the same bug hashes differently in each run and a
+# cross-run overlap comparison collapses to zero. Three noise sources are removed:
+#   1. binary load offsets ("fuzz+0x1d0343")            -> re-linked each build
+#   2. absolute paths ("/home/<user>/.cache/.../x.c")   -> differ by machine/user
+#   3. tree-sitter *runtime* line numbers               -> drift between runtime
+#      (frames under ".../tree-sitter/lib/...")            commits cloned per run
+# Scanner/grammar line numbers ARE kept, so distinct crash sites stay distinct.
+_HEX_OFF_RE = re.compile(r"\+?0x[0-9a-fA-F]+")
+_PATH_RE = re.compile(r"(?:[^\s():]*/)?([^\s():/]+?)(:\d+)?(?=[\s()]|$)")
+_RUNTIME_MARKER = "tree-sitter/lib/"
+
 _ASAN_CLASS_RE = re.compile(r"AddressSanitizer:\s+([a-z0-9-]+)")
 _UBSAN_RE = re.compile(r"runtime error:|UndefinedBehaviorSanitizer")
 _LIBFUZZER_RE = re.compile(r"libFuzzer:\s+(timeout|out-of-memory|deadly signal)")
@@ -82,9 +96,33 @@ def classify(report: str) -> BugClass:
     return BugClass.unknown
 
 
+def normalize_frame(frame: str) -> str:
+    """Reduce a stack frame to a portable ``func basename[:line]`` form.
+
+    See ``_HEX_OFF_RE`` above for why. Runtime frames keep only the basename;
+    scanner/grammar frames keep their line number.
+    """
+    frame = frame.strip()
+    func, _, rest = frame.partition(" ")
+    is_runtime = _RUNTIME_MARKER in rest
+    rest = _HEX_OFF_RE.sub("", rest)
+
+    def _repl(m: re.Match[str]) -> str:
+        base = m.group(1)
+        line = m.group(2) or ""
+        return base if is_runtime else base + line
+
+    rest = _PATH_RE.sub(_repl, rest).strip(" ()")
+    return f"{func} {rest}".strip()
+
+
 def stack_hash(frames: list[str]) -> str:
-    """SHA-256 over the top-N frames (function + file:line)."""
-    top = frames[:MAX_STACK_FRAMES]
+    """Portable SHA-256 over the top-N normalized frames.
+
+    Normalization (see :func:`normalize_frame`) makes the hash stable across
+    independent sweeps, so a hybrid-vs-baseline overlap comparison is meaningful.
+    """
+    top = [normalize_frame(f) for f in frames[:MAX_STACK_FRAMES]]
     return hashlib.sha256("\n".join(top).encode("utf-8", "replace")).hexdigest()
 
 

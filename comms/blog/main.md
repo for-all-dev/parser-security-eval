@@ -1,4 +1,4 @@
-# Unclear that hybrid/neurosymbolic agents where fuzzers and LLMs uplift each other works very well
+# Unclear that hybrid/neurosymbolic agents where fuzzers and LLMs uplift each other work very well
 
 Recently, [MaxvH wrote](https://www.lesswrong.com/posts/KKE6bL8LEpb6KuZWA/funding-formal-methods-for-the-cyberpocalypse) that we ought to develop an FM tool of the future:
 
@@ -20,6 +20,8 @@ We don't think this means the agents were bad at fuzzing. We think it means the 
 
 Patching, not finding. Given an ARVO crash report, Claude Opus repaired ~76% of vulnerabilities across the four targets, Sonnet ~72.5%, GPT-4o-mini ~52.5% — clean model stratification. But these are exactly the numbers you'd predict without accounting for contamination: the fix commits are public and plausibly in training data, so we treat this as an eval-plumbing validation, not a capability claim.
 
+![Horizontal bar chart of patch success on ARVO crash reports: Claude Opus 76%, Claude Sonnet 72.5%, GPT-4o-mini 52.5% of vulnerabilities repaired and verified.](assets/fig3-patch-success.png)
+
 ## Where we went next
 
 If the problem was target hardness, the fix is softer targets. We pivoted to parsers that have *not* lived under continuous fuzzing: tree-sitter grammars, whose external scanners are hand-written C, and parsers in interactive theorem provers (Isabelle, Lean).
@@ -28,10 +30,16 @@ Here the loop does close. We swept **118 tree-sitter grammars** (~24 fuzzing-hou
 
 But this immediately sharpens the ablation question, and here we have to be honest about what the LLM is doing. For tree-sitter the harness is essentially *fixed* — feed bytes to the parser — so unlike the OSS-Fuzz setup the LLM writes no harness. Its only contribution is on the **fix** side; every one of these 9 bugs is a plain libFuzzer crash. So the real test is: run vanilla libFuzzer — no LLM anywhere — against the same 118 grammars for the same per-grammar walltime, and see how many of the 9 it finds on its own.
 
-> **⚠️ PLACEHOLDER — baseline not yet run.** The `treesitter baseline` ablation (plain libFuzzer, fork mode, same grammars + walltime, no LLM) is implemented but has not been executed. Our prior: it reproduces **most or all** of the 9, since the LLM adds nothing to discovery on a fixed harness. When it runs, this section gets the real overlap number (e.g. "vanilla libFuzzer found N/9 of the same bugs") and the sentence below is confirmed or corrected.
+We ran it. Plain libFuzzer (fork mode, no LLM anywhere), same 118 grammars, matched to each grammar's hybrid fuzzing walltime — and it comes out **ahead of the hybrid on discovery**. Vanilla libFuzzer reproduced **6 of the hybrid's 10 memory-safety crashes**[^overlap] (in 6 of the 9 grammars: sql, svelte, gren, fdncred-nu, idris, nushell-nu), missed 4 (the SEGVs in foam and typst, a leak in liquidsoap, and one of the two sql bugs), and on its own surfaced **8 memory-safety crashes the hybrid never found**. Net tally in equal walltime: **14 memory-safety crashes for the bare fuzzer versus 10 for the hybrid.**
 
-If that prior holds, it *sharpens* the negative result rather than rescuing the hypothesis: on un-hardened targets the discovery value comes from *fuzzing at all*, not from the AI. What the LLM demonstrably does — and what a pure fuzzer cannot — is the fix side: it patches the crashes it's handed. The open quantity is vulns-and-fixes per dollar of the hybrid versus buying more CPU for vanilla fuzzing plus a cheap patch step, and we do not yet have evidence the hybrid wins on discovery anywhere.
+![Stacked bar chart comparing which of 18 distinct memory-safety crashes each method found. Both share 6 crashes; the hybrid found 4 more on its own (total 10), plain libFuzzer found 8 more on its own (total 14).](assets/fig2-crash-overlap.png)
+
+This does not rescue the hypothesis; it buries it. On un-hardened targets the discovery value comes from *fuzzing at all*, not from the AI — and the bare fuzzer here found more, not fewer, bugs than the LLM-in-the-loop version for the same compute. The 4 crashes only the hybrid surfaced are a minority and well within run-to-run fuzzing variance on a fixed harness, so we don't read them as LLM discovery uplift. What the LLM demonstrably does — and what a pure fuzzer cannot — is the fix side: it patches the crashes it's handed (18 of 31 verified). The honest open quantity is vulns-and-fixes per dollar of the hybrid versus buying more CPU for vanilla fuzzing plus a cheap patch step, and on this evidence the hybrid does not win on discovery anywhere.
+
+![Horizontal bar chart of memory-safety bugs found by setting: OSS-Fuzz targets with the hybrid LLM found 0; tree-sitter grammars with the hybrid LLM found 10; tree-sitter grammars with plain libFuzzer and no LLM found 14.](assets/fig1-discovery-by-setting.png)
+
+[^overlap]: "Same bug" is judged by a normalized stack hash — top frames reduced to function + scanner-file:line, with absolute paths, binary load offsets, and tree-sitter runtime line numbers stripped. Our first attempt hashed raw frames and reported a spurious 0/10 overlap: the two sweeps ran under different home directories against different runtime commits, so every hash differed even for provably identical crashes (byte-identical ASan summaries). The 6/10 figure is after that fix.
 
 ## Takeaway
 
-"AI-accelerated fuzzers that self-improve their harnesses at runtime" is a natural idea, and we'd guess versions of it get funded more than once. Our data says: on hardened targets the AI adds nothing because the fuzzer alone already sufficed years ago, and on soft targets — where we did find real bugs — the fuzzer alone plausibly finds the same ones (baseline pending). The niche where LLM *discovery* uplift pays — targets too hard for vanilla fuzzing but tractable with LLM-guided harnesses — is where the hypothesis has to live, and we have not yet observed it. The one place the LLM clearly earns its keep is patching the crashes, which is a different and more defensible claim than the one we set out to test.
+"AI-accelerated fuzzers that self-improve their harnesses at runtime" is a natural idea, and we'd guess versions of it get funded more than once. Our data says: on hardened targets the AI adds nothing because the fuzzer alone already sufficed years ago, and on soft targets — where we did find real bugs — the fuzzer alone not only finds the same ones but finds *more* (14 memory-safety crashes to the hybrid's 10, equal walltime). The niche where LLM *discovery* uplift pays — targets too hard for vanilla fuzzing but tractable with LLM-guided harnesses — is where the hypothesis has to live, and we have not observed it. The one place the LLM clearly earns its keep is patching the crashes, which is a different and more defensible claim than the one we set out to test.

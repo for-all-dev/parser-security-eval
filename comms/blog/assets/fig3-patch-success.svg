@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 262" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <rect x="0.5" y="0.5" width="719" height="261" rx="10" fill="#fcfcfb" stroke="#e6e5e1"/>
+
+  <text x="28" y="34" font-size="17" font-weight="700" fill="#0b0b0b">Patch success by model, on ARVO crash reports</text>
+  <text x="28" y="54" font-size="12.5" fill="#52514e">Share of vulnerabilities repaired, crash-input-replay verified. Clean model stratification.</text>
+
+  <!-- gridlines 0,25,50,75,100 ; x = 210 + pct*4.4 -->
+  <g stroke="#ededea" stroke-width="1">
+    <line x1="210" y1="78" x2="210" y2="200"/>
+    <line x1="320" y1="78" x2="320" y2="200"/>
+    <line x1="430" y1="78" x2="430" y2="200"/>
+    <line x1="540" y1="78" x2="540" y2="200"/>
+    <line x1="650" y1="78" x2="650" y2="200"/>
+  </g>
+  <g font-size="10.5" fill="#8a8983" text-anchor="middle">
+    <text x="210" y="216">0%</text>
+    <text x="320" y="216">25%</text>
+    <text x="430" y="216">50%</text>
+    <text x="540" y="216">75%</text>
+    <text x="650" y="216">100%</text>
+  </g>
+  <text x="430" y="238" font-size="11" fill="#8a8983" text-anchor="middle">vulnerabilities repaired (verified)</text>
+  <line x1="210" y1="78" x2="210" y2="200" stroke="#c9c8c4" stroke-width="1.5"/>
+
+  <!-- Opus 76% -> width 334.4 -->
+  <text x="198" y="101" font-size="12.5" fill="#0b0b0b" text-anchor="end" font-weight="600">Claude Opus</text>
+  <rect x="210" y="89" width="334" height="26" rx="4" fill="#2a78d6"/>
+  <text x="556" y="107" font-size="13" font-weight="700" fill="#0b0b0b">76%</text>
+
+  <!-- Sonnet 72.5% -> width 319 -->
+  <text x="198" y="145" font-size="12.5" fill="#0b0b0b" text-anchor="end" font-weight="600">Claude Sonnet</text>
+  <rect x="210" y="133" width="319" height="26" rx="4" fill="#2a78d6"/>
+  <text x="541" y="151" font-size="13" font-weight="700" fill="#0b0b0b">72.5%</text>
+
+  <!-- GPT-4o-mini 52.5% -> width 231 -->
+  <text x="198" y="189" font-size="12.5" fill="#0b0b0b" text-anchor="end" font-weight="600">GPT-4o-mini</text>
+  <rect x="210" y="177" width="231" height="26" rx="4" fill="#2a78d6"/>
+  <text x="453" y="195" font-size="13" font-weight="700" fill="#0b0b0b">52.5%</text>
+
+  <text x="28" y="254" font-size="11.5" fill="#52514e">Fix commits are public and plausibly in training data &#8212; read as eval-plumbing validation, not a capability claim.</text>
+</svg>

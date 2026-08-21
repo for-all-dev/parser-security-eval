@@ -85,6 +85,27 @@ def test_stack_hash_is_stable_and_distinct() -> None:
     assert len(a) == 64
 
 
+def test_stack_hash_is_portable_across_runs() -> None:
+    # Same bug seen in two independent sweeps: differs only in home-dir path,
+    # binary load offset, and tree-sitter *runtime* line numbers (parser.c drift).
+    # The portable stack hash must ignore all three and match.
+    run_a = [
+        "serialize (/home/mpwd/.cache/ts/_work_gren/fuzz_gren+0x1d0343)",
+        "serialize /home/mpwd/.cache/ts/tree-sitter-gren/src/scanner.c:417",
+        "ts_parser__lex /home/mpwd/.cache/ts/tree-sitter/lib/src/./parser.c:550",
+    ]
+    run_b = [
+        "serialize (/home/q/.cache/ts/_baseline_gren/fuzz_gren+0x1c21df)",
+        "serialize /home/q/.cache/ts/tree-sitter-gren/src/scanner.c:417",
+        "ts_parser__lex /home/q/.cache/ts/tree-sitter/lib/src/./parser.c:561",
+    ]
+    assert triage.stack_hash(run_a) == triage.stack_hash(run_b)
+    # A genuinely different crash site (different scanner line) must NOT collapse.
+    run_c = list(run_b)
+    run_c[1] = "serialize /home/q/.cache/ts/tree-sitter-gren/src/scanner.c:210"
+    assert triage.stack_hash(run_c) != triage.stack_hash(run_b)
+
+
 def test_implicate_prefers_scanner() -> None:
     file, in_scanner = triage.implicate(triage.extract_frames(HEAP_OVERFLOW))
     assert file is not None and file.endswith("scanner.c")

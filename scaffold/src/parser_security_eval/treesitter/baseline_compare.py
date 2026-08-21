@@ -21,6 +21,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from parser_security_eval.treesitter.models import BugClass
+from parser_security_eval.treesitter.triage import stack_hash
 
 # Resource-exhaustion classes are DoS-ish, share a generic stack hash, and are not
 # the memory-safety bugs the writeup is about. Kept in the per-grammar tables but
@@ -68,7 +69,15 @@ def load_sweep(results_dir: Path) -> dict[str, GrammarCrashes]:
             crash = rec.get("crash")
             if not crash:
                 continue
-            h = crash.get("stack_hash") or ""
+            # Recompute the stack hash from the stored frames rather than trusting
+            # the persisted ``stack_hash``: logs written before frame normalization
+            # carry non-portable hashes (absolute paths, binary offsets, runtime
+            # line drift) that never match across two independent sweeps. Passing
+            # the stored frames back through the current (normalizing) ``stack_hash``
+            # makes old and new logs comparable. Frameless crashes (timeout/OOM,
+            # excluded from the memory-safety headline) keep their stored hash.
+            frames = crash.get("top_frames") or []
+            h = stack_hash(frames) if frames else (crash.get("stack_hash") or "")
             if not h:
                 continue
             gc.crashes[h] = (
