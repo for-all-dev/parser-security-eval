@@ -12,5 +12,5 @@ limit = 20
 engine = "libfuzzer"
 
 [grid]
-model = ["anthropic/claude-sonnet-4-6", "openai/gpt-5.4-mini", "anthropic/claude-opus-4-6"]
+model = ["anthropic/claude-sonnet-5", "openai/gpt-5.4-mini", "anthropic/claude-opus-5"]
 target = ["libpng", "libjpeg-turbo", "libxml2", "zlib"]

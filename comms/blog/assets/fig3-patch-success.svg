@@ -32,10 +32,10 @@
   <rect x="210" y="133" width="319" height="26" rx="4" fill="#2a78d6"/>
   <text x="541" y="151" font-size="13" font-weight="700" fill="#0b0b0b">72.5%</text>
 
-  <!-- GPT-4o-mini 52.5% -> width 231 -->
-  <text x="198" y="189" font-size="12.5" fill="#0b0b0b" text-anchor="end" font-weight="600">GPT-4o-mini</text>
-  <rect x="210" y="177" width="231" height="26" rx="4" fill="#2a78d6"/>
-  <text x="453" y="195" font-size="13" font-weight="700" fill="#0b0b0b">52.5%</text>
+  <!-- GPT-5.4-mini 28.4% -> width 125 -->
+  <text x="198" y="189" font-size="12.5" fill="#0b0b0b" text-anchor="end" font-weight="600">GPT-5.4-mini</text>
+  <rect x="210" y="177" width="125" height="26" rx="4" fill="#2a78d6"/>
+  <text x="347" y="195" font-size="13" font-weight="700" fill="#0b0b0b">28.4%</text>
 
   <text x="28" y="254" font-size="11.5" fill="#52514e">Fix commits are public and plausibly in training data &#8212; read as eval-plumbing validation, not a capability claim.</text>
 </svg>

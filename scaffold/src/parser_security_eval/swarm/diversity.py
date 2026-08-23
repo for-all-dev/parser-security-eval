@@ -35,7 +35,7 @@ class AgentConfig(BaseModel):
     engine: FuzzEngine
     mutation_strategy: MutationStrategy
     role: AgentRole
-    model: str = "claude-sonnet-4-6"
+    model: str = "claude-sonnet-5"
     temperature: float = 0.5
     prompt_variant: str = "default"  # which system prompt variant to use
 

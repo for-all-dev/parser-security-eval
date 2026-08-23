@@ -12,7 +12,7 @@ round_duration = 60
 limit = 30
 
 [grid]
-model = ["anthropic/claude-sonnet-4-6"]
+model = ["anthropic/claude-sonnet-5"]
 target = ["zlib"]
 
 [grid.extra]

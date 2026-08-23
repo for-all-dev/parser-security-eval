@@ -109,7 +109,7 @@ def _crash_input_repr(crash: TSCrash) -> str:
 class LLMFixer:
     """Model-agnostic fixer via pydantic-ai.
 
-    ``model`` is a ``provider:model`` string (e.g. ``anthropic:claude-opus-4-8``,
+    ``model`` is a ``provider:model`` string (e.g. ``anthropic:claude-opus-5``,
     ``openai:gpt-4o``); the provider's API key is read from the environment. The fix
     comes back as a validated :class:`FixOutput` (structured output), so there is no
     text/regex parsing of the model's reply.

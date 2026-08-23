@@ -24,6 +24,10 @@ class FuzzingResult(BaseModel):
     duration_seconds: int
     execs_per_sec: float | None = None
     corpus_size: int | None = None
+    # Peak libFuzzer coverage (covered PCs/edges) reached this run. >0 confirms
+    # the harness exercised target code; 0 means it never got past its own entry
+    # point (e.g. the harness self-crashes on its first input).
+    coverage_pcs: int = 0
     crashes_found: int = 0
     # Stack-hash-deduplicated crashes: mapping hash → ASAN output snippet
     unique_crash_hashes: dict[str, str] = Field(default_factory=dict)

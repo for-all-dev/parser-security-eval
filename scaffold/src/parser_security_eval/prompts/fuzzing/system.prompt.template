@@ -73,7 +73,17 @@ You operate in a four-phase loop that repeats until your budget is exhausted:
 
   After each full cycle, REFLECT:
   - Did the harness cover the target entry-point well?
-  - Did coverage increase? (check get_fuzzer_stats coverage delta)
+  - Did coverage increase? start_fuzzing() and get_fuzzer_stats() report
+    "Coverage (edges/PCs reached)" and how it moved vs the previous peak. This
+    is your PRIMARY feedback signal — it is the number of covered edges the
+    fuzzer discovered, not a percentage.
+      * Coverage 0 → the harness never reached target code (it self-crashes on
+        its own input, or returns before calling the parser). Fix the harness;
+        do NOT just fuzz longer.
+      * Coverage rising → the harness reaches real code; keep fuzzing and/or add
+        seeds that push into new paths.
+      * Coverage flat across cycles → you are stuck; target a different entry
+        point or add seeds that reach new code.
   - What should you change for the next cycle?
 
 IMPORTANT RULES
@@ -84,5 +94,7 @@ IMPORTANT RULES
   harness — specificity is what makes this approach effective.
 - Reachability first: reach the target with minimum setup. Extra setup means
   extra attack surface and slower fuzzing.
-- Always check get_fuzzer_stats() after each run. Low execs/sec or zero
-  corpus growth means the harness is not working.
+- Always check get_fuzzer_stats() after each run. Coverage of 0 is the
+  definitive sign the harness is not exercising target code — repair the harness
+  before spending more fuzzing time. Low execs/sec or a corpus that never grows
+  are secondary warning signs of a weak or misdirected harness.

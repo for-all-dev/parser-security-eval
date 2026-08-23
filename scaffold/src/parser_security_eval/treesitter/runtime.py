@@ -235,8 +235,14 @@ class BuildSpec:
         return self.work_dir / f"fuzz_{self.target.name}"
 
 
-def build(spec: BuildSpec) -> TSBuildResult:
-    """Compile the grammar + runtime + harness into a libFuzzer binary."""
+def build(spec: BuildSpec, harness_override: str | None = None) -> TSBuildResult:
+    """Compile the grammar + runtime + harness into a libFuzzer binary.
+
+    When *harness_override* is given, it is written as ``harness.c`` instead of the
+    standard :func:`render_harness` template — this is how the LLM-in-loop treatment
+    arm supplies its own (potentially scanner-targeting) harness. Symbol and scanner
+    detection are unchanged, so a caller can inspect them regardless.
+    """
     check_toolchain()
     spec.work_dir.mkdir(parents=True, exist_ok=True)
     src_dir = spec.src_dir
@@ -257,7 +263,10 @@ def build(spec: BuildSpec) -> TSBuildResult:
     scanner = _find_scanner(src_dir)
 
     harness_c = spec.work_dir / "harness.c"
-    harness_c.write_text(render_harness(symbol), encoding="utf-8")
+    harness_c.write_text(
+        harness_override if harness_override is not None else render_harness(symbol),
+        encoding="utf-8",
+    )
 
     includes = [
         f"-I{spec.runtime_dir / 'lib' / 'include'}",
@@ -329,6 +338,11 @@ _STAT_RE = {
     "executions": re.compile(r"stat::number_of_executed_units:\s*(\d+)"),
     "execs_per_sec": re.compile(r"stat::average_exec_per_sec:\s*(\d+)"),
 }
+# libFuzzer running lines carry live coverage, e.g.
+#   "#1024 NEW    cov: 567 ft: 890 corp: 45/1234b ...".
+# cov: is the number of covered edges/PCs — the primary "is the harness reaching
+# target code" signal. Take the max seen across the run.
+_COV_RE = re.compile(r"\bcov:\s*(\d+)")
 _CRASH_PREFIXES = ("crash-", "oom-", "timeout-", "leak-")
 
 
@@ -390,6 +404,9 @@ class LibFuzzerRunner:
         m = _STAT_RE["execs_per_sec"].search(log)
         if m:
             result.execs_per_sec = float(m.group(1))
+        cov_values = [int(x) for x in _COV_RE.findall(log)]
+        if cov_values:
+            result.coverage_pcs = max(cov_values)
 
         result.oom_killed = rc == 137 or "out-of-memory" in log
         result.timed_out = run_timed_out or "libFuzzer: timeout" in log

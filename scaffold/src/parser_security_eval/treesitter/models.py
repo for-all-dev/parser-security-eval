@@ -70,6 +70,10 @@ class TSFuzzResult(BaseModel):
     execs_per_sec: float | None = None
     corpus_size: int | None = None
     total_executions: int | None = None
+    # Peak libFuzzer coverage (covered edges/PCs, the "cov:" token) reached this
+    # window. >0 confirms the harness exercised target code; 0 means it never got
+    # past its own entry point (self-crash on first input, or returns early).
+    coverage_pcs: int = 0
     crashes_found: int = 0
     timed_out: bool = False
     oom_killed: bool = False

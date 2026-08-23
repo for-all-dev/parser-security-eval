@@ -24,6 +24,13 @@ import typer
 
 from parser_security_eval.treesitter import registry
 from parser_security_eval.treesitter.fixer import DEFAULT_FIX_MODEL
+from parser_security_eval.treesitter.harness_author import DEFAULT_HARNESS_MODEL
+from parser_security_eval.treesitter.llm_loop import (
+    DEFAULT_OUT_DIR as LLM_OUT_DIR,
+)
+from parser_security_eval.treesitter.llm_loop import (
+    run_llm_loop,
+)
 from parser_security_eval.treesitter.loop import DEFAULT_OUT_DIR, run_loop
 from parser_security_eval.treesitter.models import GrammarTarget, Tier, TSLoopResult
 
@@ -97,6 +104,65 @@ def fuzz(
         max_len=max_len,
     )
     _print_summary(result)
+
+
+@app.command("llm-fuzz")
+def llm_fuzz(
+    grammars: str = typer.Option(
+        ...,
+        "--grammars",
+        "-g",
+        help="Comma-separated grammar names (see `treesitter list`).",
+    ),
+    model: str = typer.Option(
+        DEFAULT_HARNESS_MODEL, "--model", "-m", help="Harness-author model"
+    ),
+    window: int = typer.Option(
+        300, "--window", "-t", help="Seconds per fuzz window (per iteration)"
+    ),
+    max_iterations: int = typer.Option(
+        5, "--max-iterations", "-i", help="Max author→fuzz iterations per grammar"
+    ),
+    walltime: int | None = typer.Option(
+        None, "--walltime", help="Optional per-grammar walltime budget (seconds)"
+    ),
+    reps: int = typer.Option(
+        1, "--reps", help="Repetitions per grammar (for variance)"
+    ),
+    max_compile_retries: int = typer.Option(
+        3, "--max-compile-retries", help="Compile-fix retries per iteration"
+    ),
+    out_dir: Path = typer.Option(LLM_OUT_DIR, "--out-dir", help="JSONL output dir"),
+    max_len: int = typer.Option(65536, "--max-len", help="libFuzzer -max_len"),
+) -> None:
+    """LLM-in-loop fuzzing (treatment arm): the model writes/refines the harness.
+
+    Diff against the plain-libFuzzer control with `treesitter baseline-compare
+    --hybrid <out-dir> --baseline results/treesitter-baseline`.
+    """
+    names = [g.strip() for g in grammars.split(",") if g.strip()]
+    if not names:
+        typer.echo("No grammars given.", err=True)
+        raise typer.Exit(1)
+    for name in names:
+        target = registry.get(name)
+        for rep in range(reps):
+            rep_out = out_dir if reps == 1 else out_dir / f"rep{rep + 1}"
+            typer.echo(
+                f"\n>>> llm-fuzz {name} (rep {rep + 1}/{reps}) "
+                f"model={model} window={window}s x{max_iterations}"
+            )
+            result = run_llm_loop(
+                target,
+                model=model,
+                window_seconds=window,
+                max_iterations=max_iterations,
+                walltime_budget_s=walltime,
+                max_compile_retries=max_compile_retries,
+                out_dir=rep_out,
+                max_len=max_len,
+            )
+            _print_summary(result)
 
 
 @app.command("sweep")

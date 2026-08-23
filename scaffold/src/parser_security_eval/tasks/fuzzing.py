@@ -478,6 +478,7 @@ def _make_start_fuzzing_tool(
                 duration_seconds=capped,
                 execs_per_sec=result.stats.execs_per_sec,
                 corpus_size=result.stats.corpus_size,
+                coverage_pcs=result.stats.coverage_pcs,
                 crashes_found=len(all_hashes),
                 unique_crash_hashes=dict(new_crash_hashes),
                 timed_out=result.timed_out,
@@ -495,8 +496,9 @@ def _make_start_fuzzing_tool(
             # Track peak coverage (libFuzzer PCs/edges) reached across cycles.
             # >0 confirms the harness exercised target code; 0 means it never got
             # past its own entry point (the 0-coverage "artifact" self-crashes).
+            prev_max_coverage = session_state.get("max_coverage_pcs", 0)
             session_state["max_coverage_pcs"] = max(
-                session_state.get("max_coverage_pcs", 0),
+                prev_max_coverage,
                 result.stats.coverage_pcs,
             )
 
@@ -528,13 +530,41 @@ def _make_start_fuzzing_tool(
                 total_fuzz_seconds=session_state["total_fuzz_seconds"],
             )
 
+            cov_now = result.stats.coverage_pcs
+            cov_delta = cov_now - prev_max_coverage
             summary_parts = [
                 f"Fuzzing run complete ({capped}s).",
                 f"Execs/sec: {result.stats.execs_per_sec or 'N/A'}",
                 f"Corpus size: {result.stats.corpus_size or 'N/A'}",
+                f"Coverage (edges/PCs reached): {cov_now}"
+                + (
+                    f" (peak so far {session_state['max_coverage_pcs']}, "
+                    f"{'+' if cov_delta >= 0 else ''}{cov_delta} vs previous peak)"
+                    if session_state["cycle_count"] > 1
+                    else ""
+                ),
                 f"New unique crashes this run: {len(new_crash_hashes)}",
                 f"Total unique crashes: {len(all_hashes)}",
             ]
+            # Diagnostic the agent needs to fix its harness: coverage==0 means the
+            # harness never reached target code (it self-crashed on its own input
+            # or the entry point returns early), so no amount of fuzzing will find
+            # a bug until the harness is repaired. Distinct from "reached code but
+            # found no crash", which is a real (if negative) fuzzing result.
+            if cov_now == 0:
+                summary_parts.append(
+                    "DIAGNOSTIC: coverage is 0 — the harness is NOT exercising "
+                    "target code (it likely crashes on its own input or returns "
+                    "before calling the parser). Fix the harness with "
+                    "refine_harness() before fuzzing again; more fuzzing time "
+                    "will not help while coverage is 0."
+                )
+            elif cov_delta <= 0 and session_state["cycle_count"] > 1:
+                summary_parts.append(
+                    "NOTE: coverage did not increase over the previous peak. "
+                    "Consider targeting a different entry point or adding seeds "
+                    "that reach new code paths via add_seed()/refine_harness()."
+                )
             if result.timed_out:
                 summary_parts.append("WARNING: fuzzer timed out.")
             if result.oom_killed:
@@ -558,8 +588,11 @@ def _make_get_fuzzer_stats_tool(session_state: dict[str, Any]) -> Tool:
     @tool
     def get_fuzzer_stats() -> Tool:
         async def execute() -> str:
-            """Return execs/sec, corpus size, crashes found, and coverage delta
-            from the most recent fuzzing run. Takes no arguments.
+            """Return execs/sec, corpus size, coverage (edges/PCs reached), and
+            crashes found from the most recent fuzzing run. Takes no arguments.
+
+            Coverage of 0 means the harness never reached target code — fix the
+            harness rather than fuzzing longer.
             """
             result: FuzzingResult | None = session_state.get("last_fuzz_result")
             if result is None:
@@ -570,10 +603,17 @@ def _make_get_fuzzer_stats_tool(session_state: dict[str, Any]) -> Tool:
                 f"Duration: {result.duration_seconds}s",
                 f"Execs/sec: {result.execs_per_sec or 'N/A'}",
                 f"Corpus size: {result.corpus_size or 'N/A'}",
+                f"Coverage (edges/PCs reached): {result.coverage_pcs}"
+                f" (session peak {session_state.get('max_coverage_pcs', 0)})",
                 f"Total unique crashes: {len(session_state.get('all_crash_hashes', {}))}",
                 f"Timed out: {result.timed_out}",
                 f"OOM killed: {result.oom_killed}",
             ]
+            if result.coverage_pcs == 0:
+                lines.append(
+                    "DIAGNOSTIC: coverage 0 — harness is not exercising target "
+                    "code; repair it with refine_harness() before fuzzing again."
+                )
 
             # Coverage delta placeholder — requires a coverage-instrumented build
             # (the scorers/coverage.py path). Shown if coverage data is available.

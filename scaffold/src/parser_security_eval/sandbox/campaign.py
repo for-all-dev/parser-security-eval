@@ -176,11 +176,20 @@ class LibFuzzerEngine(FuzzerEngine):
                 stats.crashes_found = value
 
         # Peak coverage: libFuzzer prints running lines like
-        #   "#1024 NEW    cov: 567 ft: 890 corp: ..."
+        #   "#1024 NEW    cov: 567 ft: 890 corp: 45/1234b ..."
         # where cov: is the number of covered PCs/edges. Take the max seen.
         cov_values = [int(m) for m in re.findall(r"\bcov:\s*(\d+)", log)]
         if cov_values:
             stats.coverage_pcs = max(cov_values)
+
+        # Corpus size fallback: libFuzzer does NOT emit `stat::corpus_size`
+        # (only number_of_executed_units / average_exec_per_sec / new_units_added).
+        # The live "corp: <count>/<bytes>b" token on running lines is the real
+        # corpus size, so take the max seen when the stat:: line was absent.
+        if stats.corpus_size is None:
+            corp_values = [int(m) for m in re.findall(r"\bcorp:\s*(\d+)", log)]
+            if corp_values:
+                stats.corpus_size = max(corp_values)
 
         return stats
 

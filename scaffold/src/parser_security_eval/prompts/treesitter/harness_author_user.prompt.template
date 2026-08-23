@@ -1,0 +1,26 @@
+Grammar: {{ grammar }} (language: {{ language }})
+Language symbol to call: {{ symbol }}
+
+Reference harness (the standard template — a correct-but-generic starting point;
+you should improve on it to stress the external scanner):
+```c
+{{ reference_harness }}
+```
+
+External scanner source (this is where the bugs are — study its states, buffers,
+and (de)serialization; {{ scanner_note }}):
+```c
+{{ scanner_source }}
+```
+{% if previous_harness %}
+Your previous harness.c:
+```c
+{{ previous_harness }}
+```
+{% endif %}
+{% if feedback %}
+Feedback from the last window(s):
+{{ feedback }}
+{% endif %}
+Write the complete harness.c now (and optional seeds) to maximize coverage of the
+external scanner and surface memory-safety bugs.

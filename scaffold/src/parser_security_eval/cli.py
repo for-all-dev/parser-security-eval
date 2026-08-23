@@ -286,7 +286,7 @@ def curate(
 @app.command()
 def evaluate(
     task: TaskName = typer.Argument(help="Task: 'patching', 'triage', or 'harness'"),
-    model: str = typer.Option("anthropic/claude-sonnet-4-6", help="Model to evaluate"),
+    model: str = typer.Option("anthropic/claude-sonnet-5", help="Model to evaluate"),
     target: str | None = typer.Option(
         None, help="Parser target filter (e.g. 'libpng')"
     ),
@@ -638,7 +638,7 @@ def fuzzing(
     ),
     max_rounds: int = typer.Option(3, help="Maximum fuzzing rounds for the agent"),
     round_duration: int = typer.Option(60, help="Default round duration in seconds"),
-    model: str = typer.Option("anthropic/claude-sonnet-4-6", help="Model to evaluate"),
+    model: str = typer.Option("anthropic/claude-sonnet-5", help="Model to evaluate"),
     targets_root: Path = typer.Option(
         Path("../targets"), help="Targets root directory"
     ),
@@ -718,7 +718,7 @@ def preprocess(
         Path("../targets"), help="Targets root directory"
     ),
     model: str = typer.Option(
-        "anthropic/claude-sonnet-4-6", help="Model to use for grammar extraction"
+        "anthropic/claude-sonnet-5", help="Model to use for grammar extraction"
     ),
     force_refresh: bool = typer.Option(
         False,
@@ -866,7 +866,7 @@ def classify(
         _DEFAULT_CACHE, help="Cache directory for LLM classification results"
     ),
     model: str = typer.Option(
-        "anthropic/claude-sonnet-4-6",
+        "anthropic/claude-sonnet-5",
         help="Model to use for LLM classification of uncertain targets",
     ),
 ) -> None:
