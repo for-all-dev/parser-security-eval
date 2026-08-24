@@ -229,6 +229,7 @@ def baseline(
     from datetime import datetime, timezone
 
     from parser_security_eval.treesitter.baseline import (
+        rep_dirs,
         run_baseline_sweep,
         targets_from_results,
     )
@@ -237,10 +238,16 @@ def baseline(
     if not hybrid.exists():
         typer.echo(f"Hybrid results dir not found: {hybrid}", err=True)
         raise typer.Exit(1)
-    targets = targets_from_results(hybrid)
-    if not targets:
+    # `llm-fuzz --reps N` writes rep1/..repN/ subdirs; each rep gets its own
+    # budget-matched control so both arms end up with the same number of
+    # independent samples (i.e. error bars on both sides, not just the treatment).
+    reps = rep_dirs(hybrid)
+    plan = [(d, targets_from_results(d)) for d in reps]
+    plan = [(d, t) for d, t in plan if t]
+    if not plan:
         typer.echo(f"No fuzzable grammars found under {hybrid}", err=True)
         raise typer.Exit(1)
+    targets = [t for _, ts in plan for t in ts]
 
     # Tee every progress line to stdout AND a run log, each line timestamped so a
     # detached/`tail -f`'d run is legible. The per-grammar JSONL under <out> stays
@@ -298,14 +305,28 @@ def baseline(
         )
 
     try:
-        run_baseline_sweep(
-            targets,
-            out_dir=out_dir,
-            max_len=max_len,
-            fork=not no_fork,
-            jobs=jobs,
-            progress=_progress,
-        )
+        for rep_src, rep_targets in plan:
+            # Mirror the hybrid's layout so baseline-compare can pair rep to rep.
+            rep_out = (
+                out_dir
+                if len(plan) == 1 and rep_src == hybrid
+                else (out_dir / rep_src.name)
+            )
+            rep_out.mkdir(parents=True, exist_ok=True)
+            if len(plan) > 1:
+                _log(
+                    f"--- {rep_src.name}: {len(rep_targets)} grammars, "
+                    f"{sum(t.fuzz_seconds for t in rep_targets) / 3600:.1f} "
+                    f"fuzzing-hours -> {rep_out}"
+                )
+            run_baseline_sweep(
+                rep_targets,
+                out_dir=rep_out,
+                max_len=max_len,
+                fork=not no_fork,
+                jobs=jobs,
+                progress=_progress,
+            )
         _log(
             f"baseline done: {tally['crash']} grammars crashed "
             f"({tally['bugs']} total crashes), {tally['clean']} clean, "
@@ -330,14 +351,31 @@ def baseline_compare(
     ),
 ) -> None:
     """Diff hybrid vs baseline sweeps on memory-safety stack hashes."""
-    from parser_security_eval.treesitter.baseline_compare import compare, format_report
+    from parser_security_eval.treesitter.baseline_compare import (
+        compare,
+        compare_by_rep,
+        format_rep_reports,
+        format_report,
+        sweep_files,
+    )
 
     for label, path in (("hybrid", hybrid), ("baseline", baseline_dir)):
         if not path.exists():
             typer.echo(f"{label} dir not found: {path}", err=True)
             raise typer.Exit(1)
-    report = compare(hybrid, baseline_dir)
-    typer.echo(format_report(report))
+        if not sweep_files(path):
+            typer.echo(
+                f"{label} dir has no *.jsonl (checked rep*/ too): {path}", err=True
+            )
+            raise typer.Exit(1)
+
+    # Per-rep first (the spread), then the pooled table (the headline).
+    rep_reports = compare_by_rep(hybrid, baseline_dir)
+    rep_table = format_rep_reports(rep_reports)
+    if rep_table:
+        typer.echo(rep_table)
+        typer.echo("")
+    typer.echo(format_report(compare(hybrid, baseline_dir)))
 
 
 @app.command("survey")
