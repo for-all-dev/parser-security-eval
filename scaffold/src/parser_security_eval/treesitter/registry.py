@@ -85,6 +85,43 @@ _GRAMMARS: list[GrammarTarget] = [
         language="YAML",
         symbol="tree_sitter_yaml",
     ),
+    # ---- Ablation targets ----------------------------------------------------
+    # Grammars where the original survey found memory-safety crashes; the
+    # LLM-in-loop vs plain-libFuzzer arm fuzzes exactly these five (see
+    # docs/homelab-ablation-run.md). All carry external scanners. Where the wiki
+    # lists competing forks, the chosen owner is pinned in the URL.
+    GrammarTarget(
+        name="nushell-nu",
+        repo_url="https://github.com/nushell/tree-sitter-nu",
+        tier=Tier.less_popular,
+        language="Nu",
+    ),
+    GrammarTarget(
+        name="gren",
+        repo_url="https://github.com/MaeBrooks/tree-sitter-gren",
+        tier=Tier.less_popular,
+        language="Gren",
+    ),
+    GrammarTarget(
+        name="foam",
+        repo_url="https://github.com/FoamScience/tree-sitter-foam",
+        tier=Tier.less_popular,
+        language="FoAM",
+    ),
+    GrammarTarget(
+        name="typst",
+        repo_url="https://github.com/uben0/tree-sitter-typst",
+        tier=Tier.less_popular,
+        language="Typst",
+    ),
+    # Upstream commits no src/grammar.json, so the build must run
+    # `tree-sitter generate` before compiling.
+    GrammarTarget(
+        name="sql",
+        repo_url="https://github.com/DerekStride/tree-sitter-sql",
+        tier=Tier.less_popular,
+        language="SQL",
+    ),
 ]
 
 REGISTRY: dict[str, GrammarTarget] = {g.name: g for g in _GRAMMARS}

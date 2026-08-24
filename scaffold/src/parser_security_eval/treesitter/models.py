@@ -66,7 +66,12 @@ class TSBuildResult(BaseModel):
 class TSFuzzResult(BaseModel):
     """Parsed result of one libFuzzer run (one fuzz window)."""
 
-    duration_seconds: int
+    duration_seconds: int  # the *configured* window, not what was actually spent
+    # Wall-clock the fuzz process really consumed. libFuzzer can exit long before
+    # -max_total_time (it aborts on the first finding unless in fork mode), so
+    # anything budget-matching one arm against another must use this, not
+    # duration_seconds. None on records written before this field existed.
+    elapsed_seconds: float | None = None
     execs_per_sec: float | None = None
     corpus_size: int | None = None
     total_executions: int | None = None

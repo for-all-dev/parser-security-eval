@@ -12,6 +12,7 @@ from __future__ import annotations
 import re
 import shutil
 import subprocess
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -343,6 +344,15 @@ _STAT_RE = {
 # cov: is the number of covered edges/PCs — the primary "is the harness reaching
 # target code" signal. Take the max seen across the run.
 _COV_RE = re.compile(r"\bcov:\s*(\d+)")
+# In -fork mode the parent never emits stat:: lines (those come from the child
+# that -print_final_stats was handed). Its progress lines are the only source of
+# totals, e.g.
+#   "#706: cov: 1359 ft: 3673 corp: 77 exec/s: 0 oom/timeout/crash: 0/0/57 time: 20s job: 58"
+# The leading #N is cumulative executions across all jobs; exec/s is printed as 0
+# by the parent, so rate has to be derived from the elapsed "time: Ns" field.
+_FORK_EXECS_RE = re.compile(r"^#(\d+):\s+cov:", re.MULTILINE)
+_FORK_TALLY_RE = re.compile(r"oom/timeout/crash:\s*(\d+)/(\d+)/(\d+)")
+_FORK_TIME_RE = re.compile(r"\btime:\s*(\d+)s")
 _CRASH_PREFIXES = ("crash-", "oom-", "timeout-", "leak-")
 
 
@@ -357,6 +367,13 @@ class LibFuzzerRunner:
     rss_limit_mb: int = 2048
     per_input_timeout: int = 20
     extra_flags: list[str] = field(default_factory=list)
+    # libFuzzer aborts the whole process on the first crashing input, which makes
+    # -max_total_time a no-op for any harness that crashes early: a 300s window
+    # ends after 2-3 execs with cov: never printed. Fork mode runs each batch in a
+    # child, so a crash kills the child, gets written to -artifact_prefix, and the
+    # parent keeps fuzzing for the full budget. Set to 0 to restore the old
+    # stop-on-first-crash behaviour (e.g. when reproducing a single input).
+    fork_workers: int = 1
 
     def run(self, duration_seconds: int) -> tuple[TSFuzzResult, list[Path]]:
         """Fuzz for *duration_seconds*; return (result, new crash files)."""
@@ -373,27 +390,48 @@ class LibFuzzerRunner:
             f"-rss_limit_mb={self.rss_limit_mb}",
             f"-timeout={self.per_input_timeout}",
             "-print_final_stats=1",
-            *self.extra_flags,
         ]
-        safety = duration_seconds + 60
+        if self.fork_workers > 0:
+            # ignore_* are what actually keep the parent alive past a finding;
+            # -fork alone still tears down on the first crash.
+            cmd += [
+                f"-fork={self.fork_workers}",
+                "-ignore_crashes=1",
+                "-ignore_ooms=1",
+                "-ignore_timeouts=1",
+            ]
+        cmd += self.extra_flags
+        # Fork mode's parent has to reap children and merge the corpus after
+        # -max_total_time elapses; with thousands of crash artifacts that teardown
+        # alone can outlast a 60s grace period, and blowing the deadline kills the
+        # run and discards its stats. Give fork runs materially more headroom.
+        safety = duration_seconds + (300 if self.fork_workers > 0 else 60)
         run_timed_out = False
+        started = time.monotonic()
         try:
             res = _run(cmd, timeout=safety)
             rc, log = res.returncode, res.stdout + "\n" + res.stderr
         except subprocess.TimeoutExpired as exc:
             run_timed_out = True
             rc = -1
-            log = (
-                (exc.stdout or b"").decode("utf-8", "replace")
-                if isinstance(exc.stdout, bytes)
-                else (exc.stdout or "")
-            )
+
+            def _text(buf: bytes | str | None) -> str:
+                if isinstance(buf, bytes):
+                    return buf.decode("utf-8", "replace")
+                return buf or ""
+
+            # libFuzzer writes its progress and final stats to *stderr*; reading
+            # only stdout here loses the entire log on timeout, which zeroes out
+            # coverage/exec stats for the window (the crash artifacts on disk
+            # survive, so the window looks empty rather than failed).
+            log = _text(exc.stdout) + "\n" + _text(exc.stderr)
 
         after = self._crash_files()
         new_crashes = [p for p in after if p not in before]
 
         result = TSFuzzResult(
             duration_seconds=duration_seconds,
+            elapsed_seconds=round(time.monotonic() - started, 3),
             crashes_found=len(new_crashes),
             raw_log_tail=log[-4000:],
             corpus_size=sum(1 for _ in self.corpus_dir.iterdir()),
@@ -410,6 +448,21 @@ class LibFuzzerRunner:
 
         result.oom_killed = rc == 137 or "out-of-memory" in log
         result.timed_out = run_timed_out or "libFuzzer: timeout" in log
+
+        # Fork-mode fallbacks: fill in whatever the stat:: lines could not supply.
+        fork_execs = [int(x) for x in _FORK_EXECS_RE.findall(log)]
+        if fork_execs and result.total_executions is None:
+            result.total_executions = max(fork_execs)
+        if result.execs_per_sec is None and result.total_executions is not None:
+            elapsed = [int(x) for x in _FORK_TIME_RE.findall(log)]
+            secs = max(elapsed) if elapsed else duration_seconds
+            if secs > 0:
+                result.execs_per_sec = result.total_executions / secs
+        tally = _FORK_TALLY_RE.findall(log)
+        if tally:
+            ooms, timeouts, _crashes = (int(x) for x in tally[-1])
+            result.oom_killed = result.oom_killed or ooms > 0
+            result.timed_out = result.timed_out or timeouts > 0
         return result, new_crashes
 
     def _crash_files(self) -> set[Path]:

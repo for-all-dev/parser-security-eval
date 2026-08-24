@@ -31,7 +31,7 @@ import json
 import threading
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from parser_security_eval.treesitter import runtime, triage
@@ -39,6 +39,7 @@ from parser_security_eval.treesitter.models import (
     GrammarTarget,
     Tier,
     TSCrash,
+    TSFuzzResult,
     TSLoopIteration,
 )
 from parser_security_eval.treesitter.runtime import (
@@ -63,6 +64,29 @@ class BaselineTarget:
 
     target: GrammarTarget
     fuzz_seconds: int
+    # Per-window seconds, mirroring the hybrid's iteration structure. The hybrid
+    # restarts libFuzzer between harness rewrites, and a restart re-seeds from the
+    # corpus — worth real coverage. Running the control as one long process would
+    # therefore confound "the LLM rewrote the harness" with "restarted N times",
+    # so the control replays the same cadence. Empty => a single fuzz_seconds run.
+    windows: list[int] = field(default_factory=list)
+
+    def schedule(self) -> list[int]:
+        """The window lengths to actually run (never empty)."""
+        return [w for w in self.windows if w > 0] or [self.fuzz_seconds]
+
+
+def rep_dirs(results_dir: Path) -> list[Path]:
+    """Return the per-rep subdirs of a hybrid sweep, or the dir itself if flat.
+
+    ``treesitter llm-fuzz --reps N`` writes ``rep1/``..``repN/`` subdirs (and only
+    writes flat when ``reps == 1``). A control matched against the parent dir would
+    glob zero ``*.jsonl`` and silently fuzz nothing, so callers must expand to reps
+    first and match each one separately — summing reps into a single budget would
+    over-grant the control by a factor of N.
+    """
+    reps = sorted(p for p in results_dir.glob("rep*") if p.is_dir())
+    return reps or [results_dir]
 
 
 def targets_from_results(results_dir: Path) -> list[BaselineTarget]:
@@ -78,7 +102,8 @@ def targets_from_results(results_dir: Path) -> list[BaselineTarget]:
     out: list[BaselineTarget] = []
     for path in sorted(results_dir.glob("*.jsonl")):
         first: dict[str, object] | None = None
-        walltime = 0
+        walltime = 0.0
+        windows: list[int] = []
         built_any = False
         for line in path.read_text(encoding="utf-8").splitlines():
             line = line.strip()
@@ -89,7 +114,17 @@ def targets_from_results(results_dir: Path) -> list[BaselineTarget]:
             if rec.get("built"):
                 built_any = True
             fuzz = rec.get("fuzz") or {}
-            walltime += int(fuzz.get("duration_seconds") or 0)
+            if not fuzz:
+                continue
+            # elapsed_seconds is what the window really cost; duration_seconds is
+            # only the configured cap and overstates any window that exited early.
+            spent = fuzz.get("elapsed_seconds")
+            if spent is None:
+                spent = fuzz.get("duration_seconds") or 0
+            spent = float(spent)
+            if spent > 0:
+                walltime += spent
+                windows.append(int(round(spent)))
         if first is None or not built_any or walltime <= 0:
             continue
         out.append(
@@ -100,10 +135,53 @@ def targets_from_results(results_dir: Path) -> list[BaselineTarget]:
                     tier=Tier(first["tier"]),
                     language=str(first.get("language") or ""),
                 ),
-                fuzz_seconds=walltime,
+                fuzz_seconds=int(round(walltime)),
+                windows=windows,
             )
         )
     return out
+
+
+def _run_windows(
+    runner: LibFuzzerRunner, windows: list[int]
+) -> tuple[TSFuzzResult, list[Path]]:
+    """Fuzz in successive windows against one corpus; merge the stats.
+
+    Mirrors the hybrid's restart cadence (see ``BaselineTarget.windows``). The
+    corpus dir carries across windows, so later windows resume from what earlier
+    ones found — the same thing that happens on the hybrid side between harness
+    rewrites.
+    """
+    per_window: list[TSFuzzResult] = []
+    crashes: list[Path] = []
+    for w in windows:
+        res, found = runner.run(w)
+        per_window.append(res)
+        crashes.extend(found)
+
+    execs = [r.total_executions for r in per_window if r.total_executions is not None]
+    elapsed = [r.elapsed_seconds for r in per_window if r.elapsed_seconds is not None]
+    total_elapsed = sum(elapsed) if elapsed else None
+    total_execs = sum(execs) if execs else None
+    merged = TSFuzzResult(
+        duration_seconds=sum(r.duration_seconds for r in per_window),
+        elapsed_seconds=total_elapsed,
+        total_executions=total_execs,
+        execs_per_sec=(
+            total_execs / total_elapsed
+            if total_execs is not None and total_elapsed
+            else None
+        ),
+        # Coverage is a high-water mark, not a sum: the windows share a corpus, so
+        # adding them would count the same edges once per window.
+        coverage_pcs=max((r.coverage_pcs for r in per_window), default=0),
+        corpus_size=per_window[-1].corpus_size if per_window else None,
+        crashes_found=sum(r.crashes_found for r in per_window),
+        timed_out=any(r.timed_out for r in per_window),
+        oom_killed=any(r.oom_killed for r in per_window),
+        raw_log_tail=per_window[-1].raw_log_tail if per_window else "",
+    )
+    return merged, crashes
 
 
 def _classify_without_replay(crash_file: Path) -> str | None:
@@ -155,6 +233,7 @@ def run_baseline_grammar(
     target: GrammarTarget,
     *,
     fuzz_seconds: int,
+    windows: list[int] | None = None,
     cache_dir: Path = DEFAULT_CACHE,
     out_dir: Path = DEFAULT_OUT_DIR,
     max_len: int = 65536,
@@ -200,16 +279,17 @@ def run_baseline_grammar(
         runtime.gather_seeds(grammar_dir, corpus)
 
     # Fork mode keeps discovering distinct crashes past the first one — the fair
-    # analogue of the hybrid patching bug #1 to reach bug #2.
-    extra = ["-fork=1", "-ignore_crashes=1"] if fork else []
+    # analogue of the hybrid patching bug #1 to reach bug #2. The flags live on
+    # LibFuzzerRunner itself (fork_workers), so the hybrid arm gets the identical
+    # treatment; passing them through extra_flags here would double them up.
     runner = LibFuzzerRunner(
         binary=Path(build_result.binary_path or ""),
         corpus_dir=corpus,
         crashes_dir=crashes,
         max_len=max_len,
-        extra_flags=extra,
+        fork_workers=1 if fork else 0,
     )
-    fuzz_res, new_crashes = runner.run(fuzz_seconds)
+    fuzz_res, new_crashes = _run_windows(runner, windows or [fuzz_seconds])
 
     binary = Path(build_result.binary_path or "")
     distinct, capped = _distinct_crashes(binary, new_crashes)
@@ -265,6 +345,7 @@ def _run_one(
         return run_baseline_grammar(
             bt.target,
             fuzz_seconds=bt.fuzz_seconds,
+            windows=bt.schedule(),
             cache_dir=cache_dir,
             out_dir=out_dir,
             max_len=max_len,

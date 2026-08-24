@@ -6,9 +6,9 @@
 
   <!-- legend -->
   <rect x="500" y="24" width="11" height="11" rx="2.5" fill="#2a78d6"/>
-  <text x="516" y="33" font-size="11.5" fill="#52514e">LLM in loop</text>
+  <text x="516" y="33" font-size="11.5" fill="#52514e">LLM involved</text>
   <rect x="600" y="24" width="11" height="11" rx="2.5" fill="#eb6834"/>
-  <text x="616" y="33" font-size="11.5" fill="#52514e">plain libFuzzer</text>
+  <text x="616" y="33" font-size="11.5" fill="#52514e">no LLM at all</text>
 
   <!-- gridlines 0,5,10,15 ; x = 250 + v*28 -->
   <g stroke="#ededea" stroke-width="1">
@@ -35,7 +35,7 @@
 
   <!-- Row 2: tree-sitter hybrid = 10 -> width 280 -->
   <text x="238" y="145" font-size="12.5" fill="#0b0b0b" text-anchor="end" font-weight="600">tree-sitter grammars</text>
-  <text x="238" y="159" font-size="10.5" fill="#8a8983" text-anchor="end">hybrid (LLM in loop)</text>
+  <text x="238" y="159" font-size="10.5" fill="#8a8983" text-anchor="end">LLM-scaffolded survey (no LLM in loop)</text>
   <rect x="250" y="133" width="280" height="26" rx="4" fill="#2a78d6"/>
   <text x="542" y="151" font-size="13" font-weight="700" fill="#0b0b0b">10</text>
 
